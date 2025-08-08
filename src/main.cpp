@@ -1,12 +1,13 @@
 #include <format>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+
 #include "Program.hpp"
-#include "glm/detail/type_vec4.hpp"
+#include "Texture.hpp"
+
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -18,17 +19,18 @@ void processInput(GLFWwindow *window) {
 }
 
 GLuint create_object() {
-    static constexpr float vertices[] = {
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
+    float vertices[] = {
+        // positions          // colors           // texture coords
+        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+    };
+    static constexpr unsigned indices[] = {
+        0, 1, 3,
+        1, 2, 3,
     };
 
-    static constexpr unsigned indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3 // second triangle
-    };
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -44,11 +46,14 @@ GLuint create_object() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
 
     glBindVertexArray(0);
@@ -57,10 +62,6 @@ GLuint create_object() {
 
     return vao;
 }
-
-void render() {
-}
-
 
 int main() {
     glfwInit();
@@ -88,7 +89,20 @@ int main() {
     glViewport(0, 0, 800, 600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    wrld::Program program("src/shaders/program.glsl");
+    const wrld::Program program("src/shaders/program.glsl");
+
+    const wrld::Texture texture("data/textures/isabelle.jpg");
+
+    // Texture sampling parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Mipmap parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     GLint vao = create_object();
 
@@ -98,7 +112,7 @@ int main() {
         const auto time = static_cast<float>(glfwGetTime());
         const float color = time - static_cast<int>(time);
 
-        glClearColor(color, color, 0.3f, 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Rendering
@@ -106,6 +120,7 @@ int main() {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
             program.use();
+            texture.use();
             glBindVertexArray(vao);
 
             // Set uniforms
