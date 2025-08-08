@@ -5,39 +5,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-GLint load_shader(const std::string &shader_file, GLint type) {
-    std::ifstream file(shader_file);
-
-    if (!file.is_open()) {
-        std::cerr << std::format("Failed to load shader {}", shader_file) << std::endl;
-        std::exit(1);
-    }
-
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string shader_source = buffer.str();
-    const char *shader_source_str = shader_source.c_str();
-
-    file.close();
-
-    GLint vertex_shader = glCreateShader(type);
-
-    glShaderSource(vertex_shader, 1, &shader_source_str, nullptr);
-    glCompileShader(vertex_shader);
-
-    // Check compilation error
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        glGetShaderInfoLog(vertex_shader, 512, nullptr, infoLog);
-        std::cerr << std::format("Failed to compile shader {}: {}", shader_file, infoLog) << std::endl;
-        std::exit(1);
-    }
-
-    return vertex_shader;
-}
+#include "Program.hpp"
+#include "glm/detail/type_vec4.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -50,10 +19,10 @@ void processInput(GLFWwindow *window) {
 
 GLuint create_object() {
     static constexpr float vertices[] = {
-        0.5f, 0.5f, 0.0f, // top right
-        0.5f, -0.5f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f // top left
+        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
     };
 
     static constexpr unsigned indices[] = {
@@ -75,8 +44,16 @@ GLuint create_object() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     return vao;
 }
@@ -111,13 +88,7 @@ int main() {
     glViewport(0, 0, 800, 600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    GLint vertex_shader = load_shader("src/shaders/vertex.glsl", GL_VERTEX_SHADER);
-    GLint fragment_shader = load_shader("src/shaders/fragment.glsl", GL_FRAGMENT_SHADER);
-
-    GLint shader_program = glCreateProgram();
-    glAttachShader(shader_program, vertex_shader);
-    glAttachShader(shader_program, fragment_shader);
-    glLinkProgram(shader_program);
+    wrld::Program program("src/shaders/program.glsl");
 
     GLint vao = create_object();
 
@@ -132,10 +103,13 @@ int main() {
 
         // Rendering
         {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-            glUseProgram(shader_program);
+            program.use();
             glBindVertexArray(vao);
+
+            // Set uniforms
+            //program.set_uniform("vColor", glm::vec4(0.0f, 1.0f, 1 - color, 1.0f));
 
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
@@ -145,9 +119,6 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
 
     glfwTerminate();
 
