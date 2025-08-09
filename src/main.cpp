@@ -91,7 +91,7 @@ int main() {
 
     const wrld::Program program("src/shaders/program.glsl");
 
-    const wrld::Texture texture("data/textures/isabelle.jpg");
+    const wrld::Texture texture("data/textures/container.jpg");
 
     // Texture sampling parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -124,6 +124,7 @@ int main() {
             glBindVertexArray(vao);
 
             // Set uniforms
+            program.set_uniform("myTexture", 0);
             //program.set_uniform("vColor", glm::vec4(0.0f, 1.0f, 1 - color, 1.0f));
 
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
