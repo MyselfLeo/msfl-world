@@ -11,7 +11,6 @@
 #include "Texture.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 
-
 void framebuffer_size_callback(GLFWwindow *window, const int width, const int height) {
     glViewport(0, 0, width, height);
 }
@@ -130,7 +129,14 @@ int main() {
 
     const GLuint vao = create_object();
 
-    const wrld::Camera &camera{glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f)};
+    wrld::Camera camera{window};
+    camera.set_position({0.0, 0.0, -3.0});
+
+    glm::vec3 cubePositions[] = {glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
+                                 glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
+                                 glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
+                                 glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
+                                 glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -149,16 +155,24 @@ int main() {
             texture.use();
             glBindVertexArray(vao);
 
-            // Set uniforms
-            program.set_uniform("myTexture", 0);
-            program.set_uniform(
-                    "model", glm::rotate(glm::mat4x4(1.0f), glm::radians(std::sin(time) * 180.0f), glm::vec3(1, 1, 0)));
-            program.set_uniform("view", camera.view_matrix());
-            program.set_uniform("projection", camera.projection_matrix());
-            // program.set_uniform("vColor", glm::vec4(0.0f, 1.0f, 1 - color, 1.0f));
+            camera.set_rotation({0, 0, sin(time)});
 
-            // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            for (const auto &pos: cubePositions) {
+                // Set uniforms
+                program.set_uniform("myTexture", 0);
+                // program.set_uniform("model", glm::translate(pos));
+
+                // program.set_uniform("model", glm::translate(pos) * glm::rotate(glm::mat4x4(1.0f),
+                //                                                                glm::radians(std::sin(time) * 360.0f),
+                //                                                                glm::vec3(1, 1, 0)));
+                program.set_uniform("model", glm::translate(pos));
+                program.set_uniform("view", camera.view_matrix());
+                program.set_uniform("projection", camera.projection_matrix());
+                // program.set_uniform("vColor", glm::vec4(0.0f, 1.0f, 1 - color, 1.0f));
+
+                // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+            }
 
             glBindVertexArray(0);
         }
