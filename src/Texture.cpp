@@ -11,7 +11,7 @@
 
 
 namespace wrld {
-    Texture::Texture(const std::string &texture_path) {
+    Texture::Texture(const std::string &texture_path) { // NOLINT(*-pro-type-member-init)
         stbi_set_flip_vertically_on_load(true);
 
         // Load texture file
@@ -25,8 +25,6 @@ namespace wrld {
         if (nb_channels != 3) {
             throw std::runtime_error("Only RGB images are supported for now");
         }
-
-        std::cout << std::format("width: {}  heigth: {}   nb_channels:  {}", width, height, nb_channels) << std::endl;
 
         glGenTextures(1, &gl_texture);
         glBindTexture(GL_TEXTURE_2D, gl_texture);
