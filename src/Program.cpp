@@ -9,26 +9,34 @@
 #include <iostream>
 #include <regex>
 
+#include "glm/gtc/type_ptr.inl"
+
 namespace wrld {
     std::string get_type_name(ShaderType type) {
         switch (type) {
-            case VERTEX_SHADER: return "VERTEX_SHADER";
-            case FRAGMENT_SHADER: return "FRAGMENT_SHADER";
-            default: throw std::runtime_error(std::format("Invalid shader type"));
+            case VERTEX_SHADER:
+                return "VERTEX_SHADER";
+            case FRAGMENT_SHADER:
+                return "FRAGMENT_SHADER";
+            default:
+                throw std::runtime_error(std::format("Invalid shader type"));
         }
     }
 
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
-    Program::Program(const std::string &combined_shader_path): Program(combined_shader_path, combined_shader_path) {
-    }
+    Program::Program(const std::string &combined_shader_path) : Program(combined_shader_path, combined_shader_path) {}
 
     Program::Program(const std::string &vertex_shader_path, const std::string &fragment_shader_path) {
         // Create both shaders
         vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-        if (vertex_shader == 0) { throw std::runtime_error("Unable to create OpenGL vertex shader object"); }
+        if (vertex_shader == 0) {
+            throw std::runtime_error("Unable to create OpenGL vertex shader object");
+        }
 
         fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-        if (fragment_shader == 0) { throw std::runtime_error("Unable to create OpenGL fragment shader object"); }
+        if (fragment_shader == 0) {
+            throw std::runtime_error("Unable to create OpenGL fragment shader object");
+        }
 
         // Compile the shaders, check for error
         compile_shader(vertex_shader, vertex_shader_path, VERTEX_SHADER);
@@ -36,7 +44,9 @@ namespace wrld {
 
         // Create the program
         gl_program = glCreateProgram();
-        if (gl_program == 0) { throw std::runtime_error("Unable to create OpenGL program object"); }
+        if (gl_program == 0) {
+            throw std::runtime_error("Unable to create OpenGL program object");
+        }
 
         glAttachShader(gl_program, vertex_shader);
         glAttachShader(gl_program, fragment_shader);
@@ -49,36 +59,51 @@ namespace wrld {
         glDeleteProgram(gl_program);
     }
 
-    void Program::use() const {
-        glUseProgram(gl_program);
-    }
+    void Program::use() const { glUseProgram(gl_program); }
 
     void Program::set_uniform(const std::string &uniform, const float value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
-        if (uniform_loc == -1) { throw std::runtime_error(std::format("Undefined uniform '{}'", uniform)); }
+        if (uniform_loc == -1) {
+            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+        }
 
         glUniform1f(uniform_loc, value);
     }
 
     void Program::set_uniform(const std::string &uniform, const int value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
-        if (uniform_loc == -1) { throw std::runtime_error(std::format("Undefined uniform '{}'", uniform)); }
+        if (uniform_loc == -1) {
+            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+        }
 
         glUniform1i(uniform_loc, value);
     }
 
     void Program::set_uniform(const std::string &uniform, const glm::vec3 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
-        if (uniform_loc == -1) { throw std::runtime_error(std::format("Undefined uniform '{}'", uniform)); }
+        if (uniform_loc == -1) {
+            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+        }
 
         glUniform3f(uniform_loc, value[0], value[1], value[2]);
     }
 
     void Program::set_uniform(const std::string &uniform, const glm::vec4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
-        if (uniform_loc == -1) { throw std::runtime_error(std::format("Undefined uniform '{}'", uniform)); }
+        if (uniform_loc == -1) {
+            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+        }
 
         glUniform4f(uniform_loc, value[0], value[1], value[2], value[3]);
+    }
+
+    void Program::set_uniform(const std::string &uniform, const glm::mat4x4 &value) const {
+        const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
+        if (uniform_loc == -1) {
+            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+        }
+
+        glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(value));
     }
 
     std::string Program::read_file(const std::string &path) {
@@ -108,8 +133,7 @@ namespace wrld {
         }
 
         if (match.size() > 1)
-            throw std::runtime_error(
-                std::format("Multiple #version directives found in the shader."));
+            throw std::runtime_error(std::format("Multiple #version directives found in the shader."));
 
         // Remove this same line from the source
         std::string stripped_source = std::regex_replace(shader_source, re, "");
@@ -143,4 +167,4 @@ namespace wrld {
             throw std::runtime_error(std::format("Failed to compile shader {}: {}", shader_path, infoLog));
         }
     }
-}
+} // namespace wrld

@@ -23,6 +23,12 @@ add_executable(msfl_world
         src/Program.cpp
         src/Texture.hpp
         src/Texture.cpp
+        src/Mesh.hpp
+        src/Mesh.cpp
+        src/Object.hpp
+        src/Object.cpp
+        src/Camera.cpp
+        src/Camera.hpp
 )
 
 target_link_libraries(msfl_world glfw glm_static)

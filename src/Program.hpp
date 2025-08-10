@@ -12,11 +12,10 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include "glm/mat4x4.hpp"
+
 namespace wrld {
-    enum ShaderType {
-        VERTEX_SHADER,
-        FRAGMENT_SHADER
-    };
+    enum ShaderType { VERTEX_SHADER, FRAGMENT_SHADER };
 
     std::string get_type_name(ShaderType type);
 
@@ -43,6 +42,8 @@ namespace wrld {
 
         void set_uniform(const std::string &uniform, const glm::vec4 &value) const;
 
+        void set_uniform(const std::string &uniform, const glm::mat4x4 &value) const;
+
     private:
         GLuint vertex_shader;
         GLuint fragment_shader;
@@ -57,6 +58,6 @@ namespace wrld {
 
         static void compile_shader(GLuint gl_shader, const std::string &shader_path, ShaderType type);
     };
-}
+} // namespace wrld
 
-#endif //PROGRAM_HPP
+#endif // PROGRAM_HPP
