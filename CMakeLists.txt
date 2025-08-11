@@ -29,6 +29,12 @@ add_executable(msfl_world
         src/Object.cpp
         src/Camera.cpp
         src/Camera.hpp
+        src/Component.cpp
+        src/Component.hpp
+        src/World.cpp
+        src/World.hpp
+        src/cmpnt/Transform.cpp
+        src/cmpnt/Transform.hpp
 )
 
 target_link_libraries(msfl_world glfw glm_static)

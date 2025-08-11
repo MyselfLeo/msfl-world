@@ -9,6 +9,8 @@
 #include "Camera.hpp"
 #include "Program.hpp"
 #include "Texture.hpp"
+#include "World.hpp"
+#include "cmpnt/Transform.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, const int width, const int height) {
@@ -85,6 +87,13 @@ GLuint create_object() {
 }
 
 int main() {
+    wrld::World world;
+    wrld::EntityID entity = world.create_entity();
+
+    auto transform = world.attach_component<wrld::Transform>(entity);
+    transform->set_position({3.0, 2.0, 1.0});
+
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
