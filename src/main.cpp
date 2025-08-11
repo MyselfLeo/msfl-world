@@ -169,12 +169,13 @@ int main() {
             for (const auto &pos: cubePositions) {
                 // Set uniforms
                 program.set_uniform("myTexture", 0);
-                // program.set_uniform("model", glm::translate(pos));
 
-                // program.set_uniform("model", glm::translate(pos) * glm::rotate(glm::mat4x4(1.0f),
-                //                                                                glm::radians(std::sin(time) * 360.0f),
-                //                                                                glm::vec3(1, 1, 0)));
-                program.set_uniform("model", glm::translate(pos));
+                program.set_uniform("model",
+                                    glm::translate(pos) *
+                                            glm::rotate(glm::mat4x4(1.0f),
+                                                        glm::radians((float) std::sin(time + M_PI / 2.0f) * 360.0f),
+                                                        glm::vec3(1, 1, 0)));
+                // program.set_uniform("model", glm::translate(pos));
                 program.set_uniform("view", camera.view_matrix());
                 program.set_uniform("projection", camera.projection_matrix());
                 // program.set_uniform("vColor", glm::vec4(0.0f, 1.0f, 1 - color, 1.0f));
