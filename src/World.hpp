@@ -29,8 +29,8 @@ namespace wrld {
 
         /// Attach a new component of the given type to the entity,
         /// returning a reference to it.
-        template<typename T>
-        std::shared_ptr<T> attach_component(const EntityID id) {
+        template<typename T, typename... Args>
+        std::shared_ptr<T> attach_component(const EntityID id, Args &&...args) {
             static_assert(std::is_base_of_v<Component, T>, "The Component's type must inherit Component");
 
             if (!exists(id))
@@ -44,7 +44,7 @@ namespace wrld {
                 throw std::runtime_error("The entity already has a component of this type.");
 
             // Returns the created component
-            auto new_comp = std::make_shared<T>(id, *this);
+            auto new_comp = std::make_shared<T>(id, *this, std::forward<Args>(args)...);
             components[std::type_index(typeid(T))][id] = new_comp;
             return new_comp;
         }

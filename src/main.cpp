@@ -7,11 +7,11 @@
 
 
 #include "Camera.hpp"
-#include "Program.hpp"
-#include "Texture.hpp"
+#include "resources/Program.hpp"
 #include "World.hpp"
-#include "cmpnt/Transform.hpp"
+#include "components/TransformComponent.hpp"
 #include "glm/gtx/rotate_vector.hpp"
+#include "resources/Texture.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, const int width, const int height) {
     glViewport(0, 0, width, height);
@@ -90,7 +90,7 @@ int main() {
     wrld::World world;
     wrld::EntityID entity = world.create_entity();
 
-    auto transform = world.attach_component<wrld::Transform>(entity);
+    auto transform = world.attach_component<wrld::TransformComponent>(entity, glm::vec3{3.0, 2.0, 1.0});
     transform->set_position({3.0, 2.0, 1.0});
 
 

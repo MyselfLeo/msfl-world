@@ -13,7 +13,9 @@ namespace wrld {
     class World;
 
     /// Base class for all components.
-    /// You SHOULD NOT override
+    /// Any derived class must possess a constructor expecting EntityID and World& as their
+    /// first two parameters (in order to initialise the base class).
+    /// This constructor will be called by World::attach_component.
     class Component {
     public:
         virtual ~Component() = default;
