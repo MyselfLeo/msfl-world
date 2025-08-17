@@ -10,7 +10,8 @@
 #include <stdexcept>
 
 namespace wrld {
-    Texture::Texture(const std::string &texture_path) { // NOLINT(*-pro-type-member-init)
+    Texture::Texture(const std::string &texture_path, const aiTextureType type) :
+        path(texture_path), type(type), gl_texture(0) {
         stbi_set_flip_vertically_on_load(true);
 
         // Load texture file
@@ -33,8 +34,26 @@ namespace wrld {
         stbi_image_free(data);
     }
 
-    void Texture::use() const {
-        glActiveTexture(GL_TEXTURE0);
+    Texture::Texture(Texture &&other) noexcept :
+        gl_texture(other.gl_texture), path(std::move(other.path)), type(other.type) {
+        other.gl_texture = 0;
+    }
+
+    Texture &Texture::operator=(Texture &&other) noexcept {
+        if (gl_texture != 0)
+            glDeleteTextures(1, &gl_texture);
+
+        gl_texture = other.gl_texture;
+        path = std::move(other.path);
+        type = other.type;
+
+        other.gl_texture = 0;
+
+        return *this;
+    }
+
+    void Texture::use(const unsigned unit) const {
+        glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, gl_texture);
     }
 

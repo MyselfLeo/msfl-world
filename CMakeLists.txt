@@ -31,8 +31,6 @@ add_executable(msfl_world
         src/resources/Program.cpp
         src/resources/Texture.hpp
         src/resources/Texture.cpp
-        src/resources/Mesh.hpp
-        src/resources/Mesh.cpp
         src/Camera.cpp
         src/Camera.hpp
         src/Component.cpp
@@ -47,6 +45,10 @@ add_executable(msfl_world
         src/components/CameraComponent.hpp
         src/resources/Model.cpp
         src/resources/Model.hpp
+        src/systems/RendererSystem.cpp
+        src/systems/RendererSystem.hpp
+        src/System.cpp
+        src/System.hpp
 )
 
 target_link_libraries(msfl_world glfw glm_static assimp)

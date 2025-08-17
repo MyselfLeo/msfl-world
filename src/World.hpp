@@ -8,11 +8,13 @@
 
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <stdexcept>
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace wrld {
     typedef size_t EntityID;
@@ -61,10 +63,26 @@ namespace wrld {
             return static_pointer_cast<T>(components[std::type_index(typeid(T))][id]);
         }
 
+        /// Return a vector of entities that have the given type
+        /// of component attached to them.
+        template<typename T>
+        std::vector<EntityID> get_entities_with_component() {
+            std::vector<EntityID> res;
+            res.reserve(components[std::type_index(typeid(T))].size());
+
+            for (const auto k: components[std::type_index(typeid(T))] | std::views::keys) {
+                res.push_back(k);
+            }
+
+            return res;
+        }
+
         /// Returns true if the given entity id exists in this world.
         bool exists(EntityID id) const;
 
     private:
+        friend class System;
+
         std::unordered_set<EntityID> entities;
 
         // Access a component first by type then by entity ID.

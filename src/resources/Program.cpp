@@ -12,7 +12,7 @@
 #include "glm/gtc/type_ptr.inl"
 
 namespace wrld {
-    std::string get_type_name(ShaderType type) {
+    std::string get_type_name(const ShaderType type) {
         switch (type) {
             case VERTEX_SHADER:
                 return "VERTEX_SHADER";
@@ -146,7 +146,6 @@ namespace wrld {
 
         return res;
     }
-
 
     void Program::compile_shader(const GLuint gl_shader, const std::string &shader_path, const ShaderType type) {
         const std::string shader_src = read_file(shader_path);

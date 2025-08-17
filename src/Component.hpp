@@ -21,7 +21,7 @@ namespace wrld {
         virtual ~Component() = default;
         Component(EntityID entity_id, World &world);
 
-    private:
+    protected:
         EntityID entity_id;
         World &world;
     };

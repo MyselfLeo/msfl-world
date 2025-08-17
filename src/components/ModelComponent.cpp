@@ -4,4 +4,11 @@
 
 #include "ModelComponent.hpp"
 
-namespace wrld {} // namespace wrld
+namespace wrld {
+    ModelComponent::ModelComponent(const EntityID entity_id, World &world, const Model &model) :
+        Component(entity_id, world), model(model) {}
+
+    const Model &ModelComponent::get_model() const { return model; }
+
+    void ModelComponent::set_model(const Model &model) { this->model = model; }
+} // namespace wrld

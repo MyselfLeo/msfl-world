@@ -25,7 +25,7 @@ namespace wrld {
         void set_rotation(const glm::quat &rotation);
         void set_scale(const glm::vec3 &scale);
 
-        glm::mat4x4 model_matrix() const;
+        [[nodiscard]] glm::mat4x4 model_matrix() const;
 
     private:
         glm::vec3 position;
