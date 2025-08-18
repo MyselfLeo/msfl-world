@@ -4,6 +4,7 @@
 
 #include "Model.hpp"
 
+#include "Logs.hpp"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -35,9 +36,15 @@ namespace wrld {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<void *>(offsetof(Vertex, normal)));
 
-        // Vertex texture coordinates
+        // Vertex colors
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              reinterpret_cast<void *>(offsetof(Vertex, color)));
+
+
+        // Vertex texture coordinates
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<void *>(offsetof(Vertex, texcoords)));
 
         glBindVertexArray(0);
@@ -150,9 +157,11 @@ namespace wrld {
             const aiVector3D &vertex_normal = mesh->mNormals[i];
             const aiVector3D &vertex_texcoords =
                     mesh->mTextureCoords[0] ? mesh->mTextureCoords[0][i] : aiVector3D{0, 0, 0};
+            const aiColor4D &vertex_color = mesh->mColors[0] ? mesh->mColors[0][i] : aiColor4D{1.0, 1.0, 1.0, 1.0};
 
             vertex.position = {vertex_pos.x, vertex_pos.y, vertex_pos.z};
             vertex.normal = {vertex_normal.x, vertex_normal.y, vertex_normal.z};
+            vertex.color = {vertex_color.r, vertex_color.g, vertex_color.b};
             vertex.texcoords = {vertex_texcoords.x, vertex_texcoords.y};
 
             new_mesh.vertices.push_back(vertex);

@@ -7,6 +7,7 @@
 
 #include "RendererSystem.hpp"
 
+#include "Logs.hpp"
 #include "components/ModelComponent.hpp"
 #include "components/TransformComponent.hpp"
 
@@ -15,7 +16,7 @@
 
 namespace wrld {
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
-        System(world), window(window), default_program({"wrld/shaders/default_program.glsl"}) {}
+        System(world), window(window), model_program({"wrld/shaders/model.glsl"}) {}
 
     RendererSystem::~RendererSystem() = default;
 
@@ -73,10 +74,10 @@ namespace wrld {
 
     void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix, const glm::mat4x4 &view_matrix,
                                     const glm::mat4x4 &projection_matrix) const {
-        default_program.use();
-        default_program.set_uniform("model", model_matrix);
-        default_program.set_uniform("view", view_matrix);
-        default_program.set_uniform("projection", projection_matrix);
+        model_program.use();
+        model_program.set_uniform("model", model_matrix);
+        model_program.set_uniform("view", view_matrix);
+        model_program.set_uniform("projection", projection_matrix);
 
 
         std::vector<std::shared_ptr<MeshGraphNode>> node_stack;
@@ -99,20 +100,19 @@ namespace wrld {
 
     void RendererSystem::draw_mesh(const Mesh &mesh) const {
         // Load texture uniforms to the shader
-        default_program.use();
+        model_program.use();
         int i = 0;
 
         // Add textures as uniforms (sampler2D)
+        model_program.set_uniform("use_texture", !mesh.textures.empty());
         for (const auto &[name, texture]: mesh.textures) {
             texture->use(i);
-
             try {
-                default_program.set_uniform(name, i);
+                model_program.set_uniform(name, i);
             } catch (const std::runtime_error &_) {
                 // not doing anything. If the shader doesn't expect a particular
                 // texture, it's its bad
             }
-
             i += 1;
         }
         glActiveTexture(GL_TEXTURE0);

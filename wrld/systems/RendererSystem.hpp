@@ -21,7 +21,7 @@ namespace wrld {
 
     private:
         GLFWwindow *window;
-        Program default_program;
+        Program model_program;
 
         glm::mat4x4 get_entity_transform(EntityID id) const;
 

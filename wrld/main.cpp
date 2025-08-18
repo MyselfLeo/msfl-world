@@ -162,16 +162,20 @@ int main() {
     GLFWwindow *window = init_gl(800, 600);
 
     wrldInfo("Loading model");
-    wrld::Model model("data/models/backpack/backpack.obj");
-    // wrld::Model model("data/models/cube/cube.obj");
+    wrld::Model backpack_model("data/models/backpack/backpack.obj");
+    wrld::Model myshape_model("data/models/myshape/myshape.obj");
+    //   wrld::Model model("data/models/cube/cube.obj");
 
     wrld::World world;
 
     wrldInfo("Creating entities");
-    // Create 2 entites: a camera (than can move) and a backpack (with a model and a way to move)
     const wrld::EntityID backpack = world.create_entity();
-    world.attach_component<wrld::ModelComponent>(backpack, model);
-    world.attach_component<wrld::TransformComponent>(backpack);
+    world.attach_component<wrld::ModelComponent>(backpack, backpack_model);
+    world.attach_component<wrld::TransformComponent>(backpack, glm::vec3{2.0, 0.0, 0.0});
+
+    const wrld::EntityID myshape = world.create_entity();
+    world.attach_component<wrld::ModelComponent>(myshape, myshape_model);
+    world.attach_component<wrld::TransformComponent>(myshape, glm::vec3{-2.0, 0.0, 0.0});
 
     const wrld::EntityID camera = world.create_entity();
     world.attach_component<wrld::CameraComponent>(camera, 45);
@@ -184,9 +188,15 @@ int main() {
 
         // Rotate backpack
         const auto ROTATION_RATE = glm::quat(glm::vec3{0, 0.01, 0});
+
         const auto backpack_transform = world.get_component<wrld::TransformComponent>(backpack).value();
-        const auto curr_rotation = backpack_transform->get_rotation();
+        auto curr_rotation = backpack_transform->get_rotation();
         backpack_transform->set_rotation(ROTATION_RATE * curr_rotation);
+
+        const auto myshape_transform = world.get_component<wrld::TransformComponent>(myshape).value();
+        curr_rotation = myshape_transform->get_rotation();
+        myshape_transform->set_rotation(ROTATION_RATE * curr_rotation);
+
 
         renderer.exec();
 
