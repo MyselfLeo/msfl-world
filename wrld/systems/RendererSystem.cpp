@@ -15,7 +15,7 @@
 
 namespace wrld {
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
-        System(world), window(window), default_program({"src/shaders/default_program.glsl"}) {}
+        System(world), window(window), default_program({"wrld/shaders/default_program.glsl"}) {}
 
     RendererSystem::~RendererSystem() = default;
 

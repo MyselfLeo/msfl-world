@@ -17,7 +17,7 @@ set(ASSIMP_BUILD_ASSIMP_VIEW Off)
 add_subdirectory(lib/assimp-6.0.2)
 
 include_directories(lib/glad/include lib/glfw-3.4/include lib/glm lib/stb_image lib/assimp-6.0.2/include)
-include_directories(src)
+include_directories(wrld)
 
 add_executable(msfl_world
 
@@ -26,29 +26,30 @@ add_executable(msfl_world
         lib/stb_image/stb_image.cpp
 
         # Source code
-        src/main.cpp
-        src/resources/Program.hpp
-        src/resources/Program.cpp
-        src/resources/Texture.hpp
-        src/resources/Texture.cpp
-        src/Camera.cpp
-        src/Camera.hpp
-        src/Component.cpp
-        src/Component.hpp
-        src/World.cpp
-        src/World.hpp
-        src/components/TransformComponent.cpp
-        src/components/TransformComponent.hpp
-        src/components/ModelComponent.cpp
-        src/components/ModelComponent.hpp
-        src/components/CameraComponent.cpp
-        src/components/CameraComponent.hpp
-        src/resources/Model.cpp
-        src/resources/Model.hpp
-        src/systems/RendererSystem.cpp
-        src/systems/RendererSystem.hpp
-        src/System.cpp
-        src/System.hpp
+        wrld/main.cpp
+        wrld/resources/Program.hpp
+        wrld/resources/Program.cpp
+        wrld/resources/Texture.hpp
+        wrld/resources/Texture.cpp
+        wrld/Camera.cpp
+        wrld/Camera.hpp
+        wrld/Component.cpp
+        wrld/Component.hpp
+        wrld/World.cpp
+        wrld/World.hpp
+        wrld/components/TransformComponent.cpp
+        wrld/components/TransformComponent.hpp
+        wrld/components/ModelComponent.cpp
+        wrld/components/ModelComponent.hpp
+        wrld/components/CameraComponent.cpp
+        wrld/components/CameraComponent.hpp
+        wrld/resources/Model.cpp
+        wrld/resources/Model.hpp
+        wrld/systems/RendererSystem.cpp
+        wrld/systems/RendererSystem.hpp
+        wrld/System.cpp
+        wrld/System.hpp
+        wrld/Logs.hpp
 )
 
 target_link_libraries(msfl_world glfw glm_static assimp)
