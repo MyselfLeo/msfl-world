@@ -52,4 +52,4 @@ add_executable(msfl_world
         wrld/Logs.hpp
 )
 
-target_link_libraries(msfl_world glfw glm_static assimp)
+target_link_libraries(msfl_world glfw glm assimp)
