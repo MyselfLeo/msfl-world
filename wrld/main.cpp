@@ -12,6 +12,7 @@
 #include "World.hpp"
 #include "components/CameraComponent.hpp"
 #include "components/ModelComponent.hpp"
+#include "components/PointLightComponent.hpp"
 #include "components/TransformComponent.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 #include "resources/Texture.hpp"
@@ -109,7 +110,7 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
 }
 
 GLFWwindow *init_gl(int width, int height) {
-    wrldInfo("Initialisation of OpenGL context");
+    wrldInfo("Initialising OpenGL context");
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -153,7 +154,7 @@ int main() {
     wrldInfo("Loading model");
     Model backpack_model("data/models/backpack/backpack.obj");
     Model myshape_model("data/models/myshape/myshape.obj");
-    //   Model model("data/models/cube/cube.obj");
+    Model cube_model("data/models/cube/cube.obj");
 
     World world;
 
@@ -170,9 +171,16 @@ int main() {
     world.attach_component<CameraComponent>(camera, 45);
     world.attach_component<TransformComponent>(camera, glm::vec3{0.0, 0.0, -8.0});
 
+    const EntityID light = world.create_entity();
+    world.attach_component<PointLightComponent>(light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
+    const auto light_transform = world.attach_component<TransformComponent>(light);
+    world.attach_component<ModelComponent>(light, cube_model);
+    light_transform->set_scale(glm::vec3{0.1, 0.1, 0.1});
+
     RendererSystem renderer{world, window};
 
     while (!glfwWindowShouldClose(window)) {
+        const double time = glfwGetTime();
         processInput(window);
 
         // Rotate backpack
@@ -185,6 +193,8 @@ int main() {
         const auto myshape_transform = world.get_component<TransformComponent>(myshape);
         curr_rotation = myshape_transform->get_rotation();
         myshape_transform->set_rotation(ROTATION_RATE * curr_rotation);
+
+        light_transform->set_position({0, sin(time) * 4, 0});
 
 
         renderer.exec();

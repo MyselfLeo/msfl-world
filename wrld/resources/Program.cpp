@@ -64,7 +64,8 @@ namespace wrld {
     void Program::set_uniform(const std::string &uniform, const float value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            return;
         }
 
         glUniform1f(uniform_loc, value);
@@ -73,7 +74,8 @@ namespace wrld {
     void Program::set_uniform(const std::string &uniform, const int value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            return;
         }
 
         glUniform1i(uniform_loc, value);
@@ -82,7 +84,8 @@ namespace wrld {
     void Program::set_uniform(const std::string &uniform, const glm::vec3 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            return;
         }
 
         glUniform3f(uniform_loc, value[0], value[1], value[2]);
@@ -91,7 +94,8 @@ namespace wrld {
     void Program::set_uniform(const std::string &uniform, const glm::vec4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            return;
         }
 
         glUniform4f(uniform_loc, value[0], value[1], value[2], value[3]);
@@ -100,7 +104,8 @@ namespace wrld {
     void Program::set_uniform(const std::string &uniform, const glm::mat4x4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            return;
         }
 
         glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(value));

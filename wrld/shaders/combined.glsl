@@ -1,3 +1,5 @@
+// We can combine all shaders for the pipeline in one file.
+
 #version 460 core
 
 #ifdef VERTEX_SHADER

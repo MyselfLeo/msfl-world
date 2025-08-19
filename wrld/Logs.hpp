@@ -7,5 +7,5 @@
 
 #define wrldInfo(txt) (std::cout << "[wrld:info] " << txt << std::endl)
 #define wrldError(txt) (std::cerr << "[wrld:error] " << txt << std::endl)
-
+#define wrldVar(variable) (std::cout << "[wrld:var] " << #variable << " = " << variable << std::endl)
 #endif // LOGS_HPP

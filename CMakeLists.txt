@@ -50,6 +50,8 @@ add_executable(msfl_world
         wrld/System.cpp
         wrld/System.hpp
         wrld/Logs.hpp
+        wrld/components/PointLightComponent.cpp
+        wrld/components/PointLightComponent.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp)
