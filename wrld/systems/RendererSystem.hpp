@@ -23,12 +23,12 @@ namespace wrld {
         GLFWwindow *window;
         Program model_program;
 
-        glm::mat4x4 get_entity_transform(EntityID id) const;
+        [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;
 
-        /// Return the active camera component.
-        /// For now it's the first found.
-        std::optional<std::shared_ptr<CameraComponent>> get_camera() const;
-        Model get_entity_model(EntityID id) const;
+        /// Return the active camera component (for now, the first CameraComponent found).
+        /// Returns std::nullopt if there is none.
+        [[nodiscard]] std::optional<std::shared_ptr<CameraComponent>> get_camera() const;
+        [[nodiscard]] Model get_entity_model(EntityID id) const;
 
         void draw_model(const Model &model, const glm::mat4x4 &model_matrix, const glm::mat4x4 &view_matrix,
                         const glm::mat4x4 &projection_matrix) const;

@@ -20,7 +20,7 @@ namespace wrld {
     void CameraComponent::set_fov(const float fov) { this->fov = fov; }
 
     glm::mat4x4 CameraComponent::get_view_matrix() const {
-        if (const auto transform_cmpnt = world.get_component<TransformComponent>(entity_id)) {
+        if (const auto transform_cmpnt = world.get_component_opt<TransformComponent>(entity_id)) {
             return transform_cmpnt.value()->model_matrix();
         }
         return glm::mat4x4(1.0);

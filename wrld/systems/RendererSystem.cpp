@@ -42,7 +42,7 @@ namespace wrld {
                  const auto entity: model_entities) {
                 glm::mat4x4 model_matrix = get_entity_transform(entity);
 
-                const auto model_cmpnt = world.get_component<ModelComponent>(entity).value();
+                const auto model_cmpnt = world.get_component_opt<ModelComponent>(entity).value();
                 const Model &model = model_cmpnt->get_model();
 
                 // Actual draw call
@@ -56,7 +56,7 @@ namespace wrld {
     GLFWwindow *RendererSystem::get_window() const { return window; }
 
     glm::mat4x4 RendererSystem::get_entity_transform(const EntityID id) const {
-        if (const auto transform_cmpnt = world.get_component<TransformComponent>(id))
+        if (const auto transform_cmpnt = world.get_component_opt<TransformComponent>(id))
             return transform_cmpnt.value()->model_matrix();
         return glm::mat4x4(1.0);
     }
@@ -64,12 +64,12 @@ namespace wrld {
     std::optional<std::shared_ptr<CameraComponent>> RendererSystem::get_camera() const {
         if (const std::vector camera_entities = world.get_entities_with_component<CameraComponent>();
             !camera_entities.empty())
-            return world.get_component<CameraComponent>(camera_entities[0]);
+            return world.get_component_opt<CameraComponent>(camera_entities[0]);
         return std::nullopt;
     }
 
     Model RendererSystem::get_entity_model(const EntityID id) const {
-        return world.get_component<ModelComponent>(id).value()->get_model();
+        return world.get_component_opt<ModelComponent>(id).value()->get_model();
     }
 
     void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix, const glm::mat4x4 &view_matrix,

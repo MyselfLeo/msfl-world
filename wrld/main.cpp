@@ -17,6 +17,8 @@
 #include "resources/Texture.hpp"
 #include "systems/RendererSystem.hpp"
 
+using namespace wrld;
+
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -142,19 +144,6 @@ GLFWwindow *init_gl(int width, int height) {
         glDebugMessageCallback(glDebugOutput, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
-
-    // Texture sampling parameters
-    wrldInfo("Definition of texture parameters");
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Mipmap parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
     return window;
 }
 
@@ -162,26 +151,26 @@ int main() {
     GLFWwindow *window = init_gl(800, 600);
 
     wrldInfo("Loading model");
-    wrld::Model backpack_model("data/models/backpack/backpack.obj");
-    wrld::Model myshape_model("data/models/myshape/myshape.obj");
-    //   wrld::Model model("data/models/cube/cube.obj");
+    Model backpack_model("data/models/backpack/backpack.obj");
+    Model myshape_model("data/models/myshape/myshape.obj");
+    //   Model model("data/models/cube/cube.obj");
 
-    wrld::World world;
+    World world;
 
     wrldInfo("Creating entities");
-    const wrld::EntityID backpack = world.create_entity();
-    world.attach_component<wrld::ModelComponent>(backpack, backpack_model);
-    world.attach_component<wrld::TransformComponent>(backpack, glm::vec3{2.0, 0.0, 0.0});
+    const EntityID backpack = world.create_entity();
+    world.attach_component<ModelComponent>(backpack, backpack_model);
+    world.attach_component<TransformComponent>(backpack, glm::vec3{2.0, 0.0, 0.0});
 
-    const wrld::EntityID myshape = world.create_entity();
-    world.attach_component<wrld::ModelComponent>(myshape, myshape_model);
-    world.attach_component<wrld::TransformComponent>(myshape, glm::vec3{-2.0, 0.0, 0.0});
+    const EntityID myshape = world.create_entity();
+    world.attach_component<ModelComponent>(myshape, myshape_model);
+    world.attach_component<TransformComponent>(myshape, glm::vec3{-2.0, 0.0, 0.0});
 
-    const wrld::EntityID camera = world.create_entity();
-    world.attach_component<wrld::CameraComponent>(camera, 45);
-    world.attach_component<wrld::TransformComponent>(camera, glm::vec3{0.0, 0.0, -8.0});
+    const EntityID camera = world.create_entity();
+    world.attach_component<CameraComponent>(camera, 45);
+    world.attach_component<TransformComponent>(camera, glm::vec3{0.0, 0.0, -8.0});
 
-    wrld::RendererSystem renderer{world, window};
+    RendererSystem renderer{world, window};
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -189,11 +178,11 @@ int main() {
         // Rotate backpack
         const auto ROTATION_RATE = glm::quat(glm::vec3{0, 0.01, 0});
 
-        const auto backpack_transform = world.get_component<wrld::TransformComponent>(backpack).value();
+        const auto backpack_transform = world.get_component<TransformComponent>(backpack);
         auto curr_rotation = backpack_transform->get_rotation();
         backpack_transform->set_rotation(ROTATION_RATE * curr_rotation);
 
-        const auto myshape_transform = world.get_component<wrld::TransformComponent>(myshape).value();
+        const auto myshape_transform = world.get_component<TransformComponent>(myshape);
         curr_rotation = myshape_transform->get_rotation();
         myshape_transform->set_rotation(ROTATION_RATE * curr_rotation);
 

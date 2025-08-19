@@ -6,6 +6,7 @@
 #define WORLD_HPP
 #include "Component.hpp"
 
+#include <format>
 #include <memory>
 #include <optional>
 #include <ranges>
@@ -51,14 +52,29 @@ namespace wrld {
             return new_comp;
         }
 
-        /// Returns a reference to the component of the given type
-        /// attached to the given object, if it exists.
+        /// Returns an optional pointer to the component of the given type
+        /// attached to the given object.
         template<typename T>
-        std::optional<std::shared_ptr<T>> get_component(const EntityID id) {
+        std::optional<std::shared_ptr<T>> get_component_opt(const EntityID id) {
             if (!components.contains(std::type_index(typeid(T))))
                 return std::nullopt;
             if (!components[std::type_index(typeid(T))].contains(id))
                 return std::nullopt;
+
+            return static_pointer_cast<T>(components[std::type_index(typeid(T))][id]);
+        }
+
+        /// Returns a pointer to the component of the given type attached to the
+        /// given object. Throws std::runtime_error if no component of this type
+        /// is attached to the object.
+        template<typename T>
+        std::shared_ptr<T> get_component(const EntityID id) {
+            if (!components.contains(std::type_index(typeid(T))))
+                throw std::runtime_error(
+                        std::format("Entity {} does not have a component {} attached to it", id, typeid(T).name()));
+            if (!components[std::type_index(typeid(T))].contains(id))
+                throw std::runtime_error(
+                        std::format("Entity {} does not have a component {} attached to it", id, typeid(T).name()));
 
             return static_pointer_cast<T>(components[std::type_index(typeid(T))][id]);
         }
