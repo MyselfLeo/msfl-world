@@ -172,7 +172,7 @@ int main() {
     world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, -8.0});
 
     const EntityID light = world.create_entity();
-    world.attach_component<cpt::PointLight>(light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
+    world.attach_component<cpt::PointLight>(light, glm::vec3{0.0, 1.0, 0.0}, 1.0);
     const auto light_transform = world.attach_component<cpt::Transform>(light);
     world.attach_component<cpt::StaticModel>(light, cube_model);
     light_transform->set_scale(glm::vec3{0.1, 0.1, 0.1});

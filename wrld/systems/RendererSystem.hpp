@@ -13,7 +13,7 @@
 namespace wrld {
     struct AmbiantLight {
         glm::vec3 color = {1.0, 1.0, 1.0};
-        float strength = 0.2;
+        float strength = 0.4;
     };
 
     struct PointLight {
