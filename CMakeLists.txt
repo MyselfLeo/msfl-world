@@ -52,6 +52,8 @@ add_executable(msfl_world
         wrld/Logs.hpp
         wrld/components/PointLight.cpp
         wrld/components/PointLight.hpp
+        wrld/components/DebugMove.cpp
+        wrld/components/DebugMove.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp)

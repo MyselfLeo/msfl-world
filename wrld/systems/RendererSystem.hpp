@@ -5,6 +5,7 @@
 #ifndef RENDERERSYSTEM_HPP
 #define RENDERERSYSTEM_HPP
 #include "System.hpp"
+#include "GLFW/glfw3.h"
 #include "components/Camera.hpp"
 #include "components/PointLight.hpp"
 #include "resources/Model.hpp"
@@ -27,7 +28,7 @@ namespace wrld {
         RendererSystem(World &world, GLFWwindow *window);
         ~RendererSystem() override;
         void exec() override;
-        GLFWwindow *get_window() const;
+        [[nodiscard]] GLFWwindow *get_window() const;
 
         void set_ambiant_light_color(const glm::vec3 &color);
         void set_ambiant_light_strength(float strength);

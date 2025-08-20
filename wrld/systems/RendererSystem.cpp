@@ -107,6 +107,10 @@ namespace wrld {
     void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix) const {
         model_program.set_uniform("model", model_matrix);
 
+        // Compute the model matrix specific to normals
+        const glm::mat4x4 normal_model_matrix = glm::transpose(glm::inverse(model_matrix));
+        model_program.set_uniform("model_normal", normal_model_matrix);
+
         std::vector<std::shared_ptr<MeshGraphNode>> node_stack;
         node_stack.push_back(model.get_root_mesh());
 

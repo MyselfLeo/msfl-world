@@ -44,6 +44,8 @@ namespace wrld {
 
         void set_uniform(const std::string &uniform, const glm::mat4x4 &value) const;
 
+        void set_uniform(const std::string &uniform, const glm::mat3x3 &value) const;
+
     private:
         GLuint vertex_shader;
         GLuint fragment_shader;

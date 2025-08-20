@@ -1,7 +1,5 @@
 #version 460 core
 
-out vec4 FragColor;
-
 in vec3 frag_pos;
 in vec3 frag_normal;
 in vec4 frag_color;
@@ -16,6 +14,8 @@ uniform vec4 light_color;
 uniform bool use_texture;
 uniform sampler2D material_texture_diffuse0;
 uniform sampler2D material_texture_specular0;
+
+out vec4 FragColor;
 
 void main()
 {
