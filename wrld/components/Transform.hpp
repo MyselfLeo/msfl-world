@@ -8,14 +8,14 @@
 #include "glm/vec3.hpp"
 #include "glm/gtc/quaternion.hpp"
 
-namespace wrld {
+namespace wrld::cpt {
 
     /// Gives an Entity a position, a rotation and a scale.
-    class TransformComponent final : public Component {
+    class Transform final : public Component {
     public:
         // The constructor cannot take other parameters than that
-        TransformComponent(EntityID entity_id, World &world, const glm::vec3 &position = glm::vec3(0.0f),
-                           const glm::quat &rotation = glm::quat(1, 0, 0, 0), const glm::vec3 &scale = glm::vec3(1.0f));
+        Transform(EntityID entity_id, World &world, const glm::vec3 &position = glm::vec3(0.0f),
+                  const glm::quat &rotation = glm::quat(1, 0, 0, 0), const glm::vec3 &scale = glm::vec3(1.0f));
 
         [[nodiscard]] glm::vec3 get_position() const;
         [[nodiscard]] glm::quat get_rotation() const;
@@ -33,6 +33,6 @@ namespace wrld {
         glm::vec3 scale;
     };
 
-} // namespace wrld
+} // namespace wrld::cpt
 
 #endif // TRANSFORMCOMPONENT_HPP

@@ -5,8 +5,8 @@
 #ifndef RENDERERSYSTEM_HPP
 #define RENDERERSYSTEM_HPP
 #include "System.hpp"
-#include "components/CameraComponent.hpp"
-#include "components/PointLightComponent.hpp"
+#include "components/Camera.hpp"
+#include "components/PointLight.hpp"
 #include "resources/Model.hpp"
 #include "resources/Program.hpp"
 
@@ -47,7 +47,7 @@ namespace wrld {
 
         /// Return the active camera component (for now, the first CameraComponent found).
         /// Returns std::nullopt if there is none.
-        [[nodiscard]] std::optional<std::shared_ptr<CameraComponent>> get_camera() const;
+        [[nodiscard]] std::optional<std::shared_ptr<cpt::Camera>> get_camera() const;
         [[nodiscard]] std::optional<PointLight> get_point_light() const;
         [[nodiscard]] Model get_entity_model(EntityID id) const;
 

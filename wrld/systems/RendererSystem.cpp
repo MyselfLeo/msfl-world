@@ -8,8 +8,8 @@
 #include "RendererSystem.hpp"
 
 #include "Logs.hpp"
-#include "components/ModelComponent.hpp"
-#include "components/TransformComponent.hpp"
+#include "components/StaticModel.hpp"
+#include "components/Transform.hpp"
 
 #include <format>
 #include <iostream>
@@ -50,11 +50,11 @@ namespace wrld {
             }
 
             // Render each Entity with a Model attached
-            for (const std::vector model_entities = world.get_entities_with_component<ModelComponent>();
+            for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
                  const auto entity: model_entities) {
                 glm::mat4x4 model_matrix = get_entity_transform(entity);
 
-                const auto model_cmpnt = world.get_component_opt<ModelComponent>(entity).value();
+                const auto model_cmpnt = world.get_component_opt<cpt::StaticModel>(entity).value();
                 const Model &model = model_cmpnt->get_model();
 
                 // Actual draw call
@@ -76,32 +76,32 @@ namespace wrld {
     float RendererSystem::get_ambiant_light_strength() const { return ambiant_light.strength; }
 
     glm::mat4x4 RendererSystem::get_entity_transform(const EntityID id) const {
-        if (const auto transform_cmpnt = world.get_component_opt<TransformComponent>(id))
+        if (const auto transform_cmpnt = world.get_component_opt<cpt::Transform>(id))
             return transform_cmpnt.value()->model_matrix();
         return glm::mat4x4(1.0);
     }
 
-    std::optional<std::shared_ptr<CameraComponent>> RendererSystem::get_camera() const {
-        if (const std::vector camera_entities = world.get_entities_with_component<CameraComponent>();
+    std::optional<std::shared_ptr<cpt::Camera>> RendererSystem::get_camera() const {
+        if (const std::vector camera_entities = world.get_entities_with_component<cpt::Camera>();
             !camera_entities.empty())
-            return world.get_component_opt<CameraComponent>(camera_entities[0]);
+            return world.get_component_opt<cpt::Camera>(camera_entities[0]);
         return std::nullopt;
     }
 
     std::optional<PointLight> RendererSystem::get_point_light() const {
         PointLight res;
 
-        const EntityID entity = world.get_entities_with_component<PointLightComponent>()[0];
+        const EntityID entity = world.get_entities_with_component<cpt::PointLight>()[0];
 
-        res.color = world.get_component<PointLightComponent>(entity)->get_color();
-        res.intensity = world.get_component<PointLightComponent>(entity)->get_intensity();
-        res.position = world.get_component<TransformComponent>(entity)->get_position();
+        res.color = world.get_component<cpt::PointLight>(entity)->get_color();
+        res.intensity = world.get_component<cpt::PointLight>(entity)->get_intensity();
+        res.position = world.get_component<cpt::Transform>(entity)->get_position();
 
         return res;
     }
 
     Model RendererSystem::get_entity_model(const EntityID id) const {
-        return world.get_component_opt<ModelComponent>(id).value()->get_model();
+        return world.get_component_opt<cpt::StaticModel>(id).value()->get_model();
     }
 
     void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix) const {

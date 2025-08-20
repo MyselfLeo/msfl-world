@@ -8,11 +8,11 @@
 
 #include <glm/vec3.hpp>
 
-namespace wrld {
+namespace wrld::cpt {
 
-    class PointLightComponent final : public Component {
+    class PointLight final : public Component {
     public:
-        PointLightComponent(EntityID entity_id, World &world, const glm::vec3 &color, float intensity);
+        PointLight(EntityID entity_id, World &world, const glm::vec3 &color, float intensity);
 
         [[nodiscard]] glm::vec3 get_color() const;
         void set_color(const glm::vec3 &color);
@@ -25,6 +25,6 @@ namespace wrld {
         float intensity;
     };
 
-} // namespace wrld
+} // namespace wrld::cpt
 
 #endif // POINTLIGHTCOMPONENT_HPP

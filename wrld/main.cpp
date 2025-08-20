@@ -10,10 +10,10 @@
 #include "Logs.hpp"
 #include "resources/Program.hpp"
 #include "World.hpp"
-#include "components/CameraComponent.hpp"
-#include "components/ModelComponent.hpp"
-#include "components/PointLightComponent.hpp"
-#include "components/TransformComponent.hpp"
+#include "components/Camera.hpp"
+#include "components/StaticModel.hpp"
+#include "components/PointLight.hpp"
+#include "components/Transform.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 #include "resources/Texture.hpp"
 #include "systems/RendererSystem.hpp"
@@ -160,21 +160,21 @@ int main() {
 
     wrldInfo("Creating entities");
     const EntityID backpack = world.create_entity();
-    world.attach_component<ModelComponent>(backpack, backpack_model);
-    world.attach_component<TransformComponent>(backpack, glm::vec3{2.0, 0.0, 0.0});
+    world.attach_component<cpt::StaticModel>(backpack, backpack_model);
+    world.attach_component<cpt::Transform>(backpack, glm::vec3{2.0, 0.0, 0.0});
 
     const EntityID myshape = world.create_entity();
-    world.attach_component<ModelComponent>(myshape, myshape_model);
-    world.attach_component<TransformComponent>(myshape, glm::vec3{-2.0, 0.0, 0.0});
+    world.attach_component<cpt::StaticModel>(myshape, myshape_model);
+    world.attach_component<cpt::Transform>(myshape, glm::vec3{-2.0, 0.0, 0.0});
 
     const EntityID camera = world.create_entity();
-    world.attach_component<CameraComponent>(camera, 45);
-    world.attach_component<TransformComponent>(camera, glm::vec3{0.0, 0.0, -8.0});
+    world.attach_component<cpt::Camera>(camera, 45);
+    world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, -8.0});
 
     const EntityID light = world.create_entity();
-    world.attach_component<PointLightComponent>(light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
-    const auto light_transform = world.attach_component<TransformComponent>(light);
-    world.attach_component<ModelComponent>(light, cube_model);
+    world.attach_component<cpt::PointLight>(light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
+    const auto light_transform = world.attach_component<cpt::Transform>(light);
+    world.attach_component<cpt::StaticModel>(light, cube_model);
     light_transform->set_scale(glm::vec3{0.1, 0.1, 0.1});
 
     RendererSystem renderer{world, window};
@@ -186,11 +186,11 @@ int main() {
         // Rotate backpack
         const auto ROTATION_RATE = glm::quat(glm::vec3{0, 0.01, 0});
 
-        const auto backpack_transform = world.get_component<TransformComponent>(backpack);
+        const auto backpack_transform = world.get_component<cpt::Transform>(backpack);
         auto curr_rotation = backpack_transform->get_rotation();
         backpack_transform->set_rotation(ROTATION_RATE * curr_rotation);
 
-        const auto myshape_transform = world.get_component<TransformComponent>(myshape);
+        const auto myshape_transform = world.get_component<cpt::Transform>(myshape);
         curr_rotation = myshape_transform->get_rotation();
         myshape_transform->set_rotation(ROTATION_RATE * curr_rotation);
 

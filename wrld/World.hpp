@@ -4,7 +4,7 @@
 
 #ifndef WORLD_HPP
 #define WORLD_HPP
-#include "Component.hpp"
+#include "components/Component.hpp"
 
 #include <format>
 #include <memory>
@@ -34,7 +34,7 @@ namespace wrld {
         /// returning a reference to it.
         template<typename T, typename... Args>
         std::shared_ptr<T> attach_component(const EntityID id, Args &&...args) {
-            static_assert(std::is_base_of_v<Component, T>, "The Component's type must inherit Component");
+            static_assert(std::is_base_of_v<cpt::Component, T>, "The Component's type must inherit Component");
 
             if (!exists(id))
                 throw std::runtime_error("Creating a Component on inexisting Entity");
@@ -103,7 +103,7 @@ namespace wrld {
 
         // Access a component first by type then by entity ID.
         // Ensure that two components of the same type cannot be applied to the same entity.
-        std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<Component>>> components;
+        std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<cpt::Component>>> components;
     };
 } // namespace wrld
 

@@ -5,12 +5,17 @@
 #ifndef COMPONENT_HPP
 #define COMPONENT_HPP
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include <cstddef>
-#include <tuple>
 
+// Define World beforehand. We can't #include "../World.hpp" as it would
+// create a circular reference.
 namespace wrld {
-    typedef size_t EntityID;
     class World;
+}
+
+namespace wrld::cpt {
+    typedef size_t EntityID;
 
     /// Base class for all components.
     /// Any derived class must possess a constructor expecting EntityID and World& as their
@@ -26,6 +31,6 @@ namespace wrld {
         World &world;
     };
 
-} // namespace wrld
+} // namespace wrld::cpt
 
 #endif // COMPONENT_HPP

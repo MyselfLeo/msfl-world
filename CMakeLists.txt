@@ -33,16 +33,16 @@ add_executable(msfl_world
         wrld/resources/Texture.cpp
         wrld/Camera.cpp
         wrld/Camera.hpp
-        wrld/Component.cpp
-        wrld/Component.hpp
+        wrld/components/Component.cpp
+        wrld/components/Component.hpp
         wrld/World.cpp
         wrld/World.hpp
-        wrld/components/TransformComponent.cpp
-        wrld/components/TransformComponent.hpp
-        wrld/components/ModelComponent.cpp
-        wrld/components/ModelComponent.hpp
-        wrld/components/CameraComponent.cpp
-        wrld/components/CameraComponent.hpp
+        wrld/components/Transform.cpp
+        wrld/components/Transform.hpp
+        wrld/components/StaticModel.cpp
+        wrld/components/StaticModel.hpp
+        wrld/components/Camera.cpp
+        wrld/components/Camera.hpp
         wrld/resources/Model.cpp
         wrld/resources/Model.hpp
         wrld/systems/RendererSystem.cpp
@@ -50,8 +50,8 @@ add_executable(msfl_world
         wrld/System.cpp
         wrld/System.hpp
         wrld/Logs.hpp
-        wrld/components/PointLightComponent.cpp
-        wrld/components/PointLightComponent.hpp
+        wrld/components/PointLight.cpp
+        wrld/components/PointLight.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp)
