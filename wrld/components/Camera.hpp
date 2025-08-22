@@ -23,7 +23,17 @@ namespace wrld::cpt {
         [[nodiscard]] glm::mat4x4 get_projection_matrix(unsigned width, unsigned height) const;
 
     private:
+        static const glm::vec3 UP_VECTOR;
         float fov;
+
+        /// Return the camera position in world space
+        glm::vec3 get_position() const;
+        /// Return the camera direction in world space
+        glm::vec3 get_front_vec() const;
+        /// Return the camera right vector in world space
+        glm::vec3 get_right_vec() const;
+        /// Return the vector pointing in the Y direction of the camera
+        glm::vec3 get_up_vec() const;
     };
 
 } // namespace wrld::cpt

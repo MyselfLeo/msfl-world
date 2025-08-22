@@ -11,6 +11,7 @@
 #include "resources/Program.hpp"
 #include "World.hpp"
 #include "components/Camera.hpp"
+#include "components/FPSControl.hpp"
 #include "components/StaticModel.hpp"
 #include "components/PointLight.hpp"
 #include "components/Transform.hpp"
@@ -169,7 +170,8 @@ int main() {
 
     const EntityID camera = world.create_entity();
     world.attach_component<cpt::Camera>(camera, 45);
-    world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, -8.0});
+    auto camera_transform = world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, 8.0});
+    const auto move = world.attach_component<cpt::FPSControl>(camera);
 
     const EntityID light = world.create_entity();
     world.attach_component<cpt::PointLight>(light, glm::vec3{0.0, 1.0, 0.0}, 1.0);
@@ -182,6 +184,9 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         const double time = glfwGetTime();
         processInput(window);
+
+        // camera_transform->set_towards({0, 0, 0});
+        move->update(window);
 
         // Rotate backpack
         const auto ROTATION_RATE = glm::quat(glm::vec3{0, 0.01, 0});

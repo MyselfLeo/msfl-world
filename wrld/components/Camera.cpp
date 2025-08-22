@@ -12,6 +12,8 @@
 #include <iostream>
 
 namespace wrld::cpt {
+    const glm::vec3 Camera::UP_VECTOR = glm::vec3(0, 1, 0);
+
     Camera::Camera(const EntityID entity_id, World &world, const float fov) : Component(entity_id, world), fov(fov) {}
 
     float Camera::get_fov() const { return fov; }
@@ -20,7 +22,7 @@ namespace wrld::cpt {
 
     glm::mat4x4 Camera::get_view_matrix() const {
         if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
-            return transform_cmpnt.value()->model_matrix();
+            return glm::inverse(transform_cmpnt.value()->model_matrix());
         }
         return glm::mat4x4(1.0);
     }
@@ -29,4 +31,22 @@ namespace wrld::cpt {
         const float ratio = static_cast<float>(width) / static_cast<float>(height);
         return glm::perspective(glm::radians(this->fov), ratio, 0.1f, 100.0f);
     }
+
+    glm::vec3 Camera::get_position() const {
+        if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
+            return transform_cmpnt.value()->get_position();
+        }
+        return glm::vec3(0.0);
+    }
+
+    glm::vec3 Camera::get_front_vec() const {
+        if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
+            return transform_cmpnt.value()->get_direction();
+        }
+        return glm::vec3(0, 0, -1);
+    }
+
+    glm::vec3 Camera::get_right_vec() const { return glm::normalize(glm::cross(UP_VECTOR, get_front_vec())); }
+
+    glm::vec3 Camera::get_up_vec() const { return glm::cross(get_front_vec(), get_right_vec()); }
 } // namespace wrld::cpt
