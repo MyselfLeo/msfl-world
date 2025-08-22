@@ -36,26 +36,24 @@ namespace wrld::cpt {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
             translation += glm::normalize(glm::cross(transform->get_direction(), up)) * translation_speed;
         }
-        if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
             translation += up * translation_speed;
         }
-        if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
             translation -= up * translation_speed;
         }
 
+        double mouse_x, mouse_y;
+        glfwGetCursorPos(window, &mouse_x, &mouse_y);
 
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-            yaw += 1;
-        }
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-            yaw -= 1;
-        }
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-            pitch += 1;
-        }
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-            pitch -= 1;
-        }
+        const double offset_x = mouse_x - last_mouse_x;
+        const double offset_y = last_mouse_y - mouse_y;
+
+        last_mouse_x = mouse_x;
+        last_mouse_y = mouse_y;
+
+        yaw += offset_x * camera_sensitivity;
+        pitch += offset_y * camera_sensitivity;
 
         if (pitch > 89.0f)
             pitch = 89.0f;
@@ -76,11 +74,13 @@ namespace wrld::cpt {
 
     float FPSControl::get_translation_speed() const { return translation_speed; }
 
-    float FPSControl::get_rotation_speed() const { return rotation_speed; }
+    double FPSControl::get_camera_sensitivity() const { return camera_sensitivity; }
 
     void FPSControl::set_translation_speed(const float translation_speed) {
         this->translation_speed = translation_speed;
     }
 
-    void FPSControl::set_rotation_speed(const float rotation_speed) { this->rotation_speed = rotation_speed; }
+    void FPSControl::set_camera_sensitivity(const double camera_sensitivity) {
+        this->camera_sensitivity = camera_sensitivity;
+    }
 } // namespace wrld::cpt

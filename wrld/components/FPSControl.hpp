@@ -15,18 +15,21 @@ namespace wrld::cpt {
 
         void update(GLFWwindow *window);
 
-        float get_translation_speed() const;
-        float get_rotation_speed() const;
+        [[nodiscard]] float get_translation_speed() const;
+        [[nodiscard]] double get_camera_sensitivity() const;
         void set_translation_speed(float translation_speed);
-        void set_rotation_speed(float rotation_speed);
+        void set_camera_sensitivity(double camera_sensitivity);
 
     private:
+        double last_mouse_x = 400;
+        double last_mouse_y = 300;
+
         // We need to keep yaw and pitch
-        float yaw = -90.0;
-        float pitch = 0;
+        double yaw = -90.0;
+        double pitch = 0.0;
 
         float translation_speed = 0.1;
-        float rotation_speed = 0.03;
+        double camera_sensitivity = 0.1;
     };
 
 } // namespace wrld::cpt

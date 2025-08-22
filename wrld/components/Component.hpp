@@ -8,11 +8,11 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include <cstddef>
 
-// Define World beforehand. We can't #include "../World.hpp" as it would
-// create a circular reference.
 namespace wrld {
+    // Define World beforehand. We can't #include "../World.hpp" as it would
+    // create a circular reference.
     class World;
-}
+} // namespace wrld
 
 namespace wrld::cpt {
     typedef size_t EntityID;
@@ -25,6 +25,8 @@ namespace wrld::cpt {
     public:
         virtual ~Component() = default;
         Component(EntityID entity_id, World &world);
+
+        EntityID get_entity() const;
 
     protected:
         EntityID entity_id;

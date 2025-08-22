@@ -7,16 +7,14 @@
 #include "System.hpp"
 #include "GLFW/glfw3.h"
 #include "components/Camera.hpp"
+#include "components/Environment.hpp"
 #include "components/PointLight.hpp"
+#include "components/Transform.hpp"
+#include "resources/CubemapTexture.hpp"
 #include "resources/Model.hpp"
 #include "resources/Program.hpp"
 
 namespace wrld {
-    struct AmbiantLight {
-        glm::vec3 color = {1.0, 1.0, 1.0};
-        float strength = 0.4;
-    };
-
     struct PointLight {
         glm::vec3 color;
         glm::vec3 position;
@@ -30,19 +28,18 @@ namespace wrld {
         void exec() override;
         [[nodiscard]] GLFWwindow *get_window() const;
 
-        void set_ambiant_light_color(const glm::vec3 &color);
-        void set_ambiant_light_strength(float strength);
-        [[nodiscard]] glm::vec3 get_ambiant_light_color() const;
-        [[nodiscard]] float get_ambiant_light_strength() const;
-
     private:
         static constexpr auto DEFAULT_VERTEX_SHADER = "wrld/shaders/vertex/basic.glsl";
         static constexpr auto DEFAULT_FRAGMENT_SHADER = "wrld/shaders/fragment/basic.glsl";
 
+        static constexpr auto SKYBOX_VERTEX_SHADER = "wrld/shaders/vertex/skybox.glsl";
+        static constexpr auto SKYBOX_FRAGMENT_SHADER = "wrld/shaders/fragment/skybox.glsl";
+
+        GLuint DEBUG_VAO;
+
         GLFWwindow *window;
         Program model_program;
-
-        AmbiantLight ambiant_light;
+        Program skybox_program;
 
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;
 
@@ -52,6 +49,7 @@ namespace wrld {
         [[nodiscard]] std::optional<PointLight> get_point_light() const;
         [[nodiscard]] Model get_entity_model(EntityID id) const;
 
+        void draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera) const;
         void draw_model(const Model &model, const glm::mat4x4 &model_matrix) const;
         void draw_mesh(const Mesh &mesh) const;
     };

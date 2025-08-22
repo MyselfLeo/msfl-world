@@ -54,6 +54,10 @@ add_executable(msfl_world
         wrld/components/PointLight.hpp
         wrld/components/FPSControl.cpp
         wrld/components/FPSControl.hpp
+        wrld/resources/CubemapTexture.cpp
+        wrld/resources/CubemapTexture.hpp
+        wrld/components/Environment.cpp
+        wrld/components/Environment.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp)

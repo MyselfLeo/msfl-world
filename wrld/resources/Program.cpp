@@ -4,6 +4,8 @@
 
 #include "Program.hpp"
 
+#include "Logs.hpp"
+
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -163,6 +165,8 @@ namespace wrld {
     }
 
     void Program::compile_shader(const GLuint gl_shader, const std::string &shader_path, const ShaderType type) {
+        wrldInfo(std::format("Compiling shader {}", shader_path));
+
         const std::string shader_src = read_file(shader_path);
 
         const std::string preprocessed_src = preprocess_source(shader_src, type);

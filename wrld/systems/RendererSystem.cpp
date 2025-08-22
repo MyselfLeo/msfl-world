@@ -7,21 +7,26 @@
 
 #include "RendererSystem.hpp"
 
-#include "Logs.hpp"
 #include "components/StaticModel.hpp"
 #include "components/Transform.hpp"
+#include "components/Environment.hpp"
 
 #include <format>
-#include <iostream>
+
+// Todo: I will probably need to move a lot of logic from there to cpt::Camera.
+// RendererSystem would then only render each camera in the world.
 
 namespace wrld {
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
-        System(world), window(window), model_program(Program{DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER}) {}
+        System(world), window(window), model_program(Program{DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER}),
+        skybox_program(Program{SKYBOX_VERTEX_SHADER, SKYBOX_FRAGMENT_SHADER}) {
+        glGenVertexArrays(1, &DEBUG_VAO);
+    }
 
     RendererSystem::~RendererSystem() = default;
 
     void RendererSystem::exec() {
-        glClearColor(0.06f, 0.06f, 0.06f, 1.0f);
+        glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -33,6 +38,20 @@ namespace wrld {
         if (const auto camera_cmpnt = get_camera()) {
             const auto &camera = camera_cmpnt.value();
 
+            cpt::AmbiantLight ambiant_light{};
+
+            // Check if there is an environment attached to the camera. If so,
+            // use it
+
+            if (const auto environment = world.get_component_opt<cpt::Environment>(camera->get_entity());
+                environment.has_value()) {
+                ambiant_light = environment.value()->get_ambiant_light();
+
+                if (environment.value()->get_cubemap().has_value()) {
+                    draw_skybox(*environment.value()->get_cubemap().value(), *camera);
+                }
+            }
+
             const glm::mat4x4 view_matrix = camera->get_view_matrix();
             const glm::mat4x4 projection_matrix = camera->get_projection_matrix(width, height);
 
@@ -40,7 +59,7 @@ namespace wrld {
             model_program.set_uniform("view", view_matrix);
             model_program.set_uniform("projection", projection_matrix);
 
-            model_program.set_uniform("ambiant_color", glm::vec4(ambiant_light.color, 1.0));
+            model_program.set_uniform("ambiant_color", glm::vec4{ambiant_light.color, 1.0});
             model_program.set_uniform("ambiant_strength", ambiant_light.strength);
 
             if (const auto plight_cpmnt = get_point_light()) {
@@ -66,14 +85,6 @@ namespace wrld {
     }
 
     GLFWwindow *RendererSystem::get_window() const { return window; }
-
-    void RendererSystem::set_ambiant_light_color(const glm::vec3 &color) { ambiant_light.color = color; }
-
-    void RendererSystem::set_ambiant_light_strength(const float strength) { ambiant_light.strength = strength; }
-
-    glm::vec3 RendererSystem::get_ambiant_light_color() const { return ambiant_light.color; }
-
-    float RendererSystem::get_ambiant_light_strength() const { return ambiant_light.strength; }
 
     glm::mat4x4 RendererSystem::get_entity_transform(const EntityID id) const {
         if (const auto transform_cmpnt = world.get_component_opt<cpt::Transform>(id))
@@ -104,7 +115,32 @@ namespace wrld {
         return world.get_component_opt<cpt::StaticModel>(id).value()->get_model();
     }
 
+    void RendererSystem::draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera) const {
+        skybox_program.use();
+
+        const auto inv_matrix = glm::inverse(camera.get_viewport_matrix(800, 600) *
+                                             camera.get_projection_matrix(800, 600) * camera.get_view_matrix());
+
+        cubemap.use(0);
+
+        skybox_program.set_uniform("inv_matrix", inv_matrix);
+        skybox_program.set_uniform("camera_pos", camera.get_position());
+        skybox_program.set_uniform("cubemap", 0);
+
+        glDepthFunc(GL_LEQUAL);
+        glBindVertexArray(DEBUG_VAO);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+
+        glDepthFunc(GL_LESS);
+    }
+
     void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix) const {
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+
         model_program.set_uniform("model", model_matrix);
 
         // Compute the model matrix specific to normals

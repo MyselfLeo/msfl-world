@@ -32,21 +32,17 @@ namespace wrld::cpt {
         return glm::perspective(glm::radians(this->fov), ratio, 0.1f, 100.0f);
     }
 
+    glm::mat4x4 Camera::get_viewport_matrix(const unsigned width, const unsigned height) {
+        const float w = width / 2.f;
+        const float h = height / 2.f;
+
+        return glm::mat4x4{w, 0, 0, 0, 0, h, 0, 0, 0, 0, 0.5, 0, w, h, 0.5, 1};
+    }
+
     glm::vec3 Camera::get_position() const {
         if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
             return transform_cmpnt.value()->get_position();
         }
         return glm::vec3(0.0);
     }
-
-    glm::vec3 Camera::get_front_vec() const {
-        if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
-            return transform_cmpnt.value()->get_direction();
-        }
-        return glm::vec3(0, 0, -1);
-    }
-
-    glm::vec3 Camera::get_right_vec() const { return glm::normalize(glm::cross(UP_VECTOR, get_front_vec())); }
-
-    glm::vec3 Camera::get_up_vec() const { return glm::cross(get_front_vec(), get_right_vec()); }
 } // namespace wrld::cpt

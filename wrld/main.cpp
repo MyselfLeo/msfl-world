@@ -134,28 +134,35 @@ GLFWwindow *init_gl(int width, int height) {
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glViewport(0, 0, width, height);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    int flags;
-    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        wrldInfo("Enabling OpenGL debug");
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(glDebugOutput, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    }
+    // int flags;
+    // glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    // if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+    //     wrldInfo("Enabling OpenGL debug");
+    //     glEnable(GL_DEBUG_OUTPUT);
+    //     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    //     glDebugMessageCallback(glDebugOutput, nullptr);
+    //     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    // }
     return window;
 }
 
 int main() {
     GLFWwindow *window = init_gl(800, 600);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     wrldInfo("Loading model");
     Model backpack_model("data/models/backpack/backpack.obj");
     Model myshape_model("data/models/myshape/myshape.obj");
     Model cube_model("data/models/cube/cube.obj");
+
+    wrldInfo("Loading skybox");
+    auto skybox = std::make_shared<CubemapTexture>(std::vector<std::string>{
+            "data/textures/lake_cm/right.jpg", "data/textures/lake_cm/left.jpg", "data/textures/lake_cm/top.jpg",
+            "data/textures/lake_cm/bottom.jpg", "data/textures/lake_cm/front.jpg", "data/textures/lake_cm/back.jpg"});
 
     World world;
 
@@ -172,6 +179,9 @@ int main() {
     world.attach_component<cpt::Camera>(camera, 45);
     auto camera_transform = world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, 8.0});
     const auto move = world.attach_component<cpt::FPSControl>(camera);
+    auto env = world.attach_component<cpt::Environment>(camera);
+    env->set_cubemap(skybox);
+    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.3, 0.6}, 1.0});
 
     const EntityID light = world.create_entity();
     world.attach_component<cpt::PointLight>(light, glm::vec3{0.0, 1.0, 0.0}, 1.0);

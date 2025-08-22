@@ -11,7 +11,7 @@
 
 namespace wrld {
     Texture::Texture(const std::string &texture_path, const aiTextureType type) :
-        path(texture_path), type(type), gl_texture(0) {
+        gl_texture(0), path(texture_path), type(type) {
         stbi_set_flip_vertically_on_load(true);
 
         // Load texture file
@@ -19,10 +19,12 @@ namespace wrld {
         unsigned char *data = stbi_load(texture_path.c_str(), &width, &height, &nb_channels, 0);
 
         if (data == nullptr) {
+            stbi_image_free(data);
             throw std::runtime_error(std::format("Error while loading texture {}", texture_path));
         }
 
         if (nb_channels != 3) {
+            stbi_image_free(data);
             throw std::runtime_error("Only RGB images are supported for now");
         }
 
