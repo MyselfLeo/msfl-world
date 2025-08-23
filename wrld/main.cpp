@@ -180,14 +180,21 @@ int main() {
     auto camera_transform = world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, 8.0});
     const auto move = world.attach_component<cpt::FPSControl>(camera);
     auto env = world.attach_component<cpt::Environment>(camera);
-    env->set_cubemap(skybox);
-    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.3, 0.6}, 1.0});
+    // env->set_cubemap(skybox);
+    env->set_ambiant_light(cpt::AmbiantLight{glm::vec4{1.0, 1.0, 1.0, 0.0}});
 
-    const EntityID light = world.create_entity();
-    world.attach_component<cpt::PointLight>(light, glm::vec3{0.0, 1.0, 0.0}, 1.0);
-    const auto light_transform = world.attach_component<cpt::Transform>(light);
-    world.attach_component<cpt::StaticModel>(light, cube_model);
-    light_transform->set_scale(glm::vec3{0.1, 0.1, 0.1});
+    const EntityID light1 = world.create_entity();
+    world.attach_component<cpt::PointLight>(light1, glm::vec4{0.0, 1.0, 0.0, 1.0}, 30.0);
+    const auto light_transform1 = world.attach_component<cpt::Transform>(light1);
+    world.attach_component<cpt::StaticModel>(light1, cube_model);
+    light_transform1->set_scale(glm::vec3{0.1, 0.1, 0.1});
+
+    const EntityID light2 = world.create_entity();
+    world.attach_component<cpt::PointLight>(light2, glm::vec4{1.0, 0.0, 0.0, 1.0}, 30.0);
+    const auto light_transform2 = world.attach_component<cpt::Transform>(light2);
+    world.attach_component<cpt::StaticModel>(light2, cube_model);
+    light_transform2->set_scale(glm::vec3{0.1, 0.1, 0.1});
+
 
     RendererSystem renderer{world, window};
 
@@ -209,7 +216,8 @@ int main() {
         curr_rotation = myshape_transform->get_rotation();
         myshape_transform->set_rotation(ROTATION_RATE * curr_rotation);
 
-        light_transform->set_position({0, sin(time) * 4, 0});
+        light_transform1->set_position({0, sin(time) * 4, 0});
+        light_transform2->set_position({0, sin(time + M_PI) * 4, 0});
 
 
         renderer.exec();

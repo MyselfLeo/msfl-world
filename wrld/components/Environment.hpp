@@ -6,6 +6,7 @@
 #define ENVIRONMENT_HPP
 #include "Component.hpp"
 #include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
 #include "resources/CubemapTexture.hpp"
 
 #include <memory>
@@ -14,10 +15,9 @@
 namespace wrld::cpt {
     struct AmbiantLight {
         AmbiantLight();
-        AmbiantLight(const glm::vec3 &color, float strength);
+        AmbiantLight(const glm::vec4 &color);
 
-        glm::vec3 color;
-        float strength;
+        glm::vec4 color;
     };
 
     /// Represent a rendering context for an environment.
@@ -47,7 +47,7 @@ namespace wrld::cpt {
     private:
         GLuint vao; // Required even with no data inside
         AmbiantLight ambiant_light;
-        std::optional<std::shared_ptr<CubemapTexture>> cubemap;
+        std::optional<std::shared_ptr<CubemapTexture>> skybox;
     };
 
 } // namespace wrld::cpt

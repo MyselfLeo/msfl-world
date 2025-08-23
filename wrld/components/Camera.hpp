@@ -5,6 +5,7 @@
 #ifndef CAMERACOMPONENT_HPP
 #define CAMERACOMPONENT_HPP
 #include "Component.hpp"
+#include "Environment.hpp"
 #include "glm/mat4x4.hpp"
 
 namespace wrld::cpt {

@@ -7,6 +7,7 @@
 
 #include "RendererSystem.hpp"
 
+#include "components/DirectionalLight.hpp"
 #include "components/StaticModel.hpp"
 #include "components/Transform.hpp"
 #include "components/Environment.hpp"
@@ -17,68 +18,32 @@
 // RendererSystem would then only render each camera in the world.
 
 namespace wrld {
+
+    PointLightData::PointLightData(const glm::vec3 position, const glm::vec4 color, const float intensity) :
+        position(position), color(color), intensity(intensity) {}
+
+    DirectionalLightData::DirectionalLightData(const glm::vec3 direction, const glm::vec4 color) :
+        direction(direction), color(color) {}
+
+    EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
+                                     const std::optional<std::shared_ptr<CubemapTexture>> &skybox, const GLuint vao) :
+        vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
+
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
         System(world), window(window), model_program(Program{DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER}),
-        skybox_program(Program{SKYBOX_VERTEX_SHADER, SKYBOX_FRAGMENT_SHADER}) {
-        glGenVertexArrays(1, &DEBUG_VAO);
-    }
+        skybox_program(Program{SKYBOX_VERTEX_SHADER, SKYBOX_FRAGMENT_SHADER}) {}
 
     RendererSystem::~RendererSystem() = default;
 
     void RendererSystem::exec() {
-        glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // Find the first camera in the world. It will be the render
+        // one.
+        // todo: in the future, each camera will be attached to a Viewport.
+        // We'll have to render each camera to its attached viewport.
 
-        // Required for the camera
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
-
-        // Query the camera. No rendering if not found
-        if (const auto camera_cmpnt = get_camera()) {
-            const auto &camera = camera_cmpnt.value();
-
-            cpt::AmbiantLight ambiant_light{};
-
-            // Check if there is an environment attached to the camera. If so,
-            // use it
-
-            if (const auto environment = world.get_component_opt<cpt::Environment>(camera->get_entity());
-                environment.has_value()) {
-                ambiant_light = environment.value()->get_ambiant_light();
-
-                if (environment.value()->get_cubemap().has_value()) {
-                    draw_skybox(*environment.value()->get_cubemap().value(), *camera);
-                }
-            }
-
-            const glm::mat4x4 view_matrix = camera->get_view_matrix();
-            const glm::mat4x4 projection_matrix = camera->get_projection_matrix(width, height);
-
-            model_program.use();
-            model_program.set_uniform("view", view_matrix);
-            model_program.set_uniform("projection", projection_matrix);
-
-            model_program.set_uniform("ambiant_color", glm::vec4{ambiant_light.color, 1.0});
-            model_program.set_uniform("ambiant_strength", ambiant_light.strength);
-
-            if (const auto plight_cpmnt = get_point_light()) {
-                const auto &plight = plight_cpmnt.value();
-                model_program.set_uniform("light_position", plight.position);
-                model_program.set_uniform("light_color", glm::vec4{plight.color, 1.0});
-            }
-
-            // Render each Entity with a Model attached
-            for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
-                 const auto entity: model_entities) {
-                glm::mat4x4 model_matrix = get_entity_transform(entity);
-
-                const auto model_cmpnt = world.get_component_opt<cpt::StaticModel>(entity).value();
-                const Model &model = model_cmpnt->get_model();
-
-                // Actual draw call
-                draw_model(model, model_matrix);
-            }
+        if (const auto cameras = world.get_entities_with_component<cpt::Camera>(); cameras.size() > 0) {
+            const auto camera = world.get_component<cpt::Camera>(cameras[0]);
+            render_camera(*camera);
         }
 
         glfwSwapBuffers(window);
@@ -99,23 +64,131 @@ namespace wrld {
         return std::nullopt;
     }
 
-    std::optional<PointLight> RendererSystem::get_point_light() const {
-        PointLight res;
+    Model RendererSystem::get_entity_model(const EntityID id) const {
+        return world.get_component<cpt::StaticModel>(id)->get_model();
+    }
 
-        const EntityID entity = world.get_entities_with_component<cpt::PointLight>()[0];
+    void RendererSystem::render_camera(const cpt::Camera &camera) const {
+        glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        res.color = world.get_component<cpt::PointLight>(entity)->get_color();
-        res.intensity = world.get_component<cpt::PointLight>(entity)->get_intensity();
-        res.position = world.get_component<cpt::Transform>(entity)->get_position();
+        // Todo: In the future, a camera should be attached to a viewport
+        // of a given size. We should get this viewport size instead of the window size.
+        // Of course, one of those viewports could be the window !
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        const EnvironmentData environment_data = get_environment(camera);
+
+        // Todo: When we will have multiple cameras, we should do that beforehand.
+        // We don't need to call this each time we render a camera but once per exec().
+        const std::vector<PointLightData> point_lights = get_point_lights();
+        const std::vector<DirectionalLightData> directional_lights = get_directional_lights();
+
+        if (environment_data.skybox.has_value()) {
+            draw_skybox(*environment_data.skybox.value(), camera, environment_data.vao);
+        }
+
+        // Camera dependent uniforms
+        const glm::mat4x4 view_matrix = camera.get_view_matrix();
+        const glm::mat4x4 projection_matrix = camera.get_projection_matrix(width, height);
+        model_program.use();
+        model_program.set_uniform("view", view_matrix);
+        model_program.set_uniform("projection", projection_matrix);
+
+        // Ambiant light uniform
+        model_program.set_uniform("ambiant_light.color", environment_data.ambiant_light.color);
+
+        // Point light dependent uniforms
+        model_program.set_uniform("point_light_nb", static_cast<unsigned>(point_lights.size()));
+        for (const auto &[i, pl]: std::views::enumerate(point_lights)) {
+            model_program.set_uniform(std::format("point_lights[{}].position", i), pl.position);
+            model_program.set_uniform(std::format("point_lights[{}].color", i), glm::vec3(pl.color));
+            model_program.set_uniform(std::format("point_lights[{}].intensity", i), pl.intensity);
+        }
+
+        // Directional light dependent uniforms
+        model_program.set_uniform("directional_lights_nb", static_cast<unsigned>(directional_lights.size()));
+        for (const auto &[i, dl]: std::views::enumerate(directional_lights)) {
+            model_program.set_uniform(std::format("directional_lights[{}].direction", i), dl.direction);
+            model_program.set_uniform(std::format("directional_lights[{}].color", i), glm::vec3(dl.color));
+        }
+
+        // Find each entity with a model, get its transform, and render it.
+        for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
+             const auto entity: model_entities) {
+            const auto model_cmpnt = world.get_component_opt<cpt::StaticModel>(entity).value();
+            const Model &model = model_cmpnt->get_model();
+
+            glm::mat4x4 model_matrix = get_entity_transform(entity);
+
+            // Actual draw call
+            draw_model(model, model_matrix);
+        }
+    }
+
+    EnvironmentData RendererSystem::get_environment(const cpt::Camera &camera) const {
+        const EntityID camera_entity = camera.get_entity();
+
+        if (const auto env_cpnt_opt = world.get_component_opt<cpt::Environment>(camera_entity)) {
+            const auto &env_cpnt = env_cpnt_opt.value();
+
+            return EnvironmentData{env_cpnt->get_ambiant_light(), env_cpnt->get_cubemap(), env_cpnt->get_vao()};
+        }
+
+        return EnvironmentData{cpt::AmbiantLight{}, std::nullopt, 0};
+    }
+
+    std::vector<PointLightData> RendererSystem::get_point_lights() const {
+        std::vector<PointLightData> res;
+
+        // Query each PointLight components in world
+        // Make sure we don't render more than 10 point lights (shader limitation)
+        auto entities = world.get_entities_with_component<cpt::PointLight>();
+        if (entities.size() > MAX_LIGHTS)
+            entities.resize(MAX_LIGHTS);
+
+        for (const auto &entity: entities) {
+            const auto cpnt = world.get_component<cpt::PointLight>(entity);
+
+            // We need the light's position. If not found, we use {0, 0, 0}.
+            glm::vec3 position{0.0};
+            if (const auto position_opt = world.get_component_opt<cpt::Transform>(entity); position_opt.has_value()) {
+                position = position_opt.value()->get_position();
+            }
+
+            res.emplace_back(position, cpnt->get_color(), cpnt->get_intensity());
+        }
 
         return res;
     }
 
-    Model RendererSystem::get_entity_model(const EntityID id) const {
-        return world.get_component_opt<cpt::StaticModel>(id).value()->get_model();
+    std::vector<DirectionalLightData> RendererSystem::get_directional_lights() const {
+        std::vector<DirectionalLightData> res;
+
+        // Query each DirectionalLight components in world
+        // Make sure we don't render more than 10 directional lights (shader limitation)
+        auto entities = world.get_entities_with_component<cpt::DirectionalLight>();
+        if (entities.size() > MAX_LIGHTS)
+            entities.resize(MAX_LIGHTS);
+
+        for (const auto &entity: entities) {
+            const auto cpnt = world.get_component<cpt::DirectionalLight>(entity);
+
+            // We need the light's direction. If not found, we use {0, 0, -1}.
+            glm::vec3 direction{0.0};
+            if (const auto direction_opt = world.get_component_opt<cpt::Transform>(entity); direction_opt.has_value()) {
+                direction = direction_opt.value()->get_direction();
+            }
+
+            res.emplace_back(direction, cpnt->get_color());
+        }
+
+        return res;
     }
 
-    void RendererSystem::draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera) const {
+    void RendererSystem::draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
         skybox_program.use();
 
         const auto inv_matrix = glm::inverse(camera.get_viewport_matrix(800, 600) *
@@ -128,8 +201,7 @@ namespace wrld {
         skybox_program.set_uniform("cubemap", 0);
 
         glDepthFunc(GL_LEQUAL);
-        glBindVertexArray(DEBUG_VAO);
-
+        glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
 

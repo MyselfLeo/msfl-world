@@ -83,6 +83,16 @@ namespace wrld {
         glUniform1i(uniform_loc, value);
     }
 
+    void Program::set_uniform(const std::string &uniform, const unsigned value) const {
+        const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
+        if (uniform_loc == -1) {
+            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
+            return;
+        }
+
+        glUniform1ui(uniform_loc, value);
+    }
+
     void Program::set_uniform(const std::string &uniform, const glm::vec3 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {

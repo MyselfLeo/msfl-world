@@ -5,9 +5,9 @@
 #include "Environment.hpp"
 
 namespace wrld::cpt {
-    AmbiantLight::AmbiantLight() : color(glm::vec3{1.0, 1.0, 1.0}), strength(0.5) {}
+    AmbiantLight::AmbiantLight() : color(glm::vec4{1.0, 1.0, 1.0, 0.2}) {}
 
-    AmbiantLight::AmbiantLight(const glm::vec3 &color, float strength) : color(color), strength(strength) {}
+    AmbiantLight::AmbiantLight(const glm::vec4 &color) : color(color) {}
 
     Environment::Environment(const EntityID entity_id, World &world, const AmbiantLight ambiant_light) :
         Component(entity_id, world), ambiant_light(ambiant_light), vao(0) {
@@ -19,17 +19,17 @@ namespace wrld::cpt {
         other.vao = 0;
     }
 
-    bool Environment::has_cubemap() const { return cubemap.has_value(); }
+    bool Environment::has_cubemap() const { return skybox.has_value(); }
 
     const AmbiantLight &Environment::get_ambiant_light() const { return ambiant_light; }
 
-    const std::optional<std::shared_ptr<CubemapTexture>> &Environment::get_cubemap() const { return cubemap; }
+    const std::optional<std::shared_ptr<CubemapTexture>> &Environment::get_cubemap() const { return skybox; }
 
     void Environment::set_ambiant_light(const AmbiantLight ambiant_light) { this->ambiant_light = ambiant_light; }
 
-    void Environment::set_cubemap(const std::shared_ptr<CubemapTexture> &cubemap) { this->cubemap = cubemap; }
+    void Environment::set_cubemap(const std::shared_ptr<CubemapTexture> &cubemap) { this->skybox = cubemap; }
 
-    void Environment::remove_cubemap() { this->cubemap = std::nullopt; }
+    void Environment::remove_cubemap() { this->skybox = std::nullopt; }
 
     GLuint Environment::get_vao() const { return vao; }
 

@@ -38,6 +38,8 @@ namespace wrld {
 
         void set_uniform(const std::string &uniform, int value) const;
 
+        void set_uniform(const std::string &uniform, unsigned value) const;
+
         void set_uniform(const std::string &uniform, const glm::vec3 &value) const;
 
         void set_uniform(const std::string &uniform, const glm::vec4 &value) const;

@@ -52,6 +52,8 @@ add_executable(msfl_world
         wrld/Logs.hpp
         wrld/components/PointLight.cpp
         wrld/components/PointLight.hpp
+        wrld/components/DirectionalLight.cpp
+        wrld/components/DirectionalLight.hpp
         wrld/components/FPSControl.cpp
         wrld/components/FPSControl.hpp
         wrld/resources/CubemapTexture.cpp
