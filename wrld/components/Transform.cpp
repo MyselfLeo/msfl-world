@@ -24,7 +24,7 @@ namespace wrld::cpt {
 
     void Transform::set_position(const glm::vec3 &position) { this->position = position; }
 
-    void Transform::set_rotation(const glm::quat &rotation) { this->rotation = rotation; }
+    void Transform::set_rotation(const glm::quat &rotation) { this->rotation = glm::normalize(rotation); }
 
     void Transform::set_scale(const glm::vec3 &scale) { this->scale = scale; }
 

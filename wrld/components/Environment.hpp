@@ -13,11 +13,13 @@
 #include <optional>
 
 namespace wrld::cpt {
+    /// intensity - Value from 0 to 1.
     struct AmbiantLight {
         AmbiantLight();
-        AmbiantLight(const glm::vec4 &color);
+        AmbiantLight(const glm::vec3 &color, float intensity);
 
-        glm::vec4 color;
+        glm::vec3 color;
+        float intensity;
     };
 
     /// Represent a rendering context for an environment.

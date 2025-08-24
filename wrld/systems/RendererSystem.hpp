@@ -15,18 +15,19 @@
 
 namespace wrld {
     struct PointLightData {
-        PointLightData(glm::vec3 position, glm::vec4 color, float intensity);
+        PointLightData(glm::vec3 position, glm::vec3 color, float intensity);
 
         glm::vec3 position;
-        glm::vec4 color;
+        glm::vec3 color;
         float intensity;
     };
 
     struct DirectionalLightData {
-        DirectionalLightData(glm::vec3 direction, glm::vec4 color);
+        DirectionalLightData(glm::vec3 direction, glm::vec3 color, float intensity);
 
         glm::vec3 direction;
-        glm::vec4 color;
+        glm::vec3 color;
+        float intensity;
     };
 
     struct EnvironmentData {

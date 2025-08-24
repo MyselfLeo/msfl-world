@@ -5,12 +5,12 @@
 #include "Environment.hpp"
 
 namespace wrld::cpt {
-    AmbiantLight::AmbiantLight() : color(glm::vec4{1.0, 1.0, 1.0, 0.2}) {}
+    AmbiantLight::AmbiantLight() : color(glm::vec3{1.0, 1.0, 1.0}), intensity(0.2) {}
 
-    AmbiantLight::AmbiantLight(const glm::vec4 &color) : color(color) {}
+    AmbiantLight::AmbiantLight(const glm::vec3 &color, const float intensity) : color(color), intensity(intensity) {}
 
     Environment::Environment(const EntityID entity_id, World &world, const AmbiantLight ambiant_light) :
-        Component(entity_id, world), ambiant_light(ambiant_light), vao(0) {
+        Component(entity_id, world), vao(0), ambiant_light(ambiant_light) {
         glGenVertexArrays(1, &vao);
     }
 

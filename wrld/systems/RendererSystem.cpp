@@ -19,11 +19,12 @@
 
 namespace wrld {
 
-    PointLightData::PointLightData(const glm::vec3 position, const glm::vec4 color, const float intensity) :
+    PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color, const float intensity) :
         position(position), color(color), intensity(intensity) {}
 
-    DirectionalLightData::DirectionalLightData(const glm::vec3 direction, const glm::vec4 color) :
-        direction(direction), color(color) {}
+    DirectionalLightData::DirectionalLightData(const glm::vec3 direction, const glm::vec3 color,
+                                               const float intensity) :
+        direction(direction), color(color), intensity(intensity) {}
 
     EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
                                      const std::optional<std::shared_ptr<CubemapTexture>> &skybox, const GLuint vao) :
@@ -94,17 +95,19 @@ namespace wrld {
         const glm::mat4x4 view_matrix = camera.get_view_matrix();
         const glm::mat4x4 projection_matrix = camera.get_projection_matrix(width, height);
         model_program.use();
+        model_program.set_uniform("view_pos", camera.get_position());
         model_program.set_uniform("view", view_matrix);
         model_program.set_uniform("projection", projection_matrix);
 
         // Ambiant light uniform
         model_program.set_uniform("ambiant_light.color", environment_data.ambiant_light.color);
+        model_program.set_uniform("ambiant_light.intensity", environment_data.ambiant_light.intensity);
 
         // Point light dependent uniforms
         model_program.set_uniform("point_light_nb", static_cast<unsigned>(point_lights.size()));
         for (const auto &[i, pl]: std::views::enumerate(point_lights)) {
             model_program.set_uniform(std::format("point_lights[{}].position", i), pl.position);
-            model_program.set_uniform(std::format("point_lights[{}].color", i), glm::vec3(pl.color));
+            model_program.set_uniform(std::format("point_lights[{}].color", i), pl.color);
             model_program.set_uniform(std::format("point_lights[{}].intensity", i), pl.intensity);
         }
 
@@ -112,7 +115,8 @@ namespace wrld {
         model_program.set_uniform("directional_lights_nb", static_cast<unsigned>(directional_lights.size()));
         for (const auto &[i, dl]: std::views::enumerate(directional_lights)) {
             model_program.set_uniform(std::format("directional_lights[{}].direction", i), dl.direction);
-            model_program.set_uniform(std::format("directional_lights[{}].color", i), glm::vec3(dl.color));
+            model_program.set_uniform(std::format("directional_lights[{}].color", i), dl.color);
+            model_program.set_uniform(std::format("directional_lights[{}].intensity", i), dl.intensity);
         }
 
         // Find each entity with a model, get its transform, and render it.
@@ -182,7 +186,7 @@ namespace wrld {
                 direction = direction_opt.value()->get_direction();
             }
 
-            res.emplace_back(direction, cpnt->get_color());
+            res.emplace_back(direction, cpnt->get_color(), cpnt->get_intensity());
         }
 
         return res;
