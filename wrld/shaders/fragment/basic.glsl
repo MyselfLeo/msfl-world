@@ -72,17 +72,12 @@ vec3 sample_diffuse() {
     }
 }
 
-float sample_specular() {
+vec3 sample_specular() {
     if (material.use_specular) {
-        vec3 pxl = vec3(texture(material.specular, frag_texcoords));
-
-        // Compute brightness
-        // This is a very basic conversion that is NOT correct
-        // a better one would be 0.33 + 0.5 + 0.16
-        return (pxl.r + pxl.g + pxl.b) / 3;
+        return vec3(texture(material.specular, frag_texcoords));
     }
     else {
-        return 1.0;
+        return vec3(0.5);
     }
 }
 
@@ -141,14 +136,14 @@ void calc_directional_light(DirectionalLight dl) {
     float specular_amount = calc_specular(light_direction, view_direction, normal);
 
     vec3 diffuse = dl.color * sample_diffuse();
-    vec3 specular = dl.color;
+    vec3 specular = dl.color * sample_specular();
 
     colors[sources] = diffuse;
     intensities[sources] = diffuse_amount;
     sources += 1;
 
     colors[sources] = specular;
-    intensities[sources] = specular_amount * sample_specular();
+    intensities[sources] = specular_amount;
     sources += 1;
 }
 
