@@ -31,8 +31,6 @@ add_executable(msfl_world
         wrld/resources/Program.cpp
         wrld/resources/Texture.hpp
         wrld/resources/Texture.cpp
-        wrld/Camera.cpp
-        wrld/Camera.hpp
         wrld/components/Component.cpp
         wrld/components/Component.hpp
         wrld/World.cpp

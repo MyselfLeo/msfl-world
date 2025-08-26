@@ -24,9 +24,18 @@ namespace wrld {
         glm::vec3 color;
     };
 
+    struct Material {
+        Material(std::optional<std::shared_ptr<Texture>> diffuse, std::optional<std::shared_ptr<Texture>> specular,
+                 float shininess);
+
+        std::optional<std::shared_ptr<Texture>> diffuse;
+        std::optional<std::shared_ptr<Texture>> specular;
+        float shininess;
+    };
+
     class Mesh {
     public:
-        Mesh() = default;
+        explicit Mesh(Material material);
         Mesh(Mesh &&other) noexcept;
         Mesh &operator=(Mesh &&other) noexcept;
         ~Mesh();
@@ -37,7 +46,9 @@ namespace wrld {
 
         std::vector<Vertex> vertices;
         std::vector<unsigned> indices;
-        std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
+        // std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
+
+        Material material;
 
         GLuint vao = 0, vbo = 0, ebo = 0;
 
@@ -83,6 +94,10 @@ namespace wrld {
         // Load textures of the given type from aiMaterial
         std::vector<std::shared_ptr<Texture>> load_textures(const aiMaterial *material, aiTextureType type,
                                                             const aiScene *scene);
+
+        // Load the first texture of the given type from aiMaterial
+        // std::shared_ptr<Texture> load_texture(const aiMaterial *material, aiTextureType type, const aiScene *scene);
+
 
         // todo: Maybe use 1 VAO/VBO/EBO for each model and not one for each mesh
         //       I'm not sure if it's worth it

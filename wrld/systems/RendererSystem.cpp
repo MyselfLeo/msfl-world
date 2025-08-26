@@ -7,12 +7,14 @@
 
 #include "RendererSystem.hpp"
 
+#include "Logs.hpp"
 #include "components/DirectionalLight.hpp"
 #include "components/StaticModel.hpp"
 #include "components/Transform.hpp"
 #include "components/Environment.hpp"
 
 #include <format>
+#include <iostream>
 
 // Todo: I will probably need to move a lot of logic from there to cpt::Camera.
 // RendererSystem would then only render each camera in the world.
@@ -195,7 +197,7 @@ namespace wrld {
     void RendererSystem::draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
         skybox_program.use();
 
-        const auto inv_matrix = glm::inverse(camera.get_viewport_matrix(800, 600) *
+        const auto inv_matrix = glm::inverse(cpt::Camera::get_viewport_matrix(800, 600) *
                                              camera.get_projection_matrix(800, 600) * camera.get_view_matrix());
 
         cubemap.use(0);
@@ -242,16 +244,26 @@ namespace wrld {
     }
 
     void RendererSystem::draw_mesh(const Mesh &mesh) const {
-        // Load texture uniforms to the shader
-        int i = 0;
+        // Add material data
+        const Material &material = mesh.material;
 
-        // Add textures as uniforms (sampler2D)
-        model_program.set_uniform("use_texture", !mesh.textures.empty());
-        for (const auto &[name, texture]: mesh.textures) {
-            texture->use(i);
-            model_program.set_uniform(name, i);
-            i += 1;
+        // If we need to (re)add support for multiple textures on 1 mesh (unlikely),
+        // we'll need to loop i-values instead of using 0 & 1.
+
+        model_program.set_uniform("material.shininess", material.shininess);
+
+        model_program.set_uniform("material.use_diffuse", material.diffuse.has_value());
+        if (material.diffuse.has_value()) {
+            material.diffuse.value()->use(0);
+            model_program.set_uniform("material.diffuse", 0);
         }
+
+        model_program.set_uniform("material.use_specular", material.specular.has_value());
+        if (material.specular.has_value()) {
+            material.specular.value()->use(1);
+            model_program.set_uniform("material.specular", 1);
+        }
+
         glActiveTexture(GL_TEXTURE0);
 
         glBindVertexArray(mesh.vao);

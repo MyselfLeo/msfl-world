@@ -4,7 +4,6 @@
 
 #include "Model.hpp"
 
-#include "Logs.hpp"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -13,6 +12,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <ranges>
+#include <utility>
 
 namespace wrld {
     void Mesh::init() {
@@ -71,8 +71,14 @@ namespace wrld {
         return *this;
     }
 
+    Material::Material(std::optional<std::shared_ptr<Texture>> diffuse,
+                       std::optional<std::shared_ptr<Texture>> specular, const float shininess) :
+        diffuse(std::move(diffuse)), specular(std::move(specular)), shininess(shininess) {}
+
+    Mesh::Mesh(Material material) : material(std::move(material)) {}
+
     Mesh::Mesh(Mesh &&other) noexcept :
-        vertices(std::move(other.vertices)), indices(std::move(other.indices)), textures(std::move(other.textures)),
+        vertices(std::move(other.vertices)), indices(std::move(other.indices)), material(std::move(other.material)),
         vao(other.vao), vbo(other.vbo), ebo(other.ebo) {
         other.vao = 0;
         other.vbo = 0;
@@ -91,7 +97,7 @@ namespace wrld {
             // Transfer resources
             vertices = std::move(other.vertices);
             indices = std::move(other.indices);
-            textures = std::move(other.textures);
+            // textures = std::move(other.textures);
             vao = other.vao;
             vbo = other.vbo;
             ebo = other.ebo;
@@ -130,7 +136,7 @@ namespace wrld {
     const std::shared_ptr<MeshGraphNode> &Model::get_root_mesh() const { return root_mesh; }
 
     std::shared_ptr<MeshGraphNode> Model::process_node(const aiNode *node, const aiScene *scene) {
-        std::shared_ptr<MeshGraphNode> wrld_node = std::make_shared<MeshGraphNode>();
+        auto wrld_node = std::make_shared<MeshGraphNode>();
 
         // One node can contain multiple meshes
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
@@ -147,7 +153,22 @@ namespace wrld {
     }
 
     Mesh Model::process_mesh(const aiMesh *mesh, const aiScene *scene) {
-        Mesh new_mesh;
+        // Get the mesh material first
+        // there is always at least one material thanks to AI_SCENE_FLAGS_INCOMPLETE
+        const aiMaterial *ai_material = scene->mMaterials[mesh->mMaterialIndex];
+
+        // We take the first texture of each type
+        const auto diffuse_textures = load_textures(ai_material, aiTextureType_DIFFUSE, scene);
+        const auto specular_textures = load_textures(ai_material, aiTextureType_SPECULAR, scene);
+
+        std::optional<std::shared_ptr<Texture>> diffuse = std::nullopt;
+        if (!diffuse_textures.empty())
+            diffuse = diffuse_textures[0];
+        std::optional<std::shared_ptr<Texture>> specular = std::nullopt;
+        if (!specular_textures.empty())
+            specular = specular_textures[0];
+
+        Mesh new_mesh(Material{diffuse, specular, 32}); // 32 is a default shininess for now
 
         // Process vertices
         for (unsigned i = 0; i < mesh->mNumVertices; i++) {
@@ -173,18 +194,6 @@ namespace wrld {
             for (unsigned j = 0; j < face.mNumIndices; j++) {
                 new_mesh.indices.push_back(face.mIndices[j]);
             }
-        }
-
-        // Materials
-        // there is always at least one material thanks to AI_SCENE_FLAGS_INCOMPLETE
-        const aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-
-        // Load each texture type into the mesh
-        for (auto const [i, t]: std::views::enumerate(load_textures(material, aiTextureType_DIFFUSE, scene))) {
-            new_mesh.textures.insert_or_assign(std::format("material_texture_diffuse{}", i), t);
-        }
-        for (auto const [i, t]: std::views::enumerate(load_textures(material, aiTextureType_SPECULAR, scene))) {
-            new_mesh.textures.insert_or_assign(std::format("material_texture_specular{}", i), t);
         }
 
         mesh_count += 1;

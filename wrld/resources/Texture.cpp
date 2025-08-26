@@ -4,6 +4,8 @@
 
 #include "Texture.hpp"
 
+#include "Logs.hpp"
+
 #include <format>
 #include <iostream>
 #include <stb_image.hpp>
@@ -13,6 +15,8 @@ namespace wrld {
     Texture::Texture(const std::string &texture_path, const aiTextureType type) :
         gl_texture(0), path(texture_path), type(type) {
         stbi_set_flip_vertically_on_load(true);
+
+        wrldInfo(std::format("Loadin {} texture : {}", aiTextureTypeToString(type), texture_path));
 
         // Load texture file
         int width, height, nb_channels;

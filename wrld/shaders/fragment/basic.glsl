@@ -1,6 +1,10 @@
 #version 460 core
 
+// Max light per each type
 #define MAX_LIGHTS 10
+
+// Total max sources. Some lights may count as multiple sources
+#define MAX_LIGHTS_SOURCES 50
 
 struct AmbiantLight {
     vec3 color;
@@ -19,14 +23,26 @@ struct DirectionalLight {
     float intensity;
 };
 
+// We use shader defined values if a diffuse/specular map is not defined
+struct Material {
+    bool use_diffuse;
+    bool use_specular;
 
+    sampler2D diffuse;
+    sampler2D specular;
+    float shininess;
+};
+
+// Output of Vertex Shader
 in vec3 frag_pos;
 in vec3 frag_normal;
-in vec4 frag_color;
+in vec3 frag_color;
 in vec2 frag_texcoords;
 
+// Position of the camera in world space
 uniform vec3 view_pos;
 
+// Light data in the world
 uniform AmbiantLight ambiant_light;
 
 uniform uint point_light_nb;
@@ -35,14 +51,60 @@ uniform PointLight point_lights[MAX_LIGHTS];
 uniform uint directional_lights_nb;
 uniform DirectionalLight directional_lights[MAX_LIGHTS];
 
-uniform bool use_texture;
-uniform sampler2D material_texture_diffuse0;
-uniform sampler2D material_texture_specular0;
+// Mesh material
+uniform Material material;
 
 out vec4 FragColor;
 
+// We do this instead of just accumulating colors in a vec4 in the main function
+// in order to prevent washed-out colors.
+// Intensities are normalized, that way an object cannot look full white.
+int sources = 0;
+vec3 colors[MAX_LIGHTS_SOURCES];
+float intensities[MAX_LIGHTS_SOURCES];
+
+vec3 sample_diffuse() {
+    if (material.use_diffuse) {
+        return vec3(texture(material.diffuse, frag_texcoords));
+    }
+    else {
+        return frag_color;
+    }
+}
+
+float sample_specular() {
+    if (material.use_specular) {
+        vec3 pxl = vec3(texture(material.specular, frag_texcoords));
+
+        // Compute brightness
+        // This is a very basic conversion that is NOT correct
+        // a better one would be 0.33 + 0.5 + 0.16
+        return (pxl.r + pxl.g + pxl.b) / 3;
+    }
+    else {
+        return 1.0;
+    }
+}
+
+float calc_diffuse(vec3 light_direction, vec3 normal) {
+    return max(dot(normal, light_direction), 0.0);
+}
+
+float calc_specular(vec3 light_direction, vec3 view_direction, vec3 normal) {
+    vec3 reflection_vector = normalize(reflect(-light_direction, normal));
+    return pow(max(dot(view_direction, reflection_vector), 0.0), material.shininess);
+}
+
+void calc_ambiant_light() {
+    colors[sources] = ambiant_light.color * sample_diffuse();
+    intensities[sources] = ambiant_light.intensity;
+    sources += 1;
+}
+
 /// Compute the color contribution of the given PointLight for the fragment
-vec3 calc_point_light(PointLight pl) {
+void calc_point_light(PointLight pl) {
+    // Attenuation due to the distance from the point light
+    // todo: Maybe use the sphere area equation
     float distance = length(pl.position - frag_pos);
 
     float attenuation = 0.0;
@@ -50,64 +112,75 @@ vec3 calc_point_light(PointLight pl) {
         attenuation = pl.intensity / (pl.intensity + distance * distance);
     }
 
+    vec3 light_direction = normalize(pl.position - frag_pos);
+    vec3 view_direction = normalize(view_pos - frag_pos);
     vec3 normal = normalize(frag_normal);
 
-    // Diffuse component
-    vec3 light_direction = normalize(pl.position - frag_pos);
-    float diff_amount = max(dot(normal, light_direction), 0.0);
-    vec3 diffuse = diff_amount * pl.color * attenuation;
+    float diffuse_amount = calc_diffuse(light_direction, normal);
+    float specular_amount = calc_specular(light_direction, view_direction, normal);
 
-    // Specular component
-    float specular_intensity = 0.5;// todo : change this to material parameters
-    float shinyness = 32;// todo : change this to material parameters
+    vec3 diffuse = pl.color * sample_diffuse();
+    vec3 specular = pl.color * sample_specular();
 
-    vec3 view_direction = normalize(view_pos - frag_pos);
-    vec3 reflection_vector = reflect(-light_direction, normal);
-    float spec_amount = pow(max(dot(view_direction, reflection_vector), 0.0), shinyness);
-    vec3 specular = spec_amount * pl.color * specular_intensity * attenuation;
+    colors[sources] = diffuse;
+    intensities[sources] = diffuse_amount * attenuation;
+    sources += 1;
 
-    return diffuse + specular;
+    colors[sources] = specular;
+    intensities[sources] = specular_amount * attenuation;
+    sources += 1;
 }
-
 
 /// Compute the color contribution of the given DirectionalLight for the fragment
-vec3 calc_directional_light(DirectionalLight dl) {
+void calc_directional_light(DirectionalLight dl) {
+    vec3 light_direction = normalize(-dl.direction);
+    vec3 view_direction = normalize(view_pos - frag_pos);
     vec3 normal = normalize(frag_normal);
 
-    // Diffuse component
-    vec3 light_direction = normalize(-dl.direction);
-    float diff_amount = max(dot(normal, light_direction), 0.0);
-    vec3 diffuse = diff_amount * dl.color * dl.intensity;
+    float diffuse_amount = calc_diffuse(light_direction, normal);
+    float specular_amount = calc_specular(light_direction, view_direction, normal);
 
-    // Specular component
-    float specular_intensity = 0.5;// todo : change this to material parameters
-    float shinyness = 32;// todo : change this to material parameters
+    vec3 diffuse = dl.color * sample_diffuse();
+    vec3 specular = dl.color;
 
-    vec3 view_direction = normalize(view_pos - frag_pos);
-    vec3 reflection_vector = reflect(-light_direction, normal);
-    float spec_amount = pow(max(dot(view_direction, reflection_vector), 0.0), shinyness);
-    vec3 specular = spec_amount * dl.color * specular_intensity * dl.intensity;
+    colors[sources] = diffuse;
+    intensities[sources] = diffuse_amount;
+    sources += 1;
 
-    return diffuse + specular;
+    colors[sources] = specular;
+    intensities[sources] = specular_amount * sample_specular();
+    sources += 1;
 }
 
 
-void main()
-{
-    vec3 light_res = ambiant_light.color * ambiant_light.intensity;
+void main() {
+    vec3 res = vec3(0.0);
+    float intensity_sum = 0.0;
 
+    // Process ambient light
+    calc_ambiant_light();
+
+    // Process point lights
     for (int i = 0; i < point_light_nb; i++) {
-        light_res += calc_point_light(point_lights[i]);
+        calc_point_light(point_lights[i]);
     }
 
+    // Process directional lights
     for (int i = 0; i < directional_lights_nb; i++) {
-        light_res += calc_directional_light(directional_lights[i]);
+        calc_directional_light(directional_lights[i]);
     }
 
-    // If the diffuse texture is not specified, we use vertex color instead
-    if (use_texture) {
-        FragColor = texture(material_texture_diffuse0, frag_texcoords) * vec4(light_res, 1.0);
-    } else {
-        FragColor = frag_color * vec4(light_res, 1.0);
+    // Calculate total intensity for normalization
+    for (int i = 0; i < sources; i++) {
+        intensity_sum += intensities[i];
     }
+    intensity_sum = max(intensity_sum, 1.0);// Avoid division by zero or very small numbers
+
+    // Accumulate colors, normalizing by total intensity
+    for (int i = 0; i < sources; i++) {
+        res += colors[i] * (intensities[i] / intensity_sum);
+    }
+
+    // Output final color
+    FragColor = vec4(res, 1.0);
 }

@@ -6,7 +6,6 @@
 #include <iostream>
 
 
-#include "Camera.hpp"
 #include "Logs.hpp"
 #include "resources/Program.hpp"
 #include "World.hpp"
@@ -14,10 +13,8 @@
 #include "components/DirectionalLight.hpp"
 #include "components/FPSControl.hpp"
 #include "components/StaticModel.hpp"
-#include "components/PointLight.hpp"
 #include "components/Transform.hpp"
 #include "glm/gtx/rotate_vector.hpp"
-#include "resources/Texture.hpp"
 #include "systems/RendererSystem.hpp"
 
 using namespace wrld;
@@ -59,6 +56,8 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
         case GL_DEBUG_SOURCE_OTHER:
             std::cout << "Source: Other";
             break;
+        default:
+            __builtin_unreachable();
     }
     std::cout << std::endl;
 
@@ -90,6 +89,8 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
         case GL_DEBUG_TYPE_OTHER:
             std::cout << "Type: Other";
             break;
+        default:
+            __builtin_unreachable();
     }
     std::cout << std::endl;
 
@@ -106,12 +107,14 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
         case GL_DEBUG_SEVERITY_NOTIFICATION:
             std::cout << "Severity: notification";
             break;
+        default:
+            __builtin_unreachable();
     }
     std::cout << std::endl;
     std::cout << std::endl;
 }
 
-GLFWwindow *init_gl(int width, int height) {
+GLFWwindow *init_gl(const int width, const int height) {
     wrldInfo("Initialising OpenGL context");
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -181,36 +184,35 @@ int main() {
     auto camera_transform = world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, 8.0});
     const auto move = world.attach_component<cpt::FPSControl>(camera);
     auto env = world.attach_component<cpt::Environment>(camera);
-    // env->set_cubemap(skybox);
-    // env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.6});
-    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
+    env->set_cubemap(skybox);
+    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.5});
+    // env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
 
-    const EntityID dir_light = world.create_entity();
-    world.attach_component<cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
-    const auto dir_light_transform = world.attach_component<cpt::Transform>(dir_light);
-    world.attach_component<cpt::StaticModel>(dir_light, cube_model);
-
-    dir_light_transform->set_scale(glm::vec3{0.1, 0.1, 0.1});
-    dir_light_transform->set_position(glm::vec3{0, 1, 0});
-    dir_light_transform->look_towards(glm::vec3{0, 0, -1}, glm::vec3{0, 1, 0});
-
-    // const EntityID light1 = world.create_entity();
-    // world.attach_component<cpt::PointLight>(light1, glm::vec3{0.0, 1.0, 0.0}, 30.0);
-    // const auto light_transform1 = world.attach_component<cpt::Transform>(light1);
-    // world.attach_component<cpt::StaticModel>(light1, cube_model);
-    // light_transform1->set_scale(glm::vec3{0.1, 0.1, 0.1});
+    // const EntityID dir_light = world.create_entity();
+    // world.attach_component<cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 0.5);
+    // const auto dir_light_transform = world.attach_component<cpt::Transform>(dir_light);
+    // world.attach_component<cpt::StaticModel>(dir_light, cube_model);
     //
-    // const EntityID light2 = world.create_entity();
-    // world.attach_component<cpt::PointLight>(light2, glm::vec3{1.0, 0.0, 0.0}, 30.0);
-    // const auto light_transform2 = world.attach_component<cpt::Transform>(light2);
-    // world.attach_component<cpt::StaticModel>(light2, cube_model);
-    // light_transform2->set_scale(glm::vec3{0.1, 0.1, 0.1});
-    //
-    // const EntityID light3 = world.create_entity();
-    // world.attach_component<cpt::PointLight>(light3, glm::vec3{0.0, 0.0, 1.0}, 30.0);
-    // const auto light_transform3 = world.attach_component<cpt::Transform>(light3);
-    // world.attach_component<cpt::StaticModel>(light3, cube_model);
-    // light_transform3->set_scale(glm::vec3{0.1, 0.1, 0.1});
+    // dir_light_transform->set_scale(glm::vec3{0.1, 0.1, 0.1});
+    // dir_light_transform->set_position(glm::vec3{0, 1, 0});
+    // dir_light_transform->look_towards(glm::vec3{0, 0, -1}, glm::vec3{0, 1, 0});
+
+    const EntityID light1 = world.create_entity();
+    world.attach_component<cpt::PointLight>(light1, glm::vec3{0.0, 1.0, 0.0}, 30.0);
+    const auto light_transform1 = world.attach_component<cpt::Transform>(light1);
+    world.attach_component<cpt::StaticModel>(light1, cube_model);
+    light_transform1->set_scale(glm::vec3{0.1, 0.1, 0.1});
+    const EntityID light2 = world.create_entity();
+    world.attach_component<cpt::PointLight>(light2, glm::vec3{1.0, 0.0, 0.0}, 30.0);
+    const auto light_transform2 = world.attach_component<cpt::Transform>(light2);
+    world.attach_component<cpt::StaticModel>(light2, cube_model);
+    light_transform2->set_scale(glm::vec3{0.1, 0.1, 0.1});
+
+    const EntityID light3 = world.create_entity();
+    world.attach_component<cpt::PointLight>(light3, glm::vec3{0.0, 0.0, 1.0}, 30.0);
+    const auto light_transform3 = world.attach_component<cpt::Transform>(light3);
+    world.attach_component<cpt::StaticModel>(light3, cube_model);
+    light_transform3->set_scale(glm::vec3{0.1, 0.1, 0.1});
 
 
     RendererSystem renderer{world, window};
@@ -232,13 +234,13 @@ int main() {
         const auto myshape_transform = world.get_component<cpt::Transform>(myshape);
         curr_rotation = myshape_transform->get_rotation();
         myshape_transform->set_rotation(ROTATION_RATE * curr_rotation);*/
+        //
+        // auto curr_rotation = dir_light_transform->get_rotation();
+        // dir_light_transform->set_rotation(ROTATION_RATE * curr_rotation);
 
-        auto curr_rotation = dir_light_transform->get_rotation();
-        dir_light_transform->set_rotation(ROTATION_RATE * curr_rotation);
-
-        // light_transform1->set_position({0, sin(time) * 4, 0});
-        // light_transform2->set_position({0, sin(time + M_PI) * 4, 0});
-        // light_transform3->set_position({0, sin(time + M_PI / 2) * 4, 0});
+        light_transform1->set_position({0, sin(time) * 4, 0});
+        light_transform2->set_position({0, sin(time + M_PI) * 4, 0});
+        light_transform3->set_position({0, sin(time + M_PI / 2) * 4, 0});
 
 
         renderer.exec();
