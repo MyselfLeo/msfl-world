@@ -6,6 +6,7 @@
 
 #include "Camera.hpp"
 
+#include "Logs.hpp"
 #include "Transform.hpp"
 #include "World.hpp"
 
@@ -14,7 +15,12 @@
 namespace wrld::cpt {
     const glm::vec3 Camera::UP_VECTOR = glm::vec3(0, 1, 0);
 
-    Camera::Camera(const EntityID entity_id, World &world, const float fov) : Component(entity_id, world), fov(fov) {}
+    Camera::Camera(const EntityID entity_id, World &world, const float fov, std::shared_ptr<Program> program) :
+        Component(entity_id, world), fov(fov), program(std::move(program)) {}
+
+    std::shared_ptr<Program> Camera::get_program() const { return program; }
+
+    void Camera::set_program(const std::shared_ptr<Program> &program) { this->program = program; }
 
     float Camera::get_fov() const { return fov; }
 

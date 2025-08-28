@@ -49,15 +49,9 @@ namespace wrld {
         [[nodiscard]] GLFWwindow *get_window() const;
 
     private:
-        static constexpr auto DEFAULT_VERTEX_SHADER = "wrld/shaders/vertex/basic.glsl";
-        static constexpr auto DEFAULT_FRAGMENT_SHADER = "wrld/shaders/fragment/basic.glsl";
-
-        static constexpr auto SKYBOX_VERTEX_SHADER = "wrld/shaders/vertex/skybox.glsl";
-        static constexpr auto SKYBOX_FRAGMENT_SHADER = "wrld/shaders/fragment/skybox.glsl";
-
         GLFWwindow *window;
-        Program model_program;
-        Program skybox_program;
+
+        const Program SKYBOX_PROGRAM;
 
         /// Return the entity's transform or a default one if not provided.
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;
@@ -69,6 +63,10 @@ namespace wrld {
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.
         [[nodiscard]] Model get_entity_model(EntityID id) const;
+
+        /*/// Return the program (shader) which shall be used to render an entity.
+        /// It's either the one defined using a cpt::Shader or the default one.
+        [[nodiscard]] Program get_entity_program(EntityID id) const;*/
 
         void render_camera(const cpt::Camera &camera) const;
 
@@ -86,8 +84,10 @@ namespace wrld {
         [[nodiscard]] std::vector<DirectionalLightData> get_directional_lights() const;
 
         void draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const;
-        void draw_model(const Model &model, const glm::mat4x4 &model_matrix) const;
-        void draw_mesh(const Mesh &mesh) const;
+
+        void draw_model(const Model &model, const glm::mat4x4 &model_matrix, const Program &program) const;
+
+        static void draw_mesh(const Mesh &mesh, const Program &program);
     };
 } // namespace wrld
 

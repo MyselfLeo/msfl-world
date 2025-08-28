@@ -55,6 +55,23 @@ namespace wrld {
         glLinkProgram(gl_program);
     }
 
+    Program::Program(Program &&other) noexcept :
+        vertex_shader(other.vertex_shader), fragment_shader(other.fragment_shader), gl_program(other.gl_program) {
+        other.vertex_shader = 0;
+        other.fragment_shader = 0;
+        other.gl_program = 0;
+    }
+
+    Program &Program::operator=(Program &&other) noexcept {
+        vertex_shader = other.vertex_shader;
+        fragment_shader = other.fragment_shader;
+        gl_program = other.gl_program;
+        other.vertex_shader = 0;
+        other.fragment_shader = 0;
+        other.gl_program = 0;
+        return *this;
+    }
+
     Program::~Program() {
         glDeleteShader(vertex_shader);
         glDeleteShader(fragment_shader);

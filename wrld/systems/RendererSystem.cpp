@@ -7,14 +7,13 @@
 
 #include "RendererSystem.hpp"
 
-#include "Logs.hpp"
+#include "components/Camera.hpp"
 #include "components/DirectionalLight.hpp"
 #include "components/StaticModel.hpp"
 #include "components/Transform.hpp"
 #include "components/Environment.hpp"
 
 #include <format>
-#include <iostream>
 
 // Todo: I will probably need to move a lot of logic from there to cpt::Camera.
 // RendererSystem would then only render each camera in the world.
@@ -33,8 +32,7 @@ namespace wrld {
         vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
 
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
-        System(world), window(window), model_program(Program{DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER}),
-        skybox_program(Program{SKYBOX_VERTEX_SHADER, SKYBOX_FRAGMENT_SHADER}) {}
+        System(world), window(window), SKYBOX_PROGRAM("wrld/shaders/skybox.glsl") {}
 
     RendererSystem::~RendererSystem() = default;
 
@@ -71,10 +69,20 @@ namespace wrld {
         return world.get_component<cpt::StaticModel>(id)->get_model();
     }
 
+    /*Program RendererSystem::get_entity_program(const EntityID id) const {
+        const auto shdr = world.get_component_opt<cpt::Shader>(id);
+        if (!shdr.has_value()) {
+            return DEFAULT_PROGRAM;
+        }
+        return shdr.value()->get_program();
+    }*/
+
     void RendererSystem::render_camera(const cpt::Camera &camera) const {
         glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        const Program &program = *camera.get_program();
 
         // Todo: In the future, a camera should be attached to a viewport
         // of a given size. We should get this viewport size instead of the window size.
@@ -96,29 +104,29 @@ namespace wrld {
         // Camera dependent uniforms
         const glm::mat4x4 view_matrix = camera.get_view_matrix();
         const glm::mat4x4 projection_matrix = camera.get_projection_matrix(width, height);
-        model_program.use();
-        model_program.set_uniform("view_pos", camera.get_position());
-        model_program.set_uniform("view", view_matrix);
-        model_program.set_uniform("projection", projection_matrix);
+        program.use();
+        program.set_uniform("view_pos", camera.get_position());
+        program.set_uniform("view", view_matrix);
+        program.set_uniform("projection", projection_matrix);
 
         // Ambiant light uniform
-        model_program.set_uniform("ambiant_light.color", environment_data.ambiant_light.color);
-        model_program.set_uniform("ambiant_light.intensity", environment_data.ambiant_light.intensity);
+        program.set_uniform("ambiant_light.color", environment_data.ambiant_light.color);
+        program.set_uniform("ambiant_light.intensity", environment_data.ambiant_light.intensity);
 
         // Point light dependent uniforms
-        model_program.set_uniform("point_light_nb", static_cast<unsigned>(point_lights.size()));
+        program.set_uniform("point_light_nb", static_cast<unsigned>(point_lights.size()));
         for (const auto &[i, pl]: std::views::enumerate(point_lights)) {
-            model_program.set_uniform(std::format("point_lights[{}].position", i), pl.position);
-            model_program.set_uniform(std::format("point_lights[{}].color", i), pl.color);
-            model_program.set_uniform(std::format("point_lights[{}].intensity", i), pl.intensity);
+            program.set_uniform(std::format("point_lights[{}].position", i), pl.position);
+            program.set_uniform(std::format("point_lights[{}].color", i), pl.color);
+            program.set_uniform(std::format("point_lights[{}].intensity", i), pl.intensity);
         }
 
         // Directional light dependent uniforms
-        model_program.set_uniform("directional_lights_nb", static_cast<unsigned>(directional_lights.size()));
+        program.set_uniform("directional_lights_nb", static_cast<unsigned>(directional_lights.size()));
         for (const auto &[i, dl]: std::views::enumerate(directional_lights)) {
-            model_program.set_uniform(std::format("directional_lights[{}].direction", i), dl.direction);
-            model_program.set_uniform(std::format("directional_lights[{}].color", i), dl.color);
-            model_program.set_uniform(std::format("directional_lights[{}].intensity", i), dl.intensity);
+            program.set_uniform(std::format("directional_lights[{}].direction", i), dl.direction);
+            program.set_uniform(std::format("directional_lights[{}].color", i), dl.color);
+            program.set_uniform(std::format("directional_lights[{}].intensity", i), dl.intensity);
         }
 
         // Find each entity with a model, get its transform, and render it.
@@ -130,7 +138,7 @@ namespace wrld {
             glm::mat4x4 model_matrix = get_entity_transform(entity);
 
             // Actual draw call
-            draw_model(model, model_matrix);
+            draw_model(model, model_matrix, program);
         }
     }
 
@@ -195,16 +203,16 @@ namespace wrld {
     }
 
     void RendererSystem::draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
-        skybox_program.use();
+        SKYBOX_PROGRAM.use();
 
         const auto inv_matrix = glm::inverse(cpt::Camera::get_viewport_matrix(800, 600) *
                                              camera.get_projection_matrix(800, 600) * camera.get_view_matrix());
 
         cubemap.use(0);
 
-        skybox_program.set_uniform("inv_matrix", inv_matrix);
-        skybox_program.set_uniform("camera_pos", camera.get_position());
-        skybox_program.set_uniform("cubemap", 0);
+        SKYBOX_PROGRAM.set_uniform("inv_matrix", inv_matrix);
+        SKYBOX_PROGRAM.set_uniform("camera_pos", camera.get_position());
+        SKYBOX_PROGRAM.set_uniform("cubemap", 0);
 
         glDepthFunc(GL_LEQUAL);
         glBindVertexArray(vao);
@@ -214,16 +222,16 @@ namespace wrld {
         glDepthFunc(GL_LESS);
     }
 
-    void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix) const {
+    void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix, const Program &program) const {
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
-        model_program.set_uniform("model", model_matrix);
+        program.set_uniform("model", model_matrix);
 
         // Compute the model matrix specific to normals
         const glm::mat4x4 normal_model_matrix = glm::transpose(glm::inverse(model_matrix));
-        model_program.set_uniform("model_normal", normal_model_matrix);
+        program.set_uniform("model_normal", normal_model_matrix);
 
         std::vector<std::shared_ptr<MeshGraphNode>> node_stack;
         node_stack.push_back(model.get_root_mesh());
@@ -235,7 +243,7 @@ namespace wrld {
             node_stack.pop_back();
 
             for (auto &mesh: meshes) {
-                this->draw_mesh(mesh);
+                this->draw_mesh(mesh, program);
             }
 
             // Add children to be processed
@@ -243,25 +251,25 @@ namespace wrld {
         }
     }
 
-    void RendererSystem::draw_mesh(const Mesh &mesh) const {
+    void RendererSystem::draw_mesh(const Mesh &mesh, const Program &program) {
         // Add material data
         const Material &material = mesh.material;
 
         // If we need to (re)add support for multiple textures on 1 mesh (unlikely),
         // we'll need to loop i-values instead of using 0 & 1.
 
-        model_program.set_uniform("material.shininess", material.shininess);
+        program.set_uniform("material.shininess", material.shininess);
 
-        model_program.set_uniform("material.use_diffuse", material.diffuse.has_value());
+        program.set_uniform("material.use_diffuse", material.diffuse.has_value());
         if (material.diffuse.has_value()) {
             material.diffuse.value()->use(0);
-            model_program.set_uniform("material.diffuse", 0);
+            program.set_uniform("material.diffuse", 0);
         }
 
-        model_program.set_uniform("material.use_specular", material.specular.has_value());
+        program.set_uniform("material.use_specular", material.specular.has_value());
         if (material.specular.has_value()) {
             material.specular.value()->use(1);
-            model_program.set_uniform("material.specular", 1);
+            program.set_uniform("material.specular", 1);
         }
 
         glActiveTexture(GL_TEXTURE0);

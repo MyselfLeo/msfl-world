@@ -29,6 +29,11 @@ namespace wrld {
         /// Loads a vertex and a fragment shader file to create the program.
         Program(const std::string &vertex_shader_path, const std::string &fragment_shader_path);
 
+        Program(Program &&other) noexcept;
+
+        Program &operator=(Program &&other) noexcept;
+
+
         ~Program();
 
         /// Use this program in the GL context.
