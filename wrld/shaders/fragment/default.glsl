@@ -77,7 +77,7 @@ vec3 sample_specular() {
         return vec3(texture(material.specular, frag_texcoords));
     }
     else {
-        return vec3(0.5);
+        return vec3(1.0);
     }
 }
 
@@ -86,8 +86,10 @@ float calc_diffuse(vec3 light_direction, vec3 normal) {
 }
 
 float calc_specular(vec3 light_direction, vec3 view_direction, vec3 normal) {
-    vec3 reflection_vector = normalize(reflect(-light_direction, normal));
-    return pow(max(dot(view_direction, reflection_vector), 0.0), material.shininess);
+    vec3 halfway_direction = normalize(light_direction + view_direction);
+    //vec3 reflection_vector = normalize(reflect(-light_direction, normal));
+    //return pow(max(dot(view_direction, reflection_vector), 0.0), material.shininess);
+    return pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
 }
 
 void calc_ambiant_light() {

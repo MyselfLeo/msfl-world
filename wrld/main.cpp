@@ -179,13 +179,18 @@ int main() {
     world.attach_component<cpt::StaticModel>(myshape, myshape_model);
     world.attach_component<cpt::Transform>(myshape, glm::vec3{-4.0, 0.0, 0.0});
 
+    const EntityID ground = world.create_entity();
+    world.attach_component<cpt::StaticModel>(ground, cube_model);
+    world.attach_component<cpt::Transform>(ground, glm::vec3{0, -5, 0}, glm::quat{1, 0, 0, 0},
+                                           glm::vec3(100, 0.2, 100));
+
     const EntityID camera = world.create_entity();
     world.attach_component<cpt::Camera>(camera, 45);
     auto camera_transform = world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, 8.0});
     const auto move = world.attach_component<cpt::FPSControl>(camera);
     auto env = world.attach_component<cpt::Environment>(camera);
     env->set_cubemap(skybox);
-    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.5});
+    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
     // env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
 
     // const EntityID dir_light = world.create_entity();
@@ -197,7 +202,7 @@ int main() {
     // dir_light_transform->set_position(glm::vec3{0, 1, 0});
     // dir_light_transform->look_towards(glm::vec3{0, 0, -1}, glm::vec3{0, 1, 0});
 
-    const EntityID light1 = world.create_entity();
+    /*const EntityID light1 = world.create_entity();
     world.attach_component<cpt::PointLight>(light1, glm::vec3{0.0, 1.0, 0.0}, 30.0);
     const auto light_transform1 = world.attach_component<cpt::Transform>(light1);
     world.attach_component<cpt::StaticModel>(light1, cube_model);
@@ -206,7 +211,7 @@ int main() {
     world.attach_component<cpt::PointLight>(light2, glm::vec3{1.0, 0.0, 0.0}, 30.0);
     const auto light_transform2 = world.attach_component<cpt::Transform>(light2);
     world.attach_component<cpt::StaticModel>(light2, cube_model);
-    light_transform2->set_scale(glm::vec3{0.1, 0.1, 0.1});
+    light_transform2->set_scale(glm::vec3{0.1, 0.1, 0.1});*/
 
     const EntityID light3 = world.create_entity();
     world.attach_component<cpt::PointLight>(light3, glm::vec3{0.0, 0.0, 1.0}, 30.0);
@@ -238,8 +243,8 @@ int main() {
         // auto curr_rotation = dir_light_transform->get_rotation();
         // dir_light_transform->set_rotation(ROTATION_RATE * curr_rotation);
 
-        light_transform1->set_position({0, sin(time) * 4, 0});
-        light_transform2->set_position({0, sin(time + M_PI) * 4, 0});
+        // light_transform1->set_position({0, sin(time) * 4, 0});
+        // light_transform2->set_position({0, sin(time + M_PI) * 4, 0});
         light_transform3->set_position({0, sin(time + M_PI / 2) * 4, 0});
 
 

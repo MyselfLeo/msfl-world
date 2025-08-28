@@ -35,7 +35,7 @@ namespace wrld::cpt {
 
     glm::mat4x4 Camera::get_projection_matrix(const unsigned width, const unsigned height) const {
         const float ratio = static_cast<float>(width) / static_cast<float>(height);
-        return glm::perspective(glm::radians(this->fov), ratio, 0.1f, 100.0f);
+        return glm::perspective(glm::radians(this->fov), ratio, 0.1f, 1000.0f);
     }
 
     glm::mat4x4 Camera::get_viewport_matrix(const unsigned width, const unsigned height) {
