@@ -30,6 +30,8 @@ namespace wrld {
         /// Delete the Entity and all attached Components.
         void delete_entity(EntityID id);
 
+        const std::unordered_set<EntityID> &get_entities() const;
+
         /// Attach a new component of the given type to the entity,
         /// returning a reference to it.
         template<typename T, typename... Args>

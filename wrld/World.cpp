@@ -36,5 +36,7 @@ namespace wrld {
         }
     }
 
+    const std::unordered_set<EntityID> &World::get_entities() const { return entities; }
+
     bool World::exists(const EntityID id) const { return entities.contains(id); }
 } // namespace wrld
