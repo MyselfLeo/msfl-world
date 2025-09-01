@@ -1,4 +1,17 @@
+## OSX artifacts
+.DS_Store
+
+## Dear ImGui artifacts
+imgui.ini
+imgui*.ini
+
+## Jetbrain IDEs
 /.idea
+
+## CMake build directory
 /cmake-build-*
+
+
+
 docs/
 examples/

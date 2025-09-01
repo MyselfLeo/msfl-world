@@ -42,12 +42,10 @@ namespace wrld {
         // todo: in the future, each camera will be attached to a Viewport.
         // We'll have to render each camera to its attached viewport.
 
-        if (const auto cameras = world.get_entities_with_component<cpt::Camera>(); cameras.size() > 0) {
+        if (const auto cameras = world.get_entities_with_component<cpt::Camera>(); !cameras.empty()) {
             const auto camera = world.get_component<cpt::Camera>(cameras[0]);
             render_camera(*camera);
         }
-
-        glfwSwapBuffers(window);
     }
 
     GLFWwindow *RendererSystem::get_window() const { return window; }
@@ -78,10 +76,6 @@ namespace wrld {
     }*/
 
     void RendererSystem::render_camera(const cpt::Camera &camera) const {
-        glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
         const Program &program = *camera.get_program();
 
         // Todo: In the future, a camera should be attached to a viewport
