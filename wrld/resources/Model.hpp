@@ -5,6 +5,9 @@
 #ifndef MODEL_HPP
 #define MODEL_HPP
 
+#include "Material.hpp"
+
+
 #include <vector>
 
 #include <glm/vec2.hpp>
@@ -24,21 +27,17 @@ namespace wrld {
         glm::vec3 color;
     };
 
-    struct Material {
-        Material(std::optional<std::shared_ptr<Texture>> diffuse, std::optional<std::shared_ptr<Texture>> specular,
-                 float shininess);
-
-        std::optional<std::shared_ptr<Texture>> diffuse;
-        std::optional<std::shared_ptr<Texture>> specular;
-        float shininess;
-    };
-
     class Mesh {
     public:
-        explicit Mesh(Material material);
+        explicit Mesh(const std::shared_ptr<Material> &default_material);
         Mesh(Mesh &&other) noexcept;
         Mesh &operator=(Mesh &&other) noexcept;
         ~Mesh();
+
+        void set_material(const std::shared_ptr<Material> &material);
+        void use_default_material();
+
+        [[nodiscard]] const std::shared_ptr<Material> &get_material() const;
 
     private:
         friend class Model;
@@ -48,7 +47,8 @@ namespace wrld {
         std::vector<unsigned> indices;
         // std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
 
-        Material material;
+        std::shared_ptr<Material> default_material;
+        std::shared_ptr<Material> current_material;
 
         GLuint vao = 0, vbo = 0, ebo = 0;
 

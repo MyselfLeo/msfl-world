@@ -188,6 +188,11 @@ int main() {
     GLFWwindow *window = init_gl(800, 600);
     // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    World world;
+
+    wrldInfo("Initialising systems");
+    RendererSystem renderer{world, window};
+
     wrldInfo("Loading model");
     Model backpack_model("data/models/backpack/backpack.obj");
     Model myshape_model("data/models/myshape/myshape.obj");
@@ -197,8 +202,6 @@ int main() {
     auto skybox = std::make_shared<CubemapTexture>(std::vector<std::string>{
             "data/textures/lake_cm/right.jpg", "data/textures/lake_cm/left.jpg", "data/textures/lake_cm/top.jpg",
             "data/textures/lake_cm/bottom.jpg", "data/textures/lake_cm/front.jpg", "data/textures/lake_cm/back.jpg"});
-
-    World world;
 
     wrldInfo("Creating entities");
     const EntityID backpack = world.create_entity();
@@ -249,8 +252,6 @@ int main() {
     light_transform3->set_scale(glm::vec3{0.1, 0.1, 0.1});
 
     bool show_demo_window = true;
-
-    RendererSystem renderer{world, window};
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.06f, 0.06f, 0.08f, 1.0f);

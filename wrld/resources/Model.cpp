@@ -71,14 +71,12 @@ namespace wrld {
         return *this;
     }
 
-    Material::Material(std::optional<std::shared_ptr<Texture>> diffuse,
-                       std::optional<std::shared_ptr<Texture>> specular, const float shininess) :
-        diffuse(std::move(diffuse)), specular(std::move(specular)), shininess(shininess) {}
-
-    Mesh::Mesh(Material material) : material(std::move(material)) {}
+    Mesh::Mesh(const std::shared_ptr<Material> &default_material) :
+        default_material(default_material), current_material(default_material) {}
 
     Mesh::Mesh(Mesh &&other) noexcept :
-        vertices(std::move(other.vertices)), indices(std::move(other.indices)), material(std::move(other.material)),
+        vertices(std::move(other.vertices)), indices(std::move(other.indices)),
+        default_material(std::move(other.default_material)), current_material(std::move(other.current_material)),
         vao(other.vao), vbo(other.vbo), ebo(other.ebo) {
         other.vao = 0;
         other.vbo = 0;
@@ -116,6 +114,12 @@ namespace wrld {
         glDeleteBuffers(1, &vbo);
         glDeleteVertexArrays(1, &vao);
     }
+
+    void Mesh::set_material(const std::shared_ptr<Material> &material) { this->current_material = material; }
+
+    void Mesh::use_default_material() { this->current_material = default_material; }
+
+    const std::shared_ptr<Material> &Mesh::get_material() const { return current_material; }
 
     Model::Model(const std::string &model_path) : mesh_count(0) {
         Assimp::Importer import;
@@ -157,18 +161,18 @@ namespace wrld {
         // there is always at least one material thanks to AI_SCENE_FLAGS_INCOMPLETE
         const aiMaterial *ai_material = scene->mMaterials[mesh->mMaterialIndex];
 
+        auto mesh_material = std::make_shared<Material>();
+
         // We take the first texture of each type
         const auto diffuse_textures = load_textures(ai_material, aiTextureType_DIFFUSE, scene);
         const auto specular_textures = load_textures(ai_material, aiTextureType_SPECULAR, scene);
 
-        std::optional<std::shared_ptr<Texture>> diffuse = std::nullopt;
         if (!diffuse_textures.empty())
-            diffuse = diffuse_textures[0];
-        std::optional<std::shared_ptr<Texture>> specular = std::nullopt;
+            mesh_material->set_diffuse_map(diffuse_textures[0]);
         if (!specular_textures.empty())
-            specular = specular_textures[0];
+            mesh_material->set_specular_map(specular_textures[0]);
 
-        Mesh new_mesh(Material{diffuse, specular, 32}); // 32 is a default shininess for now
+        Mesh new_mesh(mesh_material);
 
         // Process vertices
         for (unsigned i = 0; i < mesh->mNumVertices; i++) {

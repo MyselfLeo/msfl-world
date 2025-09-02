@@ -20,20 +20,25 @@ struct DirectionalLight {
     float intensity;
 };
 
-// We use shader defined values if a diffuse/specular map is not defined
 struct Material {
-    bool use_diffuse;
-    bool use_specular;
+    vec4 diffuse_color;
+    float specular_intensity;
 
+    bool use_diffuse;// Equivalent to std::optional
     sampler2D diffuse;
+
+    bool use_specular;
     sampler2D specular;
+
     float shininess;
+
+    bool use_mesh_color;
 };
 
 // Output of Vertex Shader
 in vec3 frag_pos;
 in vec3 frag_normal;
-in vec3 frag_color;
+in vec4 frag_color;
 in vec2 frag_texcoords;
 
 // Position of the camera in world space
@@ -53,21 +58,24 @@ uniform Material material;
 
 out vec4 FragColor;
 
-vec3 sample_diffuse() {
+vec4 sample_diffuse() {
     if (material.use_diffuse) {
-        return vec3(texture(material.diffuse, frag_texcoords));
+        return texture(material.diffuse, frag_texcoords);
+    }
+    else if (material.use_mesh_color) {
+        return frag_color;
     }
     else {
-        return frag_color;
+        return material.diffuse_color;
     }
 }
 
-vec3 sample_specular() {
+float sample_specular() {
     if (material.use_specular) {
-        return vec3(texture(material.specular, frag_texcoords));
+        return float(texture(material.specular, frag_texcoords));
     }
     else {
-        return vec3(0.3);
+        return material.specular_intensity;
     }
 }
 
@@ -80,12 +88,12 @@ float calc_specular(vec3 light_direction, vec3 view_direction, vec3 normal) {
     return pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
 }
 
-vec3 calc_ambiant_light() {
-    return ambiant_light.color * sample_diffuse() * ambiant_light.intensity;
+vec4 calc_ambiant_light() {
+    return vec4(ambiant_light.color, 1.0) * sample_diffuse() * ambiant_light.intensity;
 }
 
 /// Compute the color contribution of the given PointLight for the fragment
-vec3 calc_point_light(PointLight pl) {
+vec4 calc_point_light(PointLight pl) {
     // Attenuation due to the distance from the point light
     // todo: Maybe use the sphere area equation
     float distance = length(pl.position - frag_pos);
@@ -102,14 +110,15 @@ vec3 calc_point_light(PointLight pl) {
     float diffuse_amount = calc_diffuse(light_direction, normal);
     float specular_amount = calc_specular(light_direction, view_direction, normal);
 
-    vec3 diffuse = pl.color * sample_diffuse();
+    vec4 diffuse = vec4(pl.color, 1.0) * sample_diffuse();
     vec3 specular = pl.color * sample_specular();
 
-    return (diffuse * diffuse_amount + specular * specular_amount) * pl.intensity * attenuation;
+    // todo : specular is probably not correct for transparent values
+    return (diffuse * diffuse_amount + vec4(specular * specular_amount, sample_specular())) * pl.intensity * attenuation;
 }
 
 /// Compute the color contribution of the given DirectionalLight for the fragment
-vec3 calc_directional_light(DirectionalLight dl) {
+vec4 calc_directional_light(DirectionalLight dl) {
     vec3 light_direction = normalize(-dl.direction);
     vec3 view_direction = normalize(view_pos - frag_pos);
     vec3 normal = normalize(frag_normal);
@@ -117,15 +126,15 @@ vec3 calc_directional_light(DirectionalLight dl) {
     float diffuse_amount = calc_diffuse(light_direction, normal);
     float specular_amount = calc_specular(light_direction, view_direction, normal);
 
-    vec3 diffuse = dl.color * sample_diffuse();
+    vec4 diffuse = vec4(dl.color, 1.0) * sample_diffuse();
     vec3 specular = dl.color * sample_specular();
 
-    return (diffuse * diffuse_amount + specular * specular_amount) * dl.intensity;
+    return (diffuse * diffuse_amount + vec4(specular * specular_amount, sample_specular())) * dl.intensity;
 }
 
 
 void main() {
-    vec3 res = vec3(0.0);
+    vec4 res = vec4(0.0);
 
     // Process ambient light
     res += calc_ambiant_light();
@@ -140,5 +149,5 @@ void main() {
         res += calc_directional_light(directional_lights[i]);
     }
 
-    FragColor = vec4(res, 1.0);
+    FragColor = res;
 }

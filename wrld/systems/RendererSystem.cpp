@@ -246,25 +246,8 @@ namespace wrld {
     }
 
     void RendererSystem::draw_mesh(const Mesh &mesh, const Program &program) {
-        // Add material data
-        const Material &material = mesh.material;
 
-        // If we need to (re)add support for multiple textures on 1 mesh (unlikely),
-        // we'll need to loop i-values instead of using 0 & 1.
-
-        program.set_uniform("material.shininess", material.shininess);
-
-        program.set_uniform("material.use_diffuse", material.diffuse.has_value());
-        if (material.diffuse.has_value()) {
-            material.diffuse.value()->use(0);
-            program.set_uniform("material.diffuse", 0);
-        }
-
-        program.set_uniform("material.use_specular", material.specular.has_value());
-        if (material.specular.has_value()) {
-            material.specular.value()->use(1);
-            program.set_uniform("material.specular", 1);
-        }
+        program.set_uniform("material", *mesh.get_material());
 
         glActiveTexture(GL_TEXTURE0);
 

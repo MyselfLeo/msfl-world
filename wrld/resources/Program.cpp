@@ -140,6 +140,36 @@ namespace wrld {
         glUniformMatrix3fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(value));
     }
 
+    void Program::set_uniform(const std::string &uniform, const Material &material) const {
+        // Constant colors
+        set_uniform(uniform + ".diffuse_color", material.get_diffuse_color());
+        set_uniform(uniform + ".specular_intensity", material.get_specular_intensity());
+
+        // Diffuse map
+        if (material.get_diffuse_map().has_value()) {
+            material.get_diffuse_map().value()->use(0);
+
+            set_uniform(uniform + ".use_diffuse", true);
+            set_uniform(uniform + ".diffuse", 0);
+        } else {
+            set_uniform(uniform + ".use_diffuse", false);
+        }
+
+        // Specular map
+        if (material.get_specular_map().has_value()) {
+            material.get_specular_map().value()->use(1);
+
+            set_uniform(uniform + ".use_specular", true);
+            set_uniform(uniform + ".specular", 1);
+        } else {
+            set_uniform(uniform + ".use_specular", false);
+        }
+
+        set_uniform(uniform + ".shininess", material.get_shininess());
+
+        set_uniform(uniform + ".use_mesh_color", material.is_using_mesh_color());
+    }
+
     void Program::set_uniform(const std::string &uniform, const glm::mat4x4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
