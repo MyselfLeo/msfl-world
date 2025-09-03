@@ -14,6 +14,9 @@ namespace wrld::cpt {
     FPSControl::FPSControl(const EntityID entity_id, World &world) : Component(entity_id, world) {}
 
     void FPSControl::update(GLFWwindow *window) {
+        if (lock)
+            return;
+
         // Get the entity's transform first.
         // We don't have to do anything if it no longer has one
         const auto transform_opt = world.get_component_opt<Transform>(entity_id);
@@ -83,4 +86,15 @@ namespace wrld::cpt {
     void FPSControl::set_camera_sensitivity(const double camera_sensitivity) {
         this->camera_sensitivity = camera_sensitivity;
     }
+
+    void FPSControl::set_lock(const bool lock) {
+        this->lock = lock;
+
+        if (lock) {
+            last_mouse_x = 0;
+            last_mouse_y = 0;
+        }
+    }
+
+    bool FPSControl::is_locked() const { return this->lock; }
 } // namespace wrld::cpt

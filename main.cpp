@@ -23,9 +23,22 @@
 
 using namespace wrld;
 
-void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+static bool capture_cursor;
+std::shared_ptr<cpt::FPSControl> fps_control;
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        if (capture_cursor) {
+            wrldInfo("Freeing cursor");
+            capture_cursor = false;
+            fps_control->set_lock(true);
+        } else {
+            wrldInfo("Capturing cursor");
+            glfwSetCursorPos(window, 0, 0);
+            capture_cursor = true;
+            fps_control->set_lock(false);
+        }
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow *window, const int width, const int height) {
@@ -139,6 +152,8 @@ GLFWwindow *init_gl(const int width, const int height) {
 
     glfwMakeContextCurrent(window);
 
+    glfwSetKeyCallback(window, key_callback);
+
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         throw std::runtime_error("Failed to initialize GLAD");
     }
@@ -186,7 +201,9 @@ GLFWwindow *init_gl(const int width, const int height) {
 
 int main() {
     GLFWwindow *window = init_gl(800, 600);
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    capture_cursor = true;
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     World world;
 
@@ -220,7 +237,7 @@ int main() {
     const EntityID camera = world.create_entity();
     world.attach_component<cpt::Camera>(camera, 45);
     auto camera_transform = world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, 8.0});
-    const auto move = world.attach_component<cpt::FPSControl>(camera);
+    fps_control = world.attach_component<cpt::FPSControl>(camera);
     auto env = world.attach_component<cpt::Environment>(camera);
     env->set_cubemap(skybox);
     env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.4});
@@ -254,15 +271,20 @@ int main() {
     bool show_demo_window = true;
 
     while (!glfwWindowShouldClose(window)) {
+        if (capture_cursor) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        } else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+
         glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         const double time = glfwGetTime();
-        processInput(window);
 
         // camera_transform->set_towards({0, 0, 0});
-        move->update(window);
+        fps_control->update(window);
 
         // Rotate backpack
         const auto ROTATION_RATE = glm::quat(glm::vec3{0, 0.005, 0});
@@ -282,18 +304,19 @@ int main() {
         // light_transform2->set_position({0, sin(time + M_PI) * 4, 0});
         light_transform3->set_position({0, sin(time + M_PI / 2) * 4, 0});
 
-
         renderer.exec();
 
-        // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow(&show_demo_window);
+        if (!capture_cursor) {
+            ImGui::ShowDemoWindow(&show_demo_window);
+        }
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -16,7 +16,7 @@ namespace wrld {
         gl_texture(0), path(texture_path), type(type) {
         stbi_set_flip_vertically_on_load(true);
 
-        wrldInfo(std::format("Loadin {} texture : {}", aiTextureTypeToString(type), texture_path));
+        wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type), texture_path));
 
         // Load texture file
         int width, height, nb_channels;

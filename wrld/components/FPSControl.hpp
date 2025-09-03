@@ -20,6 +20,9 @@ namespace wrld::cpt {
         void set_translation_speed(float translation_speed);
         void set_camera_sensitivity(double camera_sensitivity);
 
+        void set_lock(bool lock);
+        bool is_locked() const;
+
     private:
         double last_mouse_x = 400;
         double last_mouse_y = 300;
@@ -30,6 +33,8 @@ namespace wrld::cpt {
 
         float translation_speed = 0.1;
         double camera_sensitivity = 0.1;
+
+        bool lock = false;
     };
 
 } // namespace wrld::cpt
