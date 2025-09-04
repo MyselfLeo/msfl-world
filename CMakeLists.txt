@@ -25,14 +25,13 @@ include_directories(lib/imgui-1.92.2b/backends)
 
 include_directories(lib/glad/include lib/stb_image wrld)
 
-add_executable(msfl_world
+add_library(msfl_world STATIC
 
         # Libraries that are not compiled beforehand
         lib/glad/src/glad.c
         lib/stb_image/stb_image.cpp
 
         # Source code
-        main.cpp
         wrld/resources/Program.hpp
         wrld/resources/Program.cpp
         wrld/resources/Texture.hpp
@@ -68,6 +67,14 @@ add_executable(msfl_world
         wrld/resources/Material.cpp
         wrld/resources/WindowViewport.hpp
         wrld/resources/WindowViewport.cpp
+        wrld/components/Orbiter.hpp
+        wrld/components/Orbiter.cpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
+
+add_executable(main main.cpp)
+target_link_libraries(main msfl_world)
+
+add_executable(shader_test shader_test.cpp)
+target_link_libraries(shader_test msfl_world)

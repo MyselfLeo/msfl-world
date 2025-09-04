@@ -12,6 +12,7 @@
 #include "components/StaticModel.hpp"
 #include "components/Transform.hpp"
 #include "components/Environment.hpp"
+#include "components/PointLight.hpp"
 
 #include <format>
 

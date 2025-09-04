@@ -28,7 +28,8 @@ namespace wrld {
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
     Program::Program(const std::string &combined_shader_path) : Program(combined_shader_path, combined_shader_path) {}
 
-    Program::Program(const std::string &vertex_shader_path, const std::string &fragment_shader_path) {
+    Program::Program(const std::string &vertex_shader_path, const std::string &fragment_shader_path) :
+        vertex_shader_path(vertex_shader_path), fragment_shader_path(fragment_shader_path) {
         // Create both shaders
         vertex_shader = glCreateShader(GL_VERTEX_SHADER);
         if (vertex_shader == 0) {
@@ -168,6 +169,17 @@ namespace wrld {
         set_uniform(uniform + ".shininess", material.get_shininess());
 
         set_uniform(uniform + ".use_mesh_color", material.is_using_mesh_color());
+    }
+
+    void Program::reload() const {
+        wrldInfo("Reloading shaders...");
+        // Compile the shaders, check for error
+        compile_shader(vertex_shader, vertex_shader_path, VERTEX_SHADER);
+        compile_shader(fragment_shader, fragment_shader_path, FRAGMENT_SHADER);
+
+        // glAttachShader(gl_program, vertex_shader);
+        // glAttachShader(gl_program, fragment_shader);
+        // glLinkProgram(gl_program);
     }
 
     void Program::set_uniform(const std::string &uniform, const glm::mat4x4 &value) const {

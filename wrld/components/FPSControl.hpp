@@ -21,7 +21,7 @@ namespace wrld::cpt {
         void set_camera_sensitivity(double camera_sensitivity);
 
         void set_lock(bool lock);
-        bool is_locked() const;
+        [[nodiscard]] bool is_locked() const;
 
     private:
         double last_mouse_x = 400;

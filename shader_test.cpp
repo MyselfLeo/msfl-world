@@ -1,3 +1,4 @@
+#include "components/Orbiter.hpp"
 #include "components/PointLight.hpp"
 
 
@@ -27,9 +28,6 @@
 
 using namespace wrld;
 
-static bool capture_cursor;
-std::shared_ptr<cpt::FPSControl> fps_control;
-
 static std::shared_ptr<WindowViewport> window_viewport;
 
 void window_resize_callback(GLFWwindow *window, const int width, const int height) {
@@ -37,20 +35,7 @@ void window_resize_callback(GLFWwindow *window, const int width, const int heigh
     window_viewport->set_size(width, height);
 }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        if (capture_cursor) {
-            wrldInfo("Freeing cursor");
-            capture_cursor = false;
-            fps_control->set_lock(true);
-        } else {
-            wrldInfo("Capturing cursor");
-            glfwSetCursorPos(window, 0, 0);
-            capture_cursor = true;
-            fps_control->set_lock(false);
-        }
-    }
-}
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {}
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
                             const char *message, const void *userParam) {
@@ -208,9 +193,6 @@ GLFWwindow *init_gl(const int width, const int height) {
 int main() {
     GLFWwindow *window = init_gl(800, 600);
 
-    capture_cursor = true;
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     World world;
 
     window_viewport = std::make_shared<WindowViewport>(window);
@@ -220,73 +202,27 @@ int main() {
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    Model backpack_model("data/models/backpack/backpack.obj");
-    Model myshape_model("data/models/myshape/myshape.obj");
-    Model cube_model("data/models/cube/cube.obj");
-
-    wrldInfo("Loading skybox");
-    auto skybox = std::make_shared<CubemapTexture>(std::vector<std::string>{
-            "data/textures/lake_cm/right.jpg", "data/textures/lake_cm/left.jpg", "data/textures/lake_cm/top.jpg",
-            "data/textures/lake_cm/bottom.jpg", "data/textures/lake_cm/front.jpg", "data/textures/lake_cm/back.jpg"});
-
+    Model model("data/models/bigguy/bigguy.obj");
     wrldInfo("Creating entities");
-    const EntityID backpack = world.create_entity();
-    world.attach_component<cpt::StaticModel>(backpack, backpack_model);
-    world.attach_component<cpt::Transform>(backpack, glm::vec3{4.0, 0.0, 0.0});
-
-    const EntityID myshape = world.create_entity();
-    world.attach_component<cpt::StaticModel>(myshape, myshape_model);
-    world.attach_component<cpt::Transform>(myshape, glm::vec3{-4.0, 0.0, 0.0});
-
-    const EntityID ground = world.create_entity();
-    world.attach_component<cpt::StaticModel>(ground, cube_model);
-    world.attach_component<cpt::Transform>(ground, glm::vec3{0, -5, 0}, glm::quat{1, 0, 0, 0},
-                                           glm::vec3(100, 0.2, 100));
+    const EntityID model_entity = world.create_entity();
+    world.attach_component<cpt::StaticModel>(model_entity, model);
+    world.attach_component<cpt::Transform>(model_entity);
 
     const EntityID camera_entity = world.create_entity();
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);
-    auto camera_transform = world.attach_component<cpt::Transform>(camera_entity, glm::vec3{0.0, 0.0, 8.0});
-    fps_control = world.attach_component<cpt::FPSControl>(camera_entity);
+    world.attach_component<cpt::Transform>(camera_entity);
+    auto orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 40);
+
     auto env = world.attach_component<cpt::Environment>(camera_entity);
-    env->set_cubemap(skybox);
-    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.4});
+    env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
 
     const EntityID dir_light = world.create_entity();
-    world.attach_component<cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 0.4);
-    const auto dir_light_transform = world.attach_component<cpt::Transform>(dir_light);
-    world.attach_component<cpt::StaticModel>(dir_light, cube_model);
-
-    dir_light_transform->set_scale(glm::vec3{0.1, 0.1, 0.1});
-    dir_light_transform->set_position(glm::vec3{0, 1, 0});
-    dir_light_transform->look_towards(glm::vec3{0, 0, -1}, glm::vec3{0, 1, 0});
-
-    /*const EntityID light1 = world.create_entity();
-    world.attach_component<cpt::PointLight>(light1, glm::vec3{0.0, 1.0, 0.0}, 30.0);
-    const auto light_transform1 = world.attach_component<cpt::Transform>(light1);
-    world.attach_component<cpt::StaticModel>(light1, cube_model);
-    light_transform1->set_scale(glm::vec3{0.1, 0.1, 0.1});
-    const EntityID light2 = world.create_entity();
-    world.attach_component<cpt::PointLight>(light2, glm::vec3{1.0, 0.0, 0.0}, 30.0);
-    const auto light_transform2 = world.attach_component<cpt::Transform>(light2);
-    world.attach_component<cpt::StaticModel>(light2, cube_model);
-    light_transform2->set_scale(glm::vec3{0.1, 0.1, 0.1});*/
-
-    const EntityID light3 = world.create_entity();
-    world.attach_component<cpt::PointLight>(light3, glm::vec3{0.0, 0.0, 1.0}, 5.0);
-    const auto light_transform3 = world.attach_component<cpt::Transform>(light3);
-    world.attach_component<cpt::StaticModel>(light3, cube_model);
-    light_transform3->set_scale(glm::vec3{0.1, 0.1, 0.1});
-
+    world.attach_component<cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
+    world.attach_component<cpt::Transform>(dir_light)->look_towards({-1, 0, -1}, {0, 1, 0});
     bool show_demo_window = true;
     bool reloading = false;
 
     while (!glfwWindowShouldClose(window)) {
-        if (capture_cursor) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        } else {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && !reloading) {
             reloading = true;
             camera->get_program()->reload();
@@ -294,32 +230,41 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) {
             reloading = false;
         }
-        glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        const double time = glfwGetTime();
-
         // camera_transform->set_towards({0, 0, 0});
-        fps_control->update(window);
 
         // Rotate backpack
         const auto ROTATION_RATE = glm::quat(glm::vec3{0, 0.005, 0});
 
-        const auto backpack_transform = world.get_component<cpt::Transform>(backpack);
+        const auto backpack_transform = world.get_component<cpt::Transform>(model_entity);
         auto curr_rotation = backpack_transform->get_rotation();
         backpack_transform->set_rotation(ROTATION_RATE * curr_rotation);
 
-        const auto myshape_transform = world.get_component<cpt::Transform>(myshape);
-        curr_rotation = myshape_transform->get_rotation();
-        myshape_transform->set_rotation(-ROTATION_RATE * curr_rotation);
+        float camera_speed = 1.5;
 
-        curr_rotation = dir_light_transform->get_rotation();
-        dir_light_transform->set_rotation(ROTATION_RATE * curr_rotation);
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            orbiter->set_vert_angle(orbiter->get_vert_angle() + camera_speed);
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            orbiter->set_vert_angle(orbiter->get_vert_angle() - camera_speed);
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            orbiter->set_hor_angle(orbiter->get_hor_angle() - camera_speed);
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            orbiter->set_hor_angle(orbiter->get_hor_angle() + camera_speed);
+        }
+        if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
+            orbiter->set_distance(orbiter->get_distance() - 1);
+        }
+        if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) {
+            orbiter->set_distance(orbiter->get_distance() + 1);
+        }
 
-        // light_transform1->set_position({0, sin(time) * 4, 0});
-        // light_transform2->set_position({0, sin(time + M_PI) * 4, 0});
-        light_transform3->set_position({0, sin(time + M_PI / 2) * 4, 0});
+        orbiter->update();
 
         renderer.exec();
 
@@ -327,9 +272,7 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        if (!capture_cursor) {
-            ImGui::ShowDemoWindow(&show_demo_window);
-        }
+        ImGui::ShowDemoWindow(&show_demo_window);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -58,7 +58,12 @@ namespace wrld {
 
         void set_uniform(const std::string &uniform, const Material &material) const;
 
+        void reload() const;
+
     private:
+        std::string vertex_shader_path;
+        std::string fragment_shader_path;
+
         GLuint vertex_shader;
         GLuint fragment_shader;
         GLuint gl_program;

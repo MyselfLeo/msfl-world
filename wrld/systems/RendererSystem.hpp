@@ -8,7 +8,6 @@
 #include "GLFW/glfw3.h"
 #include "components/Camera.hpp"
 #include "components/Environment.hpp"
-#include "components/PointLight.hpp"
 #include "resources/CubemapTexture.hpp"
 #include "resources/Model.hpp"
 #include "resources/Program.hpp"
