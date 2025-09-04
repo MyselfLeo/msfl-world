@@ -8,13 +8,14 @@
 #include "Environment.hpp"
 #include "glm/mat4x4.hpp"
 #include "resources/Program.hpp"
+#include "resources/WindowViewport.hpp"
 
 namespace wrld::cpt {
 
     /// Attach a camera to the Entity.
     class Camera final : public Component {
     public:
-        explicit Camera(EntityID entity_id, World &world, float fov,
+        explicit Camera(EntityID entity_id, World &world, float fov, std::shared_ptr<WindowViewport> viewport,
                         std::shared_ptr<Program> program = std::make_shared<Program>(
                                 "wrld/shaders/vertex/default.glsl", "wrld/shaders/fragment/default.glsl"));
 
@@ -27,8 +28,8 @@ namespace wrld::cpt {
         /// Either returns the Transform attached to the Entity,
         /// or the identity transform.
         [[nodiscard]] glm::mat4x4 get_view_matrix() const;
-        [[nodiscard]] glm::mat4x4 get_projection_matrix(unsigned width, unsigned height) const;
-        [[nodiscard]] static glm::mat4x4 get_viewport_matrix(unsigned width, unsigned height);
+        [[nodiscard]] glm::mat4x4 get_projection_matrix() const;
+        [[nodiscard]] glm::mat4x4 get_viewport_matrix() const;
 
         /// Return the camera position in world space.
         /// This is directly related to the attached Transform component (if any).
@@ -38,6 +39,7 @@ namespace wrld::cpt {
         static const glm::vec3 UP_VECTOR;
         float fov;
         std::shared_ptr<Program> program;
+        std::shared_ptr<WindowViewport> viewport;
     };
 
 } // namespace wrld::cpt

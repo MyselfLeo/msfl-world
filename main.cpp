@@ -19,12 +19,20 @@
 #include "wrld/components/StaticModel.hpp"
 #include "wrld/components/Transform.hpp"
 #include "glm/gtx/rotate_vector.hpp"
+#include "resources/WindowViewport.hpp"
 #include "wrld/systems/RendererSystem.hpp"
 
 using namespace wrld;
 
 static bool capture_cursor;
 std::shared_ptr<cpt::FPSControl> fps_control;
+
+static std::shared_ptr<WindowViewport> window_viewport;
+
+void window_resize_callback(GLFWwindow *window, const int width, const int height) {
+    glViewport(0, 0, width, height);
+    window_viewport->set_size(width, height);
+}
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -39,10 +47,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             fps_control->set_lock(false);
         }
     }
-}
-
-void framebuffer_size_callback(GLFWwindow *window, const int width, const int height) {
-    glViewport(0, 0, width, height);
 }
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
@@ -185,7 +189,6 @@ GLFWwindow *init_gl(const int width, const int height) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glViewport(0, 0, width, height);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     int flags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
@@ -206,6 +209,9 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     World world;
+
+    window_viewport = std::make_shared<WindowViewport>(window);
+    glfwSetWindowSizeCallback(window, window_resize_callback);
 
     wrldInfo("Initialising systems");
     RendererSystem renderer{world, window};
@@ -235,7 +241,7 @@ int main() {
                                            glm::vec3(100, 0.2, 100));
 
     const EntityID camera = world.create_entity();
-    world.attach_component<cpt::Camera>(camera, 45);
+    world.attach_component<cpt::Camera>(camera, 45, window_viewport);
     auto camera_transform = world.attach_component<cpt::Transform>(camera, glm::vec3{0.0, 0.0, 8.0});
     fps_control = world.attach_component<cpt::FPSControl>(camera);
     auto env = world.attach_component<cpt::Environment>(camera);
@@ -276,6 +282,7 @@ int main() {
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
+        std::cout << window_viewport->get_width() << " " << window_viewport->get_height() << std::endl;
 
         glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

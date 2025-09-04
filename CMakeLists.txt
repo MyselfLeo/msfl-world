@@ -66,6 +66,8 @@ add_executable(msfl_world
         wrld/components/Environment.hpp
         wrld/resources/Material.hpp
         wrld/resources/Material.cpp
+        wrld/resources/WindowViewport.hpp
+        wrld/resources/WindowViewport.cpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

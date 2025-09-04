@@ -97,7 +97,7 @@ namespace wrld {
 
         // Camera dependent uniforms
         const glm::mat4x4 view_matrix = camera.get_view_matrix();
-        const glm::mat4x4 projection_matrix = camera.get_projection_matrix(width, height);
+        const glm::mat4x4 projection_matrix = camera.get_projection_matrix();
         program.use();
         program.set_uniform("view_pos", camera.get_position());
         program.set_uniform("view", view_matrix);
@@ -199,8 +199,8 @@ namespace wrld {
     void RendererSystem::draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
         SKYBOX_PROGRAM.use();
 
-        const auto inv_matrix = glm::inverse(cpt::Camera::get_viewport_matrix(800, 600) *
-                                             camera.get_projection_matrix(800, 600) * camera.get_view_matrix());
+        const auto inv_matrix =
+                glm::inverse(camera.get_viewport_matrix() * camera.get_projection_matrix() * camera.get_view_matrix());
 
         cubemap.use(0);
 
