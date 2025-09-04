@@ -28,7 +28,11 @@ namespace wrld::cpt {
         mode = ENTITY;
     }
 
-    void Orbiter::set_distance(const float distance) { this->distance = distance; }
+    void Orbiter::set_distance(const float distance) {
+        this->distance = distance;
+        if (this->distance < 0)
+            this->distance = 0;
+    }
 
     void Orbiter::set_vert_angle(const float vert_angle) {
         this->vert_angle = vert_angle;

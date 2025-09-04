@@ -71,7 +71,11 @@ namespace wrld {
     /// Stores multiple meshes in a tree representation
     class Model {
     public:
+        /// Loads model from file
         explicit Model(const std::string &model_path);
+
+        /// Creates a Model with a single mesh
+        // explicit Model(Mesh mesh);
 
         [[nodiscard]] size_t get_mesh_count() const;
         [[nodiscard]] const std::shared_ptr<MeshGraphNode> &get_root_mesh() const;
