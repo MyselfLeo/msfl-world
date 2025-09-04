@@ -23,6 +23,9 @@ namespace wrld::cpt {
         // In degrees
         void set_hor_angle(float hor_angle);
 
+        void set_offset(const glm::vec3 &offset);
+        glm::vec3 get_offset() const;
+
         float get_distance() const;
         // In degrees
         float get_hor_angle() const;
@@ -31,7 +34,8 @@ namespace wrld::cpt {
 
         /// Returns the world point currently targeted by the orbiter.
         /// It's either a fixed one (get_current_mode() returns WORLD_POINT)
-        /// or the position of the targeted Entity (get_current_mode() returns ENTITY).
+        /// or the position of the targeted Entity (get_current_mode() returns ENTITY),
+        /// including a potential offset.
         glm::vec3 get_target_point() const;
 
         void update() const;
@@ -42,6 +46,8 @@ namespace wrld::cpt {
 
         glm::vec3 target_point;
         EntityID target_entity;
+
+        glm::vec3 offset;
 
         float distance;
         // In degrees

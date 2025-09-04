@@ -202,7 +202,7 @@ int main() {
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    Model model("data/models/bigguy/bigguy.obj");
+    Model model("data/models/robot/robot.obj");
     wrldInfo("Creating entities");
     const EntityID model_entity = world.create_entity();
     world.attach_component<cpt::StaticModel>(model_entity, model);
@@ -212,6 +212,7 @@ int main() {
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);
     world.attach_component<cpt::Transform>(camera_entity);
     auto orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 40);
+    orbiter->set_offset({0, 2, 0});
 
     auto env = world.attach_component<cpt::Environment>(camera_entity);
     env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});

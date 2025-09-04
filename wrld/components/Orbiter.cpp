@@ -44,6 +44,10 @@ namespace wrld::cpt {
 
     void Orbiter::set_hor_angle(const float hor_angle) { this->hor_angle = hor_angle; }
 
+    void Orbiter::set_offset(const glm::vec3 &offset) { this->offset = offset; }
+
+    glm::vec3 Orbiter::get_offset() const { return offset; }
+
     float Orbiter::get_hor_angle() const { return hor_angle; }
 
     float Orbiter::get_vert_angle() const { return vert_angle; }
@@ -55,13 +59,13 @@ namespace wrld::cpt {
     glm::vec3 Orbiter::get_target_point() const {
         switch (mode) {
             case WORLD_POINT:
-                return target_point;
+                return target_point + this->offset;
             case ENTITY: {
                 if (const auto transform_opt = world.get_component_opt<Transform>(target_entity);
                     transform_opt.has_value()) {
-                    return transform_opt.value()->get_position();
+                    return transform_opt.value()->get_position() + this->offset;
                 }
-                return {0, 0, 0};
+                return this->offset;
             }
             default:
                 assert(false);
