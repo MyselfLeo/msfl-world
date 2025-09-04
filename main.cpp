@@ -282,7 +282,6 @@ int main() {
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
-        std::cout << window_viewport->get_width() << " " << window_viewport->get_height() << std::endl;
 
         glClearColor(0.06f, 0.06f, 0.08f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
