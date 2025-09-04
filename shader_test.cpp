@@ -259,10 +259,10 @@ int main() {
             orbiter->set_hor_angle(orbiter->get_hor_angle() + camera_speed);
         }
         if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
-            orbiter->set_distance(orbiter->get_distance() - 1);
+            orbiter->set_distance(orbiter->get_distance() * 0.95);
         }
         if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) {
-            orbiter->set_distance(orbiter->get_distance() + 1);
+            orbiter->set_distance(orbiter->get_distance() / 0.95);
         }
 
         orbiter->update();
