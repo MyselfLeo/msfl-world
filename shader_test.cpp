@@ -190,6 +190,40 @@ GLFWwindow *init_gl(const int width, const int height) {
     return window;
 }
 
+Mesh generate_world_grid() {
+    constexpr int NB_LINES = 10;
+    constexpr int SPACING = 1; // Space between each lines
+
+    Mesh res{std::make_shared<Material>()};
+
+    res.use_ebo(false);
+
+    auto vertex = Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 1, 1});
+
+    int offset = SPACING * (NB_LINES / 2);
+    if constexpr (NB_LINES % 2 == 0) {
+        offset += SPACING / 2.0;
+    }
+
+    // X direction
+    for (int i = 0; i < NB_LINES; i++) {
+        vertex.position = {-offset + (SPACING * i), 0, offset};
+        res.add_vertex(vertex);
+        vertex.position = {-offset + (SPACING * i), 0, -offset};
+        res.add_vertex(vertex);
+    }
+
+    // Y direction
+    for (int i = 0; i < NB_LINES; i++) {
+        vertex.position = {offset, 0, -offset + (SPACING * i)};
+        res.add_vertex(vertex);
+        vertex.position = {-offset, 0, -offset + (SPACING * i)};
+        res.add_vertex(vertex);
+    }
+
+    return res;
+}
+
 int main() {
     GLFWwindow *window = init_gl(800, 600);
 
@@ -202,17 +236,23 @@ int main() {
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    Model model("data/models/robot/robot.obj");
+    Model model("data/models/queen/queen.off");
+    Model grid(generate_world_grid());
+
+
     wrldInfo("Creating entities");
     const EntityID model_entity = world.create_entity();
     world.attach_component<cpt::StaticModel>(model_entity, model);
     world.attach_component<cpt::Transform>(model_entity);
 
+    const EntityID world_grid = world.create_entity();
+    world.attach_component<cpt::StaticModel>(world_grid, grid);
+
     const EntityID camera_entity = world.create_entity();
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);
     world.attach_component<cpt::Transform>(camera_entity);
     auto orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 40);
-    orbiter->set_offset({0, 2, 0});
+    orbiter->set_offset({0, 0, 0});
 
     auto env = world.attach_component<cpt::Environment>(camera_entity);
     env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
@@ -234,8 +274,6 @@ int main() {
         glClearColor(0.1f, 0.2f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        // camera_transform->set_towards({0, 0, 0});
 
         // Rotate backpack
         const auto ROTATION_RATE = glm::quat(glm::vec3{0, 0.005, 0});

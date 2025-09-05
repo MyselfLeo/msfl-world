@@ -37,11 +37,25 @@ namespace wrld {
         void set_material(const std::shared_ptr<Material> &material);
         void use_default_material();
 
+        void add_vertex(const Vertex &vertex);
+        void add_element(unsigned index);
+
+        void use_ebo(bool mode);
+
+        void set_gl_primitive_type(GLenum type);
+        [[nodiscard]] GLenum get_gl_primitive_type() const;
+
         [[nodiscard]] const std::shared_ptr<Material> &get_material() const;
 
+        /// Sends mesh data to the GPU, setup vao/vbo/ebo
+        void init();
+
     private:
-        friend class Model;
+        // friend class Model;
         friend class RendererSystem;
+
+        bool initialized = false;
+        bool _use_ebo = true;
 
         std::vector<Vertex> vertices;
         std::vector<unsigned> indices;
@@ -50,10 +64,9 @@ namespace wrld {
         std::shared_ptr<Material> default_material;
         std::shared_ptr<Material> current_material;
 
-        GLuint vao = 0, vbo = 0, ebo = 0;
+        GLenum gl_primitive_type = GL_TRIANGLES;
 
-        /// Sends mesh data to the GPU, setup vao/vbo/ebo
-        void init();
+        GLuint vao = 0, vbo = 0, ebo = 0;
     };
 
     typedef size_t MeshID;
@@ -75,7 +88,7 @@ namespace wrld {
         explicit Model(const std::string &model_path);
 
         /// Creates a Model with a single mesh
-        // explicit Model(Mesh mesh);
+        explicit Model(Mesh &&mesh);
 
         [[nodiscard]] size_t get_mesh_count() const;
         [[nodiscard]] const std::shared_ptr<MeshGraphNode> &get_root_mesh() const;
@@ -86,6 +99,8 @@ namespace wrld {
         std::shared_ptr<MeshGraphNode> root_mesh;
         size_t mesh_count;
         std::unordered_map<std::string, std::shared_ptr<Texture>> loaded_textures;
+
+        ////// BELOW : Data & functions when model is loaded from file
 
         // Save the directory where we loaded the model in order
         // to load relative textures

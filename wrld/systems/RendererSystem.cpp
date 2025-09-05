@@ -253,7 +253,13 @@ namespace wrld {
         glActiveTexture(GL_TEXTURE0);
 
         glBindVertexArray(mesh.vao);
-        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+
+        if (mesh._use_ebo) {
+            glDrawElements(mesh.gl_primitive_type, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+        } else {
+            glDrawArrays(mesh.gl_primitive_type, 0, mesh.vertices.size());
+        }
+
         glBindVertexArray(0);
     }
 } // namespace wrld

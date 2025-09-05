@@ -16,6 +16,11 @@
 
 namespace wrld {
     void Mesh::init() {
+        if (initialized) {
+            throw std::runtime_error("This mesh has already been initialized");
+        }
+        initialized = true;
+
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
         glGenBuffers(1, &ebo);
@@ -25,7 +30,7 @@ namespace wrld {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(indices), indices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), indices.data(), GL_STATIC_DRAW);
 
         // Vertex positions
         glEnableVertexAttribArray(0);
@@ -119,20 +124,39 @@ namespace wrld {
 
     void Mesh::use_default_material() { this->current_material = default_material; }
 
+    void Mesh::add_vertex(const Vertex &vertex) { this->vertices.push_back(vertex); }
+
+    void Mesh::add_element(const unsigned index) { this->indices.push_back(index); }
+
+    void Mesh::use_ebo(bool mode) { _use_ebo = mode; }
+
+    void Mesh::set_gl_primitive_type(const GLenum type) { this->gl_primitive_type = type; }
+
+    GLenum Mesh::get_gl_primitive_type() const { return gl_primitive_type; }
+
     const std::shared_ptr<Material> &Mesh::get_material() const { return current_material; }
 
     Model::Model(const std::string &model_path) : mesh_count(0) {
         Assimp::Importer import;
-        const aiScene *scene =
-                import.ReadFile(model_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_OptimizeMeshes);
+        const aiScene *scene = import.ReadFile(model_path, aiProcess_Triangulate | aiProcess_FlipUVs |
+                                                                   aiProcess_OptimizeMeshes | aiProcess_GenNormals);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             throw std::runtime_error(std::format("Unable to load model `{}`: {}", model_path, import.GetErrorString()));
         }
 
+        if (scene->mNumMeshes == 0) {
+            throw std::runtime_error(std::format("Model `{}` has no meshes", model_path));
+        }
+
         model_directory = model_path.substr(0, model_path.find_last_of('/'));
 
         root_mesh = process_node(scene->mRootNode, scene);
+    }
+
+    Model::Model(Mesh &&mesh) : mesh_count(1) {
+        root_mesh = std::make_shared<MeshGraphNode>();
+        root_mesh->meshes.push_back(std::move(mesh));
     }
 
     size_t Model::get_mesh_count() const { return mesh_count; }
@@ -189,14 +213,14 @@ namespace wrld {
             vertex.color = {vertex_color.r, vertex_color.g, vertex_color.b};
             vertex.texcoords = {vertex_texcoords.x, vertex_texcoords.y};
 
-            new_mesh.vertices.push_back(vertex);
+            new_mesh.add_vertex(vertex);
         }
 
         // Indices
         for (unsigned i = 0; i < mesh->mNumFaces; i++) {
             const aiFace &face = mesh->mFaces[i];
             for (unsigned j = 0; j < face.mNumIndices; j++) {
-                new_mesh.indices.push_back(face.mIndices[j]);
+                new_mesh.add_element(face.mIndices[j]);
             }
         }
 
