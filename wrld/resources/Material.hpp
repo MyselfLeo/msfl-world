@@ -57,7 +57,7 @@ namespace wrld {
         float shininess = 32;
 
         // Config
-        bool _use_mesh_color = false;
+        bool _use_mesh_color = true;
     };
 } // namespace wrld
 

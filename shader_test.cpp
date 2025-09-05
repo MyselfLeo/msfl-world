@@ -129,7 +129,7 @@ GLFWwindow *init_gl(const int width, const int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
 
@@ -192,34 +192,76 @@ GLFWwindow *init_gl(const int width, const int height) {
 
 Mesh generate_world_grid() {
     constexpr int NB_LINES = 10;
-    constexpr int SPACING = 1; // Space between each lines
+    constexpr float SPACING = 1; // Space between each lines
 
-    Mesh res{std::make_shared<Material>()};
+    // todo: make it not lighted
+    auto vertex = Vertex({0, 0, 0}, {1, 0, 0}, {0, 0}, {0.7, 0.7, 0.7});
 
-    res.use_ebo(false);
-
-    auto vertex = Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 1, 1});
-
-    int offset = SPACING * (NB_LINES / 2);
+    float offset = SPACING * (NB_LINES / 2.0);
     if constexpr (NB_LINES % 2 == 0) {
-        offset += SPACING / 2.0;
+        offset -= SPACING / 2.0;
     }
+
+    // Create vertices
+    std::vector<Vertex> vertices;
+    std::vector<unsigned> elements;
+    vertices.reserve(NB_LINES * 4);
+    elements.reserve(NB_LINES * 4);
 
     // X direction
     for (int i = 0; i < NB_LINES; i++) {
-        vertex.position = {-offset + (SPACING * i), 0, offset};
-        res.add_vertex(vertex);
-        vertex.position = {-offset + (SPACING * i), 0, -offset};
-        res.add_vertex(vertex);
+        vertex.position = {-offset + SPACING * static_cast<float>(i), 0, offset};
+        vertices.push_back(vertex);
+        vertex.position = {-offset + SPACING * static_cast<float>(i), 0, -offset};
+        vertices.push_back(vertex);
     }
 
     // Y direction
     for (int i = 0; i < NB_LINES; i++) {
-        vertex.position = {offset, 0, -offset + (SPACING * i)};
-        res.add_vertex(vertex);
-        vertex.position = {-offset, 0, -offset + (SPACING * i)};
-        res.add_vertex(vertex);
+        vertex.position = {offset, 0, -offset + SPACING * static_cast<float>(i)};
+        vertices.push_back(vertex);
+        vertex.position = {-offset, 0, -offset + SPACING * static_cast<float>(i)};
+        vertices.push_back(vertex);
     }
+
+    for (int i = 0; i < NB_LINES * 4; i++) {
+        elements.push_back(i);
+    }
+
+    Mesh res{std::make_shared<Material>(), vertices, elements};
+    res.set_gl_primitive_type(GL_LINES);
+    res.update();
+
+    return res;
+}
+
+Mesh generate_axis(float axis_length) {
+    // todo: make it not lighted
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned> elements;
+    vertices.reserve(6); // 3 lines so 6 vertices
+    elements.reserve(6);
+
+    // X => R
+    vertices.push_back(Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
+    vertices.push_back(Vertex({axis_length, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
+
+    // Y => G
+    vertices.push_back(Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
+    vertices.push_back(Vertex({0, axis_length, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
+
+    // Z => B
+    vertices.push_back(Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
+    vertices.push_back(Vertex({0, 0, axis_length}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
+
+    for (int i = 0; i < 6; i++) {
+        elements.push_back(i);
+    }
+
+    Mesh res{std::make_shared<Material>(), vertices, elements};
+    res.set_gl_primitive_type(GL_LINES);
+    res.update();
 
     return res;
 }
@@ -237,7 +279,8 @@ int main() {
 
     wrldInfo("Loading model");
     Model model("data/models/queen/queen.off");
-    Model grid(generate_world_grid());
+    Model grid_model(generate_world_grid());
+    Model axis_model(generate_axis(1));
 
 
     wrldInfo("Creating entities");
@@ -246,12 +289,16 @@ int main() {
     world.attach_component<cpt::Transform>(model_entity);
 
     const EntityID world_grid = world.create_entity();
-    world.attach_component<cpt::StaticModel>(world_grid, grid);
+    world.attach_component<cpt::StaticModel>(world_grid, grid_model);
+
+    const EntityID axis = world.create_entity();
+    world.attach_component<cpt::StaticModel>(axis, axis_model);
+
 
     const EntityID camera_entity = world.create_entity();
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);
     world.attach_component<cpt::Transform>(camera_entity);
-    auto orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 40);
+    auto orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 2);
     orbiter->set_offset({0, 0, 0});
 
     auto env = world.attach_component<cpt::Environment>(camera_entity);
@@ -291,10 +338,10 @@ int main() {
             orbiter->set_vert_angle(orbiter->get_vert_angle() - camera_speed);
         }
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-            orbiter->set_hor_angle(orbiter->get_hor_angle() - camera_speed);
+            orbiter->set_hor_angle(orbiter->get_hor_angle() + camera_speed);
         }
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-            orbiter->set_hor_angle(orbiter->get_hor_angle() + camera_speed);
+            orbiter->set_hor_angle(orbiter->get_hor_angle() - camera_speed);
         }
         if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
             orbiter->set_distance(orbiter->get_distance() * 0.95);

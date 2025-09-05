@@ -15,15 +15,14 @@
 #include <utility>
 
 namespace wrld {
-    void Mesh::init() {
-        if (initialized) {
-            throw std::runtime_error("This mesh has already been initialized");
+    void Mesh::update() {
+        if (!buffers_created) {
+            glGenVertexArrays(1, &vao);
+            glGenBuffers(1, &vbo);
+            glGenBuffers(1, &ebo);
         }
-        initialized = true;
+        buffers_created = true;
 
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
 
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -79,10 +78,14 @@ namespace wrld {
     Mesh::Mesh(const std::shared_ptr<Material> &default_material) :
         default_material(default_material), current_material(default_material) {}
 
+    Mesh::Mesh(const std::shared_ptr<Material> &default_material, const std::vector<Vertex> &vertices,
+               const std::vector<unsigned int> &elements) :
+        vertices(vertices), indices(elements), default_material(default_material), current_material(default_material) {}
+
     Mesh::Mesh(Mesh &&other) noexcept :
         vertices(std::move(other.vertices)), indices(std::move(other.indices)),
         default_material(std::move(other.default_material)), current_material(std::move(other.current_material)),
-        vao(other.vao), vbo(other.vbo), ebo(other.ebo) {
+        gl_primitive_type(other.gl_primitive_type), vao(other.vao), vbo(other.vbo), ebo(other.ebo) {
         other.vao = 0;
         other.vbo = 0;
         other.ebo = 0;
@@ -104,6 +107,7 @@ namespace wrld {
             vao = other.vao;
             vbo = other.vbo;
             ebo = other.ebo;
+            gl_primitive_type = other.gl_primitive_type;
 
             // Reset source object
             other.vao = 0;
@@ -128,11 +132,13 @@ namespace wrld {
 
     void Mesh::add_element(const unsigned index) { this->indices.push_back(index); }
 
-    void Mesh::use_ebo(bool mode) { _use_ebo = mode; }
-
     void Mesh::set_gl_primitive_type(const GLenum type) { this->gl_primitive_type = type; }
 
     GLenum Mesh::get_gl_primitive_type() const { return gl_primitive_type; }
+
+    void Mesh::set_gl_usage(const GLenum usage) { this->gl_usage = usage; }
+
+    GLenum Mesh::get_gl_usage() const { return gl_usage; }
 
     const std::shared_ptr<Material> &Mesh::get_material() const { return current_material; }
 
@@ -226,7 +232,7 @@ namespace wrld {
 
         mesh_count += 1;
 
-        new_mesh.init();
+        new_mesh.update();
         return new_mesh;
     }
 

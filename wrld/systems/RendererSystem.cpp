@@ -254,11 +254,7 @@ namespace wrld {
 
         glBindVertexArray(mesh.vao);
 
-        if (mesh._use_ebo) {
-            glDrawElements(mesh.gl_primitive_type, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
-        } else {
-            glDrawArrays(mesh.gl_primitive_type, 0, mesh.vertices.size());
-        }
+        glDrawElements(mesh.gl_primitive_type, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 
         glBindVertexArray(0);
     }

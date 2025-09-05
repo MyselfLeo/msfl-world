@@ -30,6 +30,10 @@ namespace wrld {
     class Mesh {
     public:
         explicit Mesh(const std::shared_ptr<Material> &default_material);
+
+        Mesh(const std::shared_ptr<Material> &default_material, const std::vector<Vertex> &vertices,
+             const std::vector<unsigned> &elements);
+
         Mesh(Mesh &&other) noexcept;
         Mesh &operator=(Mesh &&other) noexcept;
         ~Mesh();
@@ -38,24 +42,25 @@ namespace wrld {
         void use_default_material();
 
         void add_vertex(const Vertex &vertex);
-        void add_element(unsigned index);
 
-        void use_ebo(bool mode);
+        void add_element(unsigned index);
 
         void set_gl_primitive_type(GLenum type);
         [[nodiscard]] GLenum get_gl_primitive_type() const;
 
+        void set_gl_usage(GLenum usage);
+        [[nodiscard]] GLenum get_gl_usage() const;
+
         [[nodiscard]] const std::shared_ptr<Material> &get_material() const;
 
-        /// Sends mesh data to the GPU, setup vao/vbo/ebo
-        void init();
+        /// Sends/Updates mesh data on the GPU, setup vao/vbo/ebo is required
+        void update();
 
     private:
         // friend class Model;
         friend class RendererSystem;
 
-        bool initialized = false;
-        bool _use_ebo = true;
+        bool buffers_created = false;
 
         std::vector<Vertex> vertices;
         std::vector<unsigned> indices;
@@ -65,6 +70,7 @@ namespace wrld {
         std::shared_ptr<Material> current_material;
 
         GLenum gl_primitive_type = GL_TRIANGLES;
+        GLenum gl_usage = GL_STATIC_DRAW;
 
         GLuint vao = 0, vbo = 0, ebo = 0;
     };

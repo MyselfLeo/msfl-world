@@ -12,11 +12,11 @@
 namespace wrld::cpt {
     Orbiter::Orbiter(const EntityID entity_id, World &world, const glm::vec3 target, const float distance) :
         Component(entity_id, world), mode(WORLD_POINT), target_point(std::move(target)), target_entity(0),
-        distance(distance), hor_angle(0), vert_angle(45) {}
+        distance(distance), hor_angle(90), vert_angle(20) {}
 
     Orbiter::Orbiter(const EntityID entity_id, World &world, const EntityID target, const float distance) :
         Component(entity_id, world), mode(ENTITY), target_point({0, 0, 0}), target_entity(target), distance(distance),
-        hor_angle(0), vert_angle(45) {}
+        hor_angle(90), vert_angle(20) {}
 
     void Orbiter::set_target(const glm::vec3 &target) {
         target_point = target;
