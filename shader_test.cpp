@@ -266,8 +266,13 @@ Mesh generate_axis(float axis_length) {
     return res;
 }
 
-int main() {
-    GLFWwindow *window = init_gl(800, 600);
+int main(int argc, const char **argv) {
+    if (argc < 2) {
+        std::cout << "Usage: shader_test <model_path>" << std::endl;
+        std::exit(1);
+    }
+
+    GLFWwindow *window = init_gl(1280, 900);
 
     World world;
 
@@ -278,7 +283,7 @@ int main() {
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    Model model("data/models/queen/queen.off");
+    Model model(argv[1]);
     Model grid_model(generate_world_grid());
     Model axis_model(generate_axis(1));
 
@@ -290,9 +295,11 @@ int main() {
 
     const EntityID world_grid = world.create_entity();
     world.attach_component<cpt::StaticModel>(world_grid, grid_model);
+    world.attach_component<cpt::Transform>(world_grid)->set_scale(glm::vec3{3});
 
     const EntityID axis = world.create_entity();
     world.attach_component<cpt::StaticModel>(axis, axis_model);
+    world.attach_component<cpt::Transform>(axis, glm::vec3{0, 14, 0});
 
 
     const EntityID camera_entity = world.create_entity();
