@@ -14,7 +14,7 @@
 #include <ranges>
 #include <utility>
 
-namespace wrld {
+namespace wrld::rsc {
     void Mesh::update() {
         if (!buffers_created) {
             glGenVertexArrays(1, &vao);
@@ -53,6 +53,10 @@ namespace wrld {
 
         glBindVertexArray(0);
     }
+
+    GLuint Mesh::get_vao() const { return vao; }
+
+    unsigned Mesh::get_element_count() const { return indices.size(); }
 
     MeshGraphNode::MeshGraphNode(MeshGraphNode &&other) noexcept : meshes(std::move(other.meshes)) {
         children.reserve(other.children.size());
@@ -269,4 +273,4 @@ namespace wrld {
     }
 
 
-} // namespace wrld
+} // namespace wrld::rsc

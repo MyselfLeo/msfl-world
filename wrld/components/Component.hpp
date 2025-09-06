@@ -26,7 +26,7 @@ namespace wrld::cpt {
         virtual ~Component() = default;
         Component(EntityID entity_id, World &world);
 
-        EntityID get_entity() const;
+        [[nodiscard]] EntityID get_entity() const;
 
     protected:
         EntityID entity_id;

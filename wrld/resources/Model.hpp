@@ -19,7 +19,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace wrld {
+namespace wrld::rsc {
     struct Vertex {
         glm::vec3 position;
         glm::vec3 normal;
@@ -55,6 +55,10 @@ namespace wrld {
 
         /// Sends/Updates mesh data on the GPU, setup vao/vbo/ebo is required
         void update();
+
+        GLuint get_vao() const;
+
+        unsigned get_element_count() const;
 
     private:
         // friend class Model;
@@ -129,6 +133,6 @@ namespace wrld {
         //       I won't over optimize for now
     };
 
-} // namespace wrld
+} // namespace wrld::rsc
 
 #endif // MODEL_HPP

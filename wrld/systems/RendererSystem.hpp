@@ -30,12 +30,12 @@ namespace wrld {
     };
 
     struct EnvironmentData {
-        EnvironmentData(cpt::AmbiantLight ambiant_light, const std::optional<std::shared_ptr<CubemapTexture>> &skybox,
-                        GLuint vao);
+        EnvironmentData(cpt::AmbiantLight ambiant_light,
+                        const std::optional<std::shared_ptr<rsc::CubemapTexture>> &skybox, GLuint vao);
 
         GLuint vao;
         cpt::AmbiantLight ambiant_light;
-        std::optional<std::shared_ptr<CubemapTexture>> skybox;
+        std::optional<std::shared_ptr<rsc::CubemapTexture>> skybox;
     };
 
     class RendererSystem final : public System {
@@ -50,7 +50,7 @@ namespace wrld {
     private:
         GLFWwindow *window;
 
-        const Program SKYBOX_PROGRAM;
+        const rsc::Program SKYBOX_PROGRAM;
 
         /// Return the entity's transform or a default one if not provided.
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;
@@ -61,7 +61,7 @@ namespace wrld {
 
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.
-        [[nodiscard]] Model get_entity_model(EntityID id) const;
+        [[nodiscard]] rsc::Model get_entity_model(EntityID id) const;
 
         /*/// Return the program (shader) which shall be used to render an entity.
         /// It's either the one defined using a cpt::Shader or the default one.
@@ -82,11 +82,11 @@ namespace wrld {
         /// being returned.
         [[nodiscard]] std::vector<DirectionalLightData> get_directional_lights() const;
 
-        void draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const;
+        void draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const;
 
-        void draw_model(const Model &model, const glm::mat4x4 &model_matrix, const Program &program) const;
+        void draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix, const rsc::Program &program) const;
 
-        static void draw_mesh(const Mesh &mesh, const Program &program);
+        static void draw_mesh(const rsc::Mesh &mesh, const rsc::Program &program);
     };
 } // namespace wrld
 

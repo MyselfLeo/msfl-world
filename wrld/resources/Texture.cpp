@@ -11,7 +11,7 @@
 #include <stb_image.hpp>
 #include <stdexcept>
 
-namespace wrld {
+namespace wrld::rsc {
     Texture::Texture(const std::string &texture_path, const aiTextureType type) :
         gl_texture(0), path(texture_path), type(type) {
         stbi_set_flip_vertically_on_load(true);
@@ -64,4 +64,4 @@ namespace wrld {
     }
 
     Texture::~Texture() { glDeleteTextures(1, &gl_texture); }
-} // namespace wrld
+} // namespace wrld::rsc

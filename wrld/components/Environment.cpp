@@ -23,11 +23,11 @@ namespace wrld::cpt {
 
     const AmbiantLight &Environment::get_ambiant_light() const { return ambiant_light; }
 
-    const std::optional<std::shared_ptr<CubemapTexture>> &Environment::get_cubemap() const { return skybox; }
+    const std::optional<std::shared_ptr<rsc::CubemapTexture>> &Environment::get_cubemap() const { return skybox; }
 
     void Environment::set_ambiant_light(const AmbiantLight ambiant_light) { this->ambiant_light = ambiant_light; }
 
-    void Environment::set_cubemap(const std::shared_ptr<CubemapTexture> &cubemap) { this->skybox = cubemap; }
+    void Environment::set_cubemap(const std::shared_ptr<rsc::CubemapTexture> &cubemap) { this->skybox = cubemap; }
 
     void Environment::remove_cubemap() { this->skybox = std::nullopt; }
 

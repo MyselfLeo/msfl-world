@@ -29,8 +29,8 @@ namespace wrld {
         direction(direction), color(color), intensity(intensity) {}
 
     EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
-                                     const std::optional<std::shared_ptr<CubemapTexture>> &skybox, const GLuint vao) :
-        vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
+                                     const std::optional<std::shared_ptr<rsc::CubemapTexture>> &skybox,
+                                     const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
 
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
         System(world), window(window), SKYBOX_PROGRAM("wrld/shaders/skybox.glsl") {}
@@ -64,7 +64,7 @@ namespace wrld {
         return std::nullopt;
     }
 
-    Model RendererSystem::get_entity_model(const EntityID id) const {
+    rsc::Model RendererSystem::get_entity_model(const EntityID id) const {
         return world.get_component<cpt::StaticModel>(id)->get_model();
     }
 
@@ -77,7 +77,7 @@ namespace wrld {
     }*/
 
     void RendererSystem::render_camera(const cpt::Camera &camera) const {
-        const Program &program = *camera.get_program();
+        const rsc::Program &program = *camera.get_program();
 
         // Todo: In the future, a camera should be attached to a viewport
         // of a given size. We should get this viewport size instead of the window size.
@@ -128,7 +128,7 @@ namespace wrld {
         for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
              const auto entity: model_entities) {
             const auto model_cmpnt = world.get_component_opt<cpt::StaticModel>(entity).value();
-            const Model &model = model_cmpnt->get_model();
+            const rsc::Model &model = model_cmpnt->get_model();
 
             glm::mat4x4 model_matrix = get_entity_transform(entity);
 
@@ -197,7 +197,7 @@ namespace wrld {
         return res;
     }
 
-    void RendererSystem::draw_skybox(const CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
+    void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
         SKYBOX_PROGRAM.use();
 
         const auto inv_matrix =
@@ -217,7 +217,8 @@ namespace wrld {
         glDepthFunc(GL_LESS);
     }
 
-    void RendererSystem::draw_model(const Model &model, const glm::mat4x4 &model_matrix, const Program &program) const {
+    void RendererSystem::draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix,
+                                    const rsc::Program &program) const {
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
@@ -228,7 +229,7 @@ namespace wrld {
         const glm::mat4x4 normal_model_matrix = glm::transpose(glm::inverse(model_matrix));
         program.set_uniform("model_normal", normal_model_matrix);
 
-        std::vector<std::shared_ptr<MeshGraphNode>> node_stack;
+        std::vector<std::shared_ptr<rsc::MeshGraphNode>> node_stack;
         node_stack.push_back(model.get_root_mesh());
 
         // Draw meshes by visiting the tree in depth
@@ -246,15 +247,15 @@ namespace wrld {
         }
     }
 
-    void RendererSystem::draw_mesh(const Mesh &mesh, const Program &program) {
+    void RendererSystem::draw_mesh(const rsc::Mesh &mesh, const rsc::Program &program) {
 
         program.set_uniform("material", *mesh.get_material());
 
         glActiveTexture(GL_TEXTURE0);
 
-        glBindVertexArray(mesh.vao);
+        glBindVertexArray(mesh.get_vao());
 
-        glDrawElements(mesh.gl_primitive_type, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(mesh.get_gl_primitive_type(), mesh.get_element_count(), GL_UNSIGNED_INT, nullptr);
 
         glBindVertexArray(0);
     }

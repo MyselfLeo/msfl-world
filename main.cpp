@@ -30,7 +30,7 @@ using namespace wrld;
 static bool capture_cursor;
 std::shared_ptr<cpt::FPSControl> fps_control;
 
-static std::shared_ptr<WindowViewport> window_viewport;
+static std::shared_ptr<rsc::WindowViewport> window_viewport;
 
 void window_resize_callback(GLFWwindow *window, const int width, const int height) {
     glViewport(0, 0, width, height);
@@ -213,19 +213,19 @@ int main() {
 
     World world;
 
-    window_viewport = std::make_shared<WindowViewport>(window);
+    window_viewport = std::make_shared<rsc::WindowViewport>(window);
     glfwSetWindowSizeCallback(window, window_resize_callback);
 
     wrldInfo("Initialising systems");
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    Model backpack_model("data/models/backpack/backpack.obj");
-    Model myshape_model("data/models/myshape/myshape.obj");
-    Model cube_model("data/models/cube/cube.obj");
+    rsc::Model backpack_model("data/models/backpack/backpack.obj");
+    rsc::Model myshape_model("data/models/myshape/myshape.obj");
+    rsc::Model cube_model("data/models/cube/cube.obj");
 
     wrldInfo("Loading skybox");
-    auto skybox = std::make_shared<CubemapTexture>(std::vector<std::string>{
+    auto skybox = std::make_shared<rsc::CubemapTexture>(std::vector<std::string>{
             "data/textures/lake_cm/right.jpg", "data/textures/lake_cm/left.jpg", "data/textures/lake_cm/top.jpg",
             "data/textures/lake_cm/bottom.jpg", "data/textures/lake_cm/front.jpg", "data/textures/lake_cm/back.jpg"});
 

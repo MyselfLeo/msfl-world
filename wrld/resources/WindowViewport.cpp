@@ -4,7 +4,7 @@
 
 #include "WindowViewport.hpp"
 
-namespace wrld {
+namespace wrld::rsc {
     WindowViewport::WindowViewport(GLFWwindow *window) : window(window) { // NOLINT(*-pro-type-member-init)
         glfwGetWindowSize(window, &width, &height);
     }
@@ -18,4 +18,4 @@ namespace wrld {
         this->width = width;
         this->height = height;
     }
-} // namespace wrld
+} // namespace wrld::rsc

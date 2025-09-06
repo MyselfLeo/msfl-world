@@ -5,10 +5,10 @@
 #include "StaticModel.hpp"
 
 namespace wrld::cpt {
-    StaticModel::StaticModel(const EntityID entity_id, World &world, const Model &model) :
+    StaticModel::StaticModel(const EntityID entity_id, World &world, const rsc::Model &model) :
         Component(entity_id, world), model(model) {}
 
-    const Model &StaticModel::get_model() const { return model; }
+    const rsc::Model &StaticModel::get_model() const { return model; }
 
-    void StaticModel::set_model(const Model &model) { this->model = model; }
+    void StaticModel::set_model(const rsc::Model &model) { this->model = model; }
 } // namespace wrld::cpt

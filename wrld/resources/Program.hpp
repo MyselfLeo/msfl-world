@@ -17,7 +17,7 @@
 
 #include "glm/mat4x4.hpp"
 
-namespace wrld {
+namespace wrld::rsc {
     enum ShaderType { VERTEX_SHADER, FRAGMENT_SHADER };
 
     std::string get_type_name(ShaderType type);
@@ -77,6 +77,6 @@ namespace wrld {
 
         static void compile_shader(GLuint gl_shader, const std::string &shader_path, ShaderType type);
     };
-} // namespace wrld
+} // namespace wrld::rsc
 
 #endif // PROGRAM_HPP

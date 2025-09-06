@@ -28,7 +28,7 @@
 
 using namespace wrld;
 
-static std::shared_ptr<WindowViewport> window_viewport;
+static std::shared_ptr<rsc::WindowViewport> window_viewport;
 
 void window_resize_callback(GLFWwindow *window, const int width, const int height) {
     glViewport(0, 0, width, height);
@@ -190,12 +190,12 @@ GLFWwindow *init_gl(const int width, const int height) {
     return window;
 }
 
-Mesh generate_world_grid() {
+rsc::Mesh generate_world_grid() {
     constexpr int NB_LINES = 10;
     constexpr float SPACING = 1; // Space between each lines
 
     // todo: make it not lighted
-    auto vertex = Vertex({0, 0, 0}, {1, 0, 0}, {0, 0}, {0.7, 0.7, 0.7});
+    auto vertex = rsc::Vertex({0, 0, 0}, {1, 0, 0}, {0, 0}, {0.7, 0.7, 0.7});
 
     float offset = SPACING * (NB_LINES / 2.0);
     if constexpr (NB_LINES % 2 == 0) {
@@ -203,7 +203,7 @@ Mesh generate_world_grid() {
     }
 
     // Create vertices
-    std::vector<Vertex> vertices;
+    std::vector<rsc::Vertex> vertices;
     std::vector<unsigned> elements;
     vertices.reserve(NB_LINES * 4);
     elements.reserve(NB_LINES * 4);
@@ -228,38 +228,38 @@ Mesh generate_world_grid() {
         elements.push_back(i);
     }
 
-    Mesh res{std::make_shared<Material>(), vertices, elements};
+    rsc::Mesh res{std::make_shared<rsc::Material>(), vertices, elements};
     res.set_gl_primitive_type(GL_LINES);
     res.update();
 
     return res;
 }
 
-Mesh generate_axis(float axis_length) {
+rsc::Mesh generate_axis(float axis_length) {
     // todo: make it not lighted
 
-    std::vector<Vertex> vertices;
+    std::vector<rsc::Vertex> vertices;
     std::vector<unsigned> elements;
     vertices.reserve(6); // 3 lines so 6 vertices
     elements.reserve(6);
 
     // X => R
-    vertices.push_back(Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
-    vertices.push_back(Vertex({axis_length, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
+    vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
+    vertices.push_back(rsc::Vertex({axis_length, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
 
     // Y => G
-    vertices.push_back(Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
-    vertices.push_back(Vertex({0, axis_length, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
+    vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
+    vertices.push_back(rsc::Vertex({0, axis_length, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
 
     // Z => B
-    vertices.push_back(Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
-    vertices.push_back(Vertex({0, 0, axis_length}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
+    vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
+    vertices.push_back(rsc::Vertex({0, 0, axis_length}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
 
     for (int i = 0; i < 6; i++) {
         elements.push_back(i);
     }
 
-    Mesh res{std::make_shared<Material>(), vertices, elements};
+    rsc::Mesh res{std::make_shared<rsc::Material>(), vertices, elements};
     res.set_gl_primitive_type(GL_LINES);
     res.update();
 
@@ -276,16 +276,16 @@ int main(int argc, const char **argv) {
 
     World world;
 
-    window_viewport = std::make_shared<WindowViewport>(window);
+    window_viewport = std::make_shared<rsc::WindowViewport>(window);
     glfwSetWindowSizeCallback(window, window_resize_callback);
 
     wrldInfo("Initialising systems");
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    Model model(argv[1]);
-    Model grid_model(generate_world_grid());
-    Model axis_model(generate_axis(1));
+    rsc::Model model(argv[1]);
+    rsc::Model grid_model(generate_world_grid());
+    rsc::Model axis_model(generate_axis(1));
 
 
     wrldInfo("Creating entities");

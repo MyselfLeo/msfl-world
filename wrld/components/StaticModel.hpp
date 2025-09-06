@@ -12,13 +12,13 @@ namespace wrld::cpt {
     /// This model will be used to render the entity in the virtual world.
     class StaticModel final : public Component {
     public:
-        StaticModel(EntityID entity_id, World &world, const Model &model);
+        StaticModel(EntityID entity_id, World &world, const rsc::Model &model);
 
-        const Model &get_model() const;
-        void set_model(const Model &model);
+        const rsc::Model &get_model() const;
+        void set_model(const rsc::Model &model);
 
     private:
-        Model model;
+        rsc::Model model;
     };
 } // namespace wrld::cpt
 

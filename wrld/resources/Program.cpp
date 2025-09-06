@@ -13,7 +13,7 @@
 
 #include "glm/gtc/type_ptr.inl"
 
-namespace wrld {
+namespace wrld::rsc {
     std::string get_type_name(const ShaderType type) {
         switch (type) {
             case VERTEX_SHADER:
@@ -254,4 +254,4 @@ namespace wrld {
             throw std::runtime_error(std::format("Failed to compile shader {}: {}", shader_path, infoLog));
         }
     }
-} // namespace wrld
+} // namespace wrld::rsc

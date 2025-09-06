@@ -12,7 +12,7 @@
 #include <memory>
 #include <optional>
 
-namespace wrld {
+namespace wrld::rsc {
 
     class Material {
     public:
@@ -59,6 +59,6 @@ namespace wrld {
         // Config
         bool _use_mesh_color = true;
     };
-} // namespace wrld
+} // namespace wrld::rsc
 
 #endif // MATERIAL_HPP

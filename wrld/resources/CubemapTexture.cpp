@@ -11,7 +11,7 @@
 #include <iostream>
 #include <ranges>
 
-namespace wrld {
+namespace wrld::rsc {
     CubemapTexture::CubemapTexture(const std::vector<std::string> &cubemap_paths) : gl_texture(0) {
         stbi_set_flip_vertically_on_load(false);
 
@@ -68,4 +68,4 @@ namespace wrld {
     }
 
     CubemapTexture::~CubemapTexture() { glDeleteTextures(1, &gl_texture); }
-} // namespace wrld
+} // namespace wrld::rsc

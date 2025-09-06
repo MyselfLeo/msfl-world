@@ -4,7 +4,7 @@
 
 #include "Material.hpp"
 
-namespace wrld {
+namespace wrld::rsc {
     Material::Material() = default;
 
     void Material::set_diffuse_map(const std::shared_ptr<Texture> &diffuse_map) { this->diffuse_map = diffuse_map; }
@@ -34,4 +34,4 @@ namespace wrld {
     void Material::use_mesh_color(const bool use) { this->_use_mesh_color = use; }
 
     bool Material::is_using_mesh_color() const { return this->_use_mesh_color; }
-} // namespace wrld
+} // namespace wrld::rsc

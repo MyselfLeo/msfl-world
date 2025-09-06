@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace wrld {
+namespace wrld::rsc {
     class CubemapTexture {
     public:
         /// Order of textures: +X, -X, +Y, -Y, +Z, -Z
@@ -27,6 +27,6 @@ namespace wrld {
         GLuint gl_texture;
     };
 
-} // namespace wrld
+} // namespace wrld::rsc
 
 #endif // CUBEMAPTEXTURE_HPP

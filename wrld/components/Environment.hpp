@@ -36,10 +36,10 @@ namespace wrld::cpt {
         [[nodiscard]] bool has_cubemap() const;
 
         [[nodiscard]] const AmbiantLight &get_ambiant_light() const;
-        [[nodiscard]] const std::optional<std::shared_ptr<CubemapTexture>> &get_cubemap() const;
+        [[nodiscard]] const std::optional<std::shared_ptr<rsc::CubemapTexture>> &get_cubemap() const;
 
         void set_ambiant_light(AmbiantLight ambiant_light);
-        void set_cubemap(const std::shared_ptr<CubemapTexture> &cubemap);
+        void set_cubemap(const std::shared_ptr<rsc::CubemapTexture> &cubemap);
         void remove_cubemap();
 
         GLuint get_vao() const;
@@ -49,7 +49,7 @@ namespace wrld::cpt {
     private:
         GLuint vao; // Required even with no data inside
         AmbiantLight ambiant_light;
-        std::optional<std::shared_ptr<CubemapTexture>> skybox;
+        std::optional<std::shared_ptr<rsc::CubemapTexture>> skybox;
     };
 
 } // namespace wrld::cpt

@@ -6,7 +6,7 @@
 #define WINDOWVIEWPORT_HPP
 #include "../../lib/glfw-3.4/include/GLFW/glfw3.h"
 
-namespace wrld {
+namespace wrld::rsc {
 
     class WindowViewport {
     public:
@@ -22,6 +22,6 @@ namespace wrld {
         GLFWwindow *window;
     };
 
-} // namespace wrld
+} // namespace wrld::rsc
 
 #endif // WINDOWVIEWPORT_HPP

@@ -11,7 +11,7 @@
 
 #include <glad/glad.h>
 
-namespace wrld {
+namespace wrld::rsc {
     class Texture {
     public:
         explicit Texture(const std::string &texture_path, aiTextureType type);
@@ -30,6 +30,6 @@ namespace wrld {
         // Using Assimp enum for now, it's good enough
         aiTextureType type;
     };
-} // namespace wrld
+} // namespace wrld::rsc
 
 #endif // TEXTURE_HPP

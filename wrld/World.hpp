@@ -5,6 +5,7 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 #include "components/Component.hpp"
+#include "resources/Resource.hpp"
 
 #include <format>
 #include <memory>
@@ -102,6 +103,9 @@ namespace wrld {
         friend class System;
 
         std::unordered_set<EntityID> entities;
+
+        // Access a resource by its resource ID.
+        std::unordered_map<rsc::ResourceID, std::shared_ptr<rsc::Resource>> resources;
 
         // Access a component first by type then by entity ID.
         // Ensure that two components of the same type cannot be applied to the same entity.

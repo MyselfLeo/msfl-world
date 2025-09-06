@@ -69,6 +69,8 @@ add_library(msfl_world STATIC
         wrld/resources/WindowViewport.cpp
         wrld/components/Orbiter.hpp
         wrld/components/Orbiter.cpp
+        wrld/resources/Resource.cpp
+        wrld/resources/Resource.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
