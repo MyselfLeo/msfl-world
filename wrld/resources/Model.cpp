@@ -15,49 +15,6 @@
 #include <utility>
 
 namespace wrld::rsc {
-    void Mesh::update() {
-        if (!buffers_created) {
-            glGenVertexArrays(1, &vao);
-            glGenBuffers(1, &vbo);
-            glGenBuffers(1, &ebo);
-        }
-        buffers_created = true;
-
-
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), indices.data(), GL_STATIC_DRAW);
-
-        // Vertex positions
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), static_cast<void *>(nullptr));
-
-        // Vertex normals
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              reinterpret_cast<void *>(offsetof(Vertex, normal)));
-
-        // Vertex colors
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              reinterpret_cast<void *>(offsetof(Vertex, color)));
-
-
-        // Vertex texture coordinates
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              reinterpret_cast<void *>(offsetof(Vertex, texcoords)));
-
-        glBindVertexArray(0);
-    }
-
-    GLuint Mesh::get_vao() const { return vao; }
-
-    unsigned Mesh::get_element_count() const { return indices.size(); }
-
     MeshGraphNode::MeshGraphNode(MeshGraphNode &&other) noexcept : meshes(std::move(other.meshes)) {
         children.reserve(other.children.size());
         for (auto &child: other.children) {
@@ -78,73 +35,6 @@ namespace wrld::rsc {
         }
         return *this;
     }
-
-    Mesh::Mesh(const std::shared_ptr<Material> &default_material) :
-        default_material(default_material), current_material(default_material) {}
-
-    Mesh::Mesh(const std::shared_ptr<Material> &default_material, const std::vector<Vertex> &vertices,
-               const std::vector<unsigned int> &elements) :
-        vertices(vertices), indices(elements), default_material(default_material), current_material(default_material) {}
-
-    Mesh::Mesh(Mesh &&other) noexcept :
-        vertices(std::move(other.vertices)), indices(std::move(other.indices)),
-        default_material(std::move(other.default_material)), current_material(std::move(other.current_material)),
-        gl_primitive_type(other.gl_primitive_type), vao(other.vao), vbo(other.vbo), ebo(other.ebo) {
-        other.vao = 0;
-        other.vbo = 0;
-        other.ebo = 0;
-    }
-
-    Mesh &Mesh::operator=(Mesh &&other) noexcept {
-        if (this != &other) {
-            if (vao != 0)
-                glDeleteVertexArrays(1, &vao);
-            if (vbo != 0)
-                glDeleteBuffers(1, &vbo);
-            if (ebo != 0)
-                glDeleteBuffers(1, &ebo);
-
-            // Transfer resources
-            vertices = std::move(other.vertices);
-            indices = std::move(other.indices);
-            // textures = std::move(other.textures);
-            vao = other.vao;
-            vbo = other.vbo;
-            ebo = other.ebo;
-            gl_primitive_type = other.gl_primitive_type;
-
-            // Reset source object
-            other.vao = 0;
-            other.vbo = 0;
-            other.ebo = 0;
-        }
-        return *this;
-    }
-
-    Mesh::~Mesh() {
-        glBindVertexArray(0);
-        glDeleteBuffers(1, &ebo);
-        glDeleteBuffers(1, &vbo);
-        glDeleteVertexArrays(1, &vao);
-    }
-
-    void Mesh::set_material(const std::shared_ptr<Material> &material) { this->current_material = material; }
-
-    void Mesh::use_default_material() { this->current_material = default_material; }
-
-    void Mesh::add_vertex(const Vertex &vertex) { this->vertices.push_back(vertex); }
-
-    void Mesh::add_element(const unsigned index) { this->indices.push_back(index); }
-
-    void Mesh::set_gl_primitive_type(const GLenum type) { this->gl_primitive_type = type; }
-
-    GLenum Mesh::get_gl_primitive_type() const { return gl_primitive_type; }
-
-    void Mesh::set_gl_usage(const GLenum usage) { this->gl_usage = usage; }
-
-    GLenum Mesh::get_gl_usage() const { return gl_usage; }
-
-    const std::shared_ptr<Material> &Mesh::get_material() const { return current_material; }
 
     Model::Model(const std::string &model_path) : mesh_count(0) {
         Assimp::Importer import;

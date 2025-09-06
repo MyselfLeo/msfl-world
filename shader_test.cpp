@@ -204,7 +204,7 @@ rsc::Mesh generate_world_grid() {
 
     // Create vertices
     std::vector<rsc::Vertex> vertices;
-    std::vector<unsigned> elements;
+    std::vector<rsc::VertexID> elements;
     vertices.reserve(NB_LINES * 4);
     elements.reserve(NB_LINES * 4);
 
@@ -239,7 +239,7 @@ rsc::Mesh generate_axis(float axis_length) {
     // todo: make it not lighted
 
     std::vector<rsc::Vertex> vertices;
-    std::vector<unsigned> elements;
+    std::vector<rsc::VertexID> elements;
     vertices.reserve(6); // 3 lines so 6 vertices
     elements.reserve(6);
 
@@ -325,7 +325,7 @@ int main(int argc, const char **argv) {
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) {
             reloading = false;
         }
-        glClearColor(0.1f, 0.2f, 0.4f, 1.0f);
+        glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

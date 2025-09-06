@@ -71,6 +71,8 @@ add_library(msfl_world STATIC
         wrld/components/Orbiter.cpp
         wrld/resources/Resource.cpp
         wrld/resources/Resource.hpp
+        wrld/resources/Mesh.cpp
+        wrld/resources/Mesh.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
