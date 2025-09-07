@@ -8,6 +8,7 @@
 #include "glm/vec3.hpp"
 
 #include "Material.hpp"
+#include "Resource.hpp"
 
 #include <memory>
 #include <vector>
@@ -24,15 +25,19 @@ namespace wrld::rsc {
     typedef GLuint VertexID;
     typedef GLuint ElementID;
 
-    class Mesh {
+    class Mesh final : public Resource {
     public:
-        explicit Mesh(const std::shared_ptr<Material> &default_material);
-        Mesh(const std::shared_ptr<Material> &default_material, const std::vector<Vertex> &vertices,
-             const std::vector<VertexID> &elements);
+        explicit Mesh(ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material);
 
-        Mesh(Mesh &&other) noexcept;
-        Mesh &operator=(Mesh &&other) noexcept;
-        ~Mesh();
+        Mesh(ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material,
+             const std::vector<Vertex> &vertices, const std::vector<VertexID> &elements);
+
+        Mesh(Mesh &other) = delete;
+        Mesh(Mesh &&other) = delete;
+        Mesh &operator=(Mesh &other) = delete;
+        Mesh &operator=(Mesh &&other) = delete;
+
+        ~Mesh() override;
 
         void set_material(const std::shared_ptr<Material> &material);
         void use_default_material();

@@ -4,6 +4,7 @@
 
 #include "Model.hpp"
 
+#include "World.hpp"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -36,7 +37,8 @@ namespace wrld::rsc {
         return *this;
     }
 
-    Model::Model(const std::string &model_path) : mesh_count(0) {
+    Model::Model(const ResourceID resource_id, World &world, const std::string &model_path) :
+        Resource(resource_id, world), mesh_count(0) {
         Assimp::Importer import;
         const aiScene *scene = import.ReadFile(model_path, aiProcess_Triangulate | aiProcess_FlipUVs |
                                                                    aiProcess_OptimizeMeshes | aiProcess_GenNormals);
@@ -54,9 +56,10 @@ namespace wrld::rsc {
         root_mesh = process_node(scene->mRootNode, scene);
     }
 
-    Model::Model(Mesh &&mesh) : mesh_count(1) {
+    Model::Model(const ResourceID resource_id, World &world, const std::shared_ptr<Mesh> &mesh) :
+        Resource(resource_id, world), mesh_count(1) {
         root_mesh = std::make_shared<MeshGraphNode>();
-        root_mesh->meshes.push_back(std::move(mesh));
+        root_mesh->meshes.push_back(mesh);
     }
 
     size_t Model::get_mesh_count() const { return mesh_count; }
@@ -80,7 +83,7 @@ namespace wrld::rsc {
         return wrld_node;
     }
 
-    Mesh Model::process_mesh(const aiMesh *mesh, const aiScene *scene) {
+    std::shared_ptr<Mesh> Model::process_mesh(const aiMesh *mesh, const aiScene *scene) {
         // Get the mesh material first
         // there is always at least one material thanks to AI_SCENE_FLAGS_INCOMPLETE
         const aiMaterial *ai_material = scene->mMaterials[mesh->mMaterialIndex];
@@ -96,7 +99,7 @@ namespace wrld::rsc {
         if (!specular_textures.empty())
             mesh_material->set_specular_map(specular_textures[0]);
 
-        Mesh new_mesh(mesh_material);
+        auto new_mesh = world.create_resource<Mesh>(mesh_material);
 
         // Process vertices
         for (unsigned i = 0; i < mesh->mNumVertices; i++) {
@@ -113,20 +116,20 @@ namespace wrld::rsc {
             vertex.color = {vertex_color.r, vertex_color.g, vertex_color.b};
             vertex.texcoords = {vertex_texcoords.x, vertex_texcoords.y};
 
-            new_mesh.add_vertex(vertex);
+            new_mesh->add_vertex(vertex);
         }
 
         // Indices
         for (unsigned i = 0; i < mesh->mNumFaces; i++) {
             const aiFace &face = mesh->mFaces[i];
             for (unsigned j = 0; j < face.mNumIndices; j++) {
-                new_mesh.add_element(face.mIndices[j]);
+                new_mesh->add_element(face.mIndices[j]);
             }
         }
 
         mesh_count += 1;
 
-        new_mesh.update();
+        new_mesh->update();
         return new_mesh;
     }
 

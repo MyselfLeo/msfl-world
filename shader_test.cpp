@@ -190,7 +190,7 @@ GLFWwindow *init_gl(const int width, const int height) {
     return window;
 }
 
-rsc::Mesh generate_world_grid() {
+std::shared_ptr<rsc::Mesh> generate_world_grid(World &world) {
     constexpr int NB_LINES = 10;
     constexpr float SPACING = 1; // Space between each lines
 
@@ -228,14 +228,15 @@ rsc::Mesh generate_world_grid() {
         elements.push_back(i);
     }
 
-    rsc::Mesh res{std::make_shared<rsc::Material>(), vertices, elements};
-    res.set_gl_primitive_type(GL_LINES);
-    res.update();
+    const auto mesh = world.create_resource<rsc::Mesh>(std::make_shared<rsc::Material>(), vertices, elements);
 
-    return res;
+    mesh->set_gl_primitive_type(GL_LINES);
+    mesh->update();
+
+    return mesh;
 }
 
-rsc::Mesh generate_axis(float axis_length) {
+std::shared_ptr<rsc::Mesh> generate_axis(float axis_length, World &world) {
     // todo: make it not lighted
 
     std::vector<rsc::Vertex> vertices;
@@ -259,11 +260,11 @@ rsc::Mesh generate_axis(float axis_length) {
         elements.push_back(i);
     }
 
-    rsc::Mesh res{std::make_shared<rsc::Material>(), vertices, elements};
-    res.set_gl_primitive_type(GL_LINES);
-    res.update();
+    const auto mesh = world.create_resource<rsc::Mesh>(std::make_shared<rsc::Material>(), vertices, elements);
+    mesh->set_gl_primitive_type(GL_LINES);
+    mesh->update();
 
-    return res;
+    return mesh;
 }
 
 int main(int argc, const char **argv) {
@@ -283,9 +284,9 @@ int main(int argc, const char **argv) {
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    rsc::Model model(argv[1]);
-    rsc::Model grid_model(generate_world_grid());
-    rsc::Model axis_model(generate_axis(1));
+    std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>(argv[1]);
+    std::shared_ptr<rsc::Model> grid_model = world.create_resource<rsc::Model>(generate_world_grid(world));
+    std::shared_ptr<rsc::Model> axis_model = world.create_resource<rsc::Model>(generate_axis(1, world));
 
 
     wrldInfo("Creating entities");

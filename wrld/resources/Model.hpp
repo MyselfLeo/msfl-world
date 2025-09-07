@@ -24,18 +24,18 @@ namespace wrld::rsc {
         MeshGraphNode(MeshGraphNode &&other) noexcept;
         MeshGraphNode &operator=(MeshGraphNode &&other) noexcept;
 
-        std::vector<Mesh> meshes;
+        std::vector<std::shared_ptr<Mesh>> meshes;
         std::vector<std::shared_ptr<MeshGraphNode>> children;
     };
 
     /// Stores multiple meshes in a tree representation
-    class Model {
+    class Model final : public Resource {
     public:
         /// Loads model from file
-        explicit Model(const std::string &model_path);
+        explicit Model(ResourceID resource_id, World &world, const std::string &model_path);
 
         /// Creates a Model with a single mesh
-        explicit Model(Mesh &&mesh);
+        explicit Model(ResourceID resource_id, World &world, const std::shared_ptr<Mesh> &mesh);
 
         [[nodiscard]] size_t get_mesh_count() const;
         [[nodiscard]] const std::shared_ptr<MeshGraphNode> &get_root_mesh() const;
@@ -55,7 +55,7 @@ namespace wrld::rsc {
 
         std::shared_ptr<MeshGraphNode> process_node(const aiNode *node, const aiScene *scene);
 
-        Mesh process_mesh(const aiMesh *mesh, const aiScene *scene);
+        std::shared_ptr<Mesh> process_mesh(const aiMesh *mesh, const aiScene *scene);
 
         // Load textures of the given type from aiMaterial
         std::vector<std::shared_ptr<Texture>> load_textures(const aiMaterial *material, aiTextureType type,

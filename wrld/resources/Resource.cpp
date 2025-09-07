@@ -5,7 +5,7 @@
 #include "Resource.hpp"
 
 namespace wrld::rsc {
-    Resource::Resource(const ResourceID resource_id) : resource_id(resource_id) {}
+    Resource::Resource(const ResourceID resource_id, World &world) : resource_id(resource_id), world(world) {}
 
     ResourceID Resource::get_id() const { return resource_id; }
 } // namespace wrld::rsc

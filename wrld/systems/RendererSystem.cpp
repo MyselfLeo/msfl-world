@@ -64,7 +64,7 @@ namespace wrld {
         return std::nullopt;
     }
 
-    rsc::Model RendererSystem::get_entity_model(const EntityID id) const {
+    std::shared_ptr<rsc::Model> RendererSystem::get_entity_model(const EntityID id) const {
         return world.get_component<cpt::StaticModel>(id)->get_model();
     }
 
@@ -128,12 +128,12 @@ namespace wrld {
         for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
              const auto entity: model_entities) {
             const auto model_cmpnt = world.get_component_opt<cpt::StaticModel>(entity).value();
-            const rsc::Model &model = model_cmpnt->get_model();
+            const auto &model = model_cmpnt->get_model();
 
             glm::mat4x4 model_matrix = get_entity_transform(entity);
 
             // Actual draw call
-            draw_model(model, model_matrix, program);
+            draw_model(*model, model_matrix, program);
         }
     }
 
@@ -239,7 +239,7 @@ namespace wrld {
             node_stack.pop_back();
 
             for (auto &mesh: meshes) {
-                this->draw_mesh(mesh, program);
+                this->draw_mesh(*mesh, program);
             }
 
             // Add children to be processed

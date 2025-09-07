@@ -11,15 +11,10 @@ namespace wrld {
     World::World() : components({}) {}
 
     EntityID World::create_entity() {
-        // Create random ID until one is free
-        std::random_device rd;
-        std::mt19937_64 gen(rd());
-        std::uniform_int_distribution<size_t> dis(0, SIZE_MAX);
-
         EntityID res;
         do {
-            res = dis(gen);
-        } while (exists(res));
+            res = generate_random_id();
+        } while (entity_exists(res));
 
         entities.emplace(res);
 
@@ -27,7 +22,7 @@ namespace wrld {
     }
 
     void World::delete_entity(const EntityID id) {
-        if (!exists(id))
+        if (!entity_exists(id))
             return;
 
         entities.erase(id);
@@ -38,5 +33,14 @@ namespace wrld {
 
     const std::unordered_set<EntityID> &World::get_entities() const { return entities; }
 
-    bool World::exists(const EntityID id) const { return entities.contains(id); }
+    bool World::entity_exists(const EntityID id) const { return entities.contains(id); }
+
+    bool World::resource_exists(const rsc::ResourceID id) const { return resources.contains(id); }
+
+    size_t World::generate_random_id() {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_int_distribution<size_t> dis(1, std::numeric_limits<size_t>::max());
+        return dis(gen);
+    }
 } // namespace wrld

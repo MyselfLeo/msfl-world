@@ -8,6 +8,7 @@
 #include "GLFW/glfw3.h"
 #include "components/Camera.hpp"
 #include "components/Environment.hpp"
+#include "components/StaticModel.hpp"
 #include "resources/CubemapTexture.hpp"
 #include "resources/Model.hpp"
 #include "resources/Program.hpp"
@@ -61,7 +62,7 @@ namespace wrld {
 
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.
-        [[nodiscard]] rsc::Model get_entity_model(EntityID id) const;
+        [[nodiscard]] std::shared_ptr<rsc::Model> get_entity_model(EntityID id) const;
 
         /*/// Return the program (shader) which shall be used to render an entity.
         /// It's either the one defined using a cpt::Shader or the default one.

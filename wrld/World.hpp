@@ -21,6 +21,14 @@
 namespace wrld {
     typedef size_t EntityID;
 
+    /// Concept of a Component: it must inherit the cpt::Component class
+    template<class T>
+    concept Component = std::is_base_of_v<cpt::Component, T>;
+
+    /// Concept of a Resource: it must inherit the rsc::Resource class
+    template<class T>
+    concept Resource = std::is_base_of_v<rsc::Resource, T>;
+
     class World {
     public:
         World();
@@ -35,69 +43,78 @@ namespace wrld {
 
         /// Attach a new component of the given type to the entity,
         /// returning a reference to it.
-        template<typename T, typename... Args>
-        std::shared_ptr<T> attach_component(const EntityID id, Args &&...args) {
-            static_assert(std::is_base_of_v<cpt::Component, T>, "The Component's type must inherit Component");
-
-            if (!exists(id))
+        template<Component C, typename... Args>
+        std::shared_ptr<C> attach_component(const EntityID id, Args &&...args) {
+            if (!entity_exists(id))
                 throw std::runtime_error("Creating a Component on inexisting Entity");
 
-            if (!components.contains(std::type_index(typeid(T)))) {
-                components[std::type_index(typeid(T))] = {};
+            if (!components.contains(std::type_index(typeid(C)))) {
+                components[std::type_index(typeid(C))] = {};
             }
 
-            if (components[std::type_index(typeid(T))].contains(id))
+            if (components[std::type_index(typeid(C))].contains(id))
                 throw std::runtime_error("The entity already has a component of this type.");
 
             // Returns the created component
-            auto new_comp = std::make_shared<T>(id, *this, std::forward<Args>(args)...);
-            components[std::type_index(typeid(T))][id] = new_comp;
+            auto new_comp = std::make_shared<C>(id, *this, std::forward<Args>(args)...);
+            components[std::type_index(typeid(C))][id] = new_comp;
             return new_comp;
         }
 
         /// Returns an optional pointer to the component of the given type
         /// attached to the given object.
-        template<typename T>
-        std::optional<std::shared_ptr<T>> get_component_opt(const EntityID id) {
-            if (!components.contains(std::type_index(typeid(T))))
+        template<Component C>
+        std::optional<std::shared_ptr<C>> get_component_opt(const EntityID id) {
+            if (!components.contains(std::type_index(typeid(C))))
                 return std::nullopt;
-            if (!components[std::type_index(typeid(T))].contains(id))
+            if (!components[std::type_index(typeid(C))].contains(id))
                 return std::nullopt;
 
-            return static_pointer_cast<T>(components[std::type_index(typeid(T))][id]);
+            return static_pointer_cast<C>(components[std::type_index(typeid(C))][id]);
         }
 
         /// Returns a pointer to the component of the given type attached to the
         /// given object. Throws std::runtime_error if no component of this type
         /// is attached to the object.
-        template<typename T>
-        std::shared_ptr<T> get_component(const EntityID id) {
-            if (!components.contains(std::type_index(typeid(T))))
+        template<Component C>
+        std::shared_ptr<C> get_component(const EntityID id) {
+            if (!components.contains(std::type_index(typeid(C))))
                 throw std::runtime_error(
-                        std::format("Entity {} does not have a component {} attached to it", id, typeid(T).name()));
-            if (!components[std::type_index(typeid(T))].contains(id))
+                        std::format("Entity {} does not have a component {} attached to it", id, typeid(C).name()));
+            if (!components[std::type_index(typeid(C))].contains(id))
                 throw std::runtime_error(
-                        std::format("Entity {} does not have a component {} attached to it", id, typeid(T).name()));
+                        std::format("Entity {} does not have a component {} attached to it", id, typeid(C).name()));
 
-            return static_pointer_cast<T>(components[std::type_index(typeid(T))][id]);
+            return static_pointer_cast<C>(components[std::type_index(typeid(C))][id]);
         }
 
         /// Return a vector of entities that have the given type
         /// of component attached to them.
-        template<typename T>
+        template<Component C>
         std::vector<EntityID> get_entities_with_component() {
             std::vector<EntityID> res;
-            res.reserve(components[std::type_index(typeid(T))].size());
+            res.reserve(components[std::type_index(typeid(C))].size());
 
-            for (const auto k: components[std::type_index(typeid(T))] | std::views::keys) {
+            for (const auto k: components[std::type_index(typeid(C))] | std::views::keys) {
                 res.push_back(k);
             }
 
             return res;
         }
 
-        /// Returns true if the given entity id exists in this world.
-        bool exists(EntityID id) const;
+        template<Resource R, typename... Args>
+        std::shared_ptr<R> create_resource(Args &&...args) {
+            // Creates a new id
+            rsc::ResourceID id;
+            do {
+                id = generate_random_id();
+            } while (resource_exists(id));
+
+            // Returns the created resource
+            auto new_ressource = std::make_shared<R>(id, *this, std::forward<Args>(args)...);
+            resources[id] = new_ressource;
+            return new_ressource;
+        }
 
     private:
         friend class System;
@@ -110,6 +127,14 @@ namespace wrld {
         // Access a component first by type then by entity ID.
         // Ensure that two components of the same type cannot be applied to the same entity.
         std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<cpt::Component>>> components;
+
+        static size_t generate_random_id();
+
+        /// Returns true if the given entity id exists in this world.
+        bool entity_exists(EntityID id) const;
+
+        // Returns true if a resource with the given id exists.
+        bool resource_exists(rsc::ResourceID id) const;
     };
 } // namespace wrld
 

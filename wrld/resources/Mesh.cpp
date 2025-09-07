@@ -5,47 +5,13 @@
 #include "Mesh.hpp"
 
 namespace wrld::rsc {
-    Mesh::Mesh(const std::shared_ptr<Material> &default_material) :
-        default_material(default_material), current_material(default_material) {}
+    Mesh::Mesh(const ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material) :
+        Resource(resource_id, world), default_material(default_material), current_material(default_material) {}
 
-    Mesh::Mesh(const std::shared_ptr<Material> &default_material, const std::vector<Vertex> &vertices,
-               const std::vector<VertexID> &elements) :
-        vertices(vertices), indices(elements), default_material(default_material), current_material(default_material) {}
-
-    Mesh::Mesh(Mesh &&other) noexcept :
-        vertices(std::move(other.vertices)), indices(std::move(other.indices)),
-        default_material(std::move(other.default_material)), current_material(std::move(other.current_material)),
-        gl_primitive_type(other.gl_primitive_type), vao(other.vao), vbo(other.vbo), ebo(other.ebo) {
-        other.vao = 0;
-        other.vbo = 0;
-        other.ebo = 0;
-    }
-
-    Mesh &Mesh::operator=(Mesh &&other) noexcept {
-        if (this != &other) {
-            if (vao != 0)
-                glDeleteVertexArrays(1, &vao);
-            if (vbo != 0)
-                glDeleteBuffers(1, &vbo);
-            if (ebo != 0)
-                glDeleteBuffers(1, &ebo);
-
-            // Transfer resources
-            vertices = std::move(other.vertices);
-            indices = std::move(other.indices);
-            // textures = std::move(other.textures);
-            vao = other.vao;
-            vbo = other.vbo;
-            ebo = other.ebo;
-            gl_primitive_type = other.gl_primitive_type;
-
-            // Reset source object
-            other.vao = 0;
-            other.vbo = 0;
-            other.ebo = 0;
-        }
-        return *this;
-    }
+    Mesh::Mesh(const ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material,
+               const std::vector<Vertex> &vertices, const std::vector<VertexID> &elements) :
+        Resource(resource_id, world), vertices(vertices), indices(elements), default_material(default_material),
+        current_material(default_material) {}
 
     Mesh::~Mesh() {
         glBindVertexArray(0);

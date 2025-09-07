@@ -24,13 +24,13 @@ namespace wrld::rsc {
     class Resource {
     public:
         virtual ~Resource() = default;
-        explicit Resource(ResourceID resource_id);
+        explicit Resource(ResourceID resource_id, World &world);
 
         [[nodiscard]] ResourceID get_id() const;
 
     protected:
         ResourceID resource_id;
-        // World &world;
+        World &world;
     };
 
 } // namespace wrld::rsc
