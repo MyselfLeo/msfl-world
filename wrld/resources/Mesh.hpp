@@ -25,7 +25,7 @@ namespace wrld::rsc {
     typedef GLuint VertexID;
     typedef GLuint ElementID;
 
-    class Mesh final : public Resource {
+    class Mesh : public Resource {
     public:
         explicit Mesh(ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material);
 

@@ -73,6 +73,8 @@ add_library(msfl_world STATIC
         wrld/resources/Resource.hpp
         wrld/resources/Mesh.cpp
         wrld/resources/Mesh.hpp
+        wrld/builtins.cpp
+        wrld/builtins.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

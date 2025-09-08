@@ -1,3 +1,4 @@
+#include "builtins.hpp"
 #include "components/Orbiter.hpp"
 #include "components/PointLight.hpp"
 
@@ -34,8 +35,6 @@ void window_resize_callback(GLFWwindow *window, const int width, const int heigh
     glViewport(0, 0, width, height);
     window_viewport->set_size(width, height);
 }
-
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {}
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
                             const char *message, const void *userParam) {
@@ -131,7 +130,7 @@ GLFWwindow *init_gl(const int width, const int height) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
-    float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+    const float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
 
     wrldInfo("Creating window");
     GLFWwindow *window = glfwCreateWindow(width, height, "msflWorld Engine", nullptr, nullptr);
@@ -143,8 +142,6 @@ GLFWwindow *init_gl(const int width, const int height) {
     }
 
     glfwMakeContextCurrent(window);
-
-    glfwSetKeyCallback(window, key_callback);
 
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         throw std::runtime_error("Failed to initialize GLAD");
@@ -190,83 +187,6 @@ GLFWwindow *init_gl(const int width, const int height) {
     return window;
 }
 
-std::shared_ptr<rsc::Mesh> generate_world_grid(World &world) {
-    constexpr int NB_LINES = 10;
-    constexpr float SPACING = 1; // Space between each lines
-
-    // todo: make it not lighted
-    auto vertex = rsc::Vertex({0, 0, 0}, {1, 0, 0}, {0, 0}, {0.7, 0.7, 0.7});
-
-    float offset = SPACING * (NB_LINES / 2.0);
-    if constexpr (NB_LINES % 2 == 0) {
-        offset -= SPACING / 2.0;
-    }
-
-    // Create vertices
-    std::vector<rsc::Vertex> vertices;
-    std::vector<rsc::VertexID> elements;
-    vertices.reserve(NB_LINES * 4);
-    elements.reserve(NB_LINES * 4);
-
-    // X direction
-    for (int i = 0; i < NB_LINES; i++) {
-        vertex.position = {-offset + SPACING * static_cast<float>(i), 0, offset};
-        vertices.push_back(vertex);
-        vertex.position = {-offset + SPACING * static_cast<float>(i), 0, -offset};
-        vertices.push_back(vertex);
-    }
-
-    // Y direction
-    for (int i = 0; i < NB_LINES; i++) {
-        vertex.position = {offset, 0, -offset + SPACING * static_cast<float>(i)};
-        vertices.push_back(vertex);
-        vertex.position = {-offset, 0, -offset + SPACING * static_cast<float>(i)};
-        vertices.push_back(vertex);
-    }
-
-    for (int i = 0; i < NB_LINES * 4; i++) {
-        elements.push_back(i);
-    }
-
-    const auto mesh = world.create_resource<rsc::Mesh>(std::make_shared<rsc::Material>(), vertices, elements);
-
-    mesh->set_gl_primitive_type(GL_LINES);
-    mesh->update();
-
-    return mesh;
-}
-
-std::shared_ptr<rsc::Mesh> generate_axis(float axis_length, World &world) {
-    // todo: make it not lighted
-
-    std::vector<rsc::Vertex> vertices;
-    std::vector<rsc::VertexID> elements;
-    vertices.reserve(6); // 3 lines so 6 vertices
-    elements.reserve(6);
-
-    // X => R
-    vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
-    vertices.push_back(rsc::Vertex({axis_length, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
-
-    // Y => G
-    vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
-    vertices.push_back(rsc::Vertex({0, axis_length, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
-
-    // Z => B
-    vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
-    vertices.push_back(rsc::Vertex({0, 0, axis_length}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
-
-    for (int i = 0; i < 6; i++) {
-        elements.push_back(i);
-    }
-
-    const auto mesh = world.create_resource<rsc::Mesh>(std::make_shared<rsc::Material>(), vertices, elements);
-    mesh->set_gl_primitive_type(GL_LINES);
-    mesh->update();
-
-    return mesh;
-}
-
 int main(int argc, const char **argv) {
     if (argc < 2) {
         std::cout << "Usage: shader_test <model_path>" << std::endl;
@@ -285,23 +205,14 @@ int main(int argc, const char **argv) {
 
     wrldInfo("Loading model");
     std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>(argv[1]);
-    std::shared_ptr<rsc::Model> grid_model = world.create_resource<rsc::Model>(generate_world_grid(world));
-    std::shared_ptr<rsc::Model> axis_model = world.create_resource<rsc::Model>(generate_axis(1, world));
-
 
     wrldInfo("Creating entities");
     const EntityID model_entity = world.create_entity();
     world.attach_component<cpt::StaticModel>(model_entity, model);
     world.attach_component<cpt::Transform>(model_entity);
 
-    const EntityID world_grid = world.create_entity();
-    world.attach_component<cpt::StaticModel>(world_grid, grid_model);
-    world.attach_component<cpt::Transform>(world_grid)->set_scale(glm::vec3{3});
-
-    const EntityID axis = world.create_entity();
-    world.attach_component<cpt::StaticModel>(axis, axis_model);
-    world.attach_component<cpt::Transform>(axis, glm::vec3{0, 14, 0});
-
+    const EntityID grid = builtins::create_grid(world);
+    const EntityID axis = builtins::create_axis(world);
 
     const EntityID camera_entity = world.create_entity();
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);
