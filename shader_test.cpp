@@ -1,6 +1,5 @@
 #include "builtins.hpp"
 #include "components/Orbiter.hpp"
-#include "components/PointLight.hpp"
 
 
 #include <format>
@@ -20,7 +19,6 @@
 #include "wrld/World.hpp"
 #include "wrld/components/Camera.hpp"
 #include "wrld/components/DirectionalLight.hpp"
-#include "wrld/components/FPSControl.hpp"
 #include "wrld/components/StaticModel.hpp"
 #include "wrld/components/Transform.hpp"
 #include "glm/gtx/rotate_vector.hpp"
@@ -253,8 +251,8 @@ int main(int argc, const char **argv) {
     world.attach_component<cpt::StaticModel>(model_entity, model);
     world.attach_component<cpt::Transform>(model_entity);
 
-    const EntityID grid = builtins::create_grid(world);
-    const EntityID axis = builtins::create_axis(world);
+    builtins::create_grid(world);
+    builtins::create_axis(world);
 
     const EntityID camera_entity = world.create_entity("Camera");
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);
@@ -267,7 +265,7 @@ int main(int argc, const char **argv) {
     const EntityID dir_light = world.create_entity("Light");
     world.attach_component<cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
     world.attach_component<cpt::Transform>(dir_light)->look_towards({-1, 0, -1}, {0, 1, 0});
-    bool show_demo_window = true;
+    // bool show_demo_window = true;
     bool reloading = false;
 
     while (!glfwWindowShouldClose(window)) {
