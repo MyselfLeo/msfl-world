@@ -33,6 +33,7 @@ struct Material {
     float shininess;
 
     bool use_mesh_color;
+    bool do_lighting;
 };
 
 // Output of Vertex Shader
@@ -134,6 +135,11 @@ vec4 calc_directional_light(DirectionalLight dl) {
 
 
 void main() {
+    if (!material.do_lighting) {
+        FragColor = sample_diffuse();
+        return;
+    }
+
     vec4 res = vec4(0.0);
 
     // Process ambient light

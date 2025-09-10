@@ -42,7 +42,12 @@ namespace wrld::rsc {
         /// embedded colors in the mesh.
         void use_mesh_color(bool use);
 
+        /// If set to False, the object won't be lit.
+        /// (equivalent to a full white ambiant light).
+        void do_lighting(bool do_lighting);
+
         [[nodiscard]] bool is_using_mesh_color() const;
+        [[nodiscard]] bool is_doing_lighting() const;
 
     private:
         // Constant colors if maps are not specified
@@ -58,6 +63,7 @@ namespace wrld::rsc {
 
         // Config
         bool _use_mesh_color = true;
+        bool _do_lighting = true;
     };
 } // namespace wrld::rsc
 

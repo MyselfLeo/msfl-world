@@ -52,6 +52,8 @@ namespace wrld::builtins {
         mesh->set_gl_primitive_type(GL_LINES);
         mesh->update();
 
+        mesh->get_material()->do_lighting(false);
+
         // Create model
         std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("grid_model", mesh);
 
@@ -93,6 +95,8 @@ namespace wrld::builtins {
                 world.create_resource<rsc::Mesh>("axis_mesh", std::make_shared<rsc::Material>(), vertices, elements);
         mesh->set_gl_primitive_type(GL_LINES);
         mesh->update();
+
+        mesh->get_material()->do_lighting(false);
 
         // Create model
         std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("axis_model", mesh);

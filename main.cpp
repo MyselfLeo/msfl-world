@@ -1,3 +1,4 @@
+#include "builtins.hpp"
 #include "components/PointLight.hpp"
 
 
@@ -220,9 +221,10 @@ int main() {
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    rsc::Model backpack_model("data/models/backpack/backpack.obj");
-    rsc::Model myshape_model("data/models/myshape/myshape.obj");
-    rsc::Model cube_model("data/models/cube/cube.obj");
+    const auto &backpack_model =
+            world.create_resource<rsc::Model>("backpack_model", "data/models/backpack/backpack.obj");
+    const auto &myshape_model = world.create_resource<rsc::Model>("myshape_model", "data/models/myshape/myshape.obj");
+    const auto &cube_model = world.create_resource<rsc::Model>("cube_model", "data/models/cube/cube.obj");
 
     wrldInfo("Loading skybox");
     auto skybox = std::make_shared<rsc::CubemapTexture>(std::vector<std::string>{
@@ -238,10 +240,8 @@ int main() {
     world.attach_component<cpt::StaticModel>(myshape, myshape_model);
     world.attach_component<cpt::Transform>(myshape, glm::vec3{-4.0, 0.0, 0.0});
 
-    const EntityID ground = world.create_entity();
-    world.attach_component<cpt::StaticModel>(ground, cube_model);
-    world.attach_component<cpt::Transform>(ground, glm::vec3{0, -5, 0}, glm::quat{1, 0, 0, 0},
-                                           glm::vec3(100, 0.2, 100));
+    builtins::create_grid(world, 100);
+    builtins::create_axis(world);
 
     const EntityID camera_entity = world.create_entity();
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);

@@ -33,5 +33,9 @@ namespace wrld::rsc {
 
     void Material::use_mesh_color(const bool use) { this->_use_mesh_color = use; }
 
+    void Material::do_lighting(const bool do_lighting) { this->_do_lighting = do_lighting; }
+
     bool Material::is_using_mesh_color() const { return this->_use_mesh_color; }
+
+    bool Material::is_doing_lighting() const { return this->_do_lighting; }
 } // namespace wrld::rsc

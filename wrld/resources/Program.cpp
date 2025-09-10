@@ -169,6 +169,7 @@ namespace wrld::rsc {
         set_uniform(uniform + ".shininess", material.get_shininess());
 
         set_uniform(uniform + ".use_mesh_color", material.is_using_mesh_color());
+        set_uniform(uniform + ".do_lighting", material.is_doing_lighting());
     }
 
     void Program::reload() const {
