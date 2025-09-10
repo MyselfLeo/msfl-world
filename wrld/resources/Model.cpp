@@ -37,8 +37,8 @@ namespace wrld::rsc {
         return *this;
     }
 
-    Model::Model(const ResourceID resource_id, World &world, const std::string &model_path) :
-        Resource(resource_id, world), mesh_count(0) {
+    Model::Model(std::string name, World &world, const std::string &model_path) :
+        Resource(std::move(name), world), mesh_count(0) {
         Assimp::Importer import;
         const aiScene *scene = import.ReadFile(model_path, aiProcess_Triangulate | aiProcess_FlipUVs |
                                                                    aiProcess_OptimizeMeshes | aiProcess_GenNormals);
@@ -56,8 +56,8 @@ namespace wrld::rsc {
         root_mesh = process_node(scene->mRootNode, scene);
     }
 
-    Model::Model(const ResourceID resource_id, World &world, const std::shared_ptr<Mesh> &mesh) :
-        Resource(resource_id, world), mesh_count(1) {
+    Model::Model(std::string name, World &world, const std::shared_ptr<Mesh> &mesh) :
+        Resource(std::move(name), world), mesh_count(1) {
         root_mesh = std::make_shared<MeshGraphNode>();
         root_mesh->meshes.push_back(mesh);
     }
@@ -99,7 +99,9 @@ namespace wrld::rsc {
         if (!specular_textures.empty())
             mesh_material->set_specular_map(specular_textures[0]);
 
-        auto new_mesh = world.create_resource<Mesh>(mesh_material);
+        const auto &resource_name = std::format("{}_mesh_{}", get_name(), mesh_count);
+
+        auto new_mesh = world.create_resource<Mesh>(resource_name, mesh_material);
 
         // Process vertices
         for (unsigned i = 0; i < mesh->mNumVertices; i++) {

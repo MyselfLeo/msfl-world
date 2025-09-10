@@ -27,9 +27,9 @@ namespace wrld::rsc {
 
     class Mesh : public Resource {
     public:
-        explicit Mesh(ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material);
+        explicit Mesh(std::string name, World &world, const std::shared_ptr<Material> &default_material);
 
-        Mesh(ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material,
+        Mesh(std::string name, World &world, const std::shared_ptr<Material> &default_material,
              const std::vector<Vertex> &vertices, const std::vector<VertexID> &elements);
 
         Mesh(Mesh &other) = delete;
@@ -62,6 +62,8 @@ namespace wrld::rsc {
         [[nodiscard]] GLuint get_vao() const;
 
         [[nodiscard]] unsigned get_element_count() const;
+
+        std::string get_type() override { return "Mesh"; }
 
     private:
         bool buffers_created = false;

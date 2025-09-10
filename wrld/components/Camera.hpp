@@ -35,6 +35,8 @@ namespace wrld::cpt {
         /// This is directly related to the attached Transform component (if any).
         glm::vec3 get_position() const;
 
+        std::string get_type() override { return "Camera"; }
+
     private:
         static const glm::vec3 UP_VECTOR;
         float fov;

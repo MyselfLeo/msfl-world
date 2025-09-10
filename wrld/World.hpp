@@ -15,11 +15,15 @@
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace wrld {
     typedef size_t EntityID;
+    typedef std::unordered_map<std::type_index, std::unordered_map<std::string, std::shared_ptr<rsc::Resource>>>
+            ResourcePool;
+    typedef std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<cpt::Component>>>
+            ComponentPool;
+
 
     /// Concept of a Component: it must inherit the cpt::Component class
     template<class T>
@@ -33,13 +37,15 @@ namespace wrld {
     public:
         World();
 
-        /// Creates an Entity, returning its ID.
-        EntityID create_entity();
+        /// Creates an Entity, returning its ID. An optional name can be given. It doesn't need to be unique.
+        EntityID create_entity(const std::string &name = "");
+
+        std::string get_entity_name(EntityID id);
 
         /// Delete the Entity and all attached Components.
         void delete_entity(EntityID id);
 
-        const std::unordered_set<EntityID> &get_entities() const;
+        std::unordered_map<EntityID, std::string> get_entities() const;
 
         /// Attach a new component of the given type to the entity,
         /// returning a reference to it.
@@ -102,39 +108,54 @@ namespace wrld {
             return res;
         }
 
+        /// Return all components type attached to the entity.
+        // todo: maybe store thoses maps to accelerate this
+        std::vector<std::type_index> get_components_of_entity(EntityID id) const;
+
         template<Resource R, typename... Args>
-        std::shared_ptr<R> create_resource(Args &&...args) {
-            // Creates a new id
-            rsc::ResourceID id;
-            do {
-                id = generate_random_id();
-            } while (resource_exists(id));
+        std::shared_ptr<R> create_resource(const std::string &name, Args &&...args) {
+            // // Creates a new id
+            // max_resource_id += 1;
+            // rsc::ResourceID id = max_resource_id;
+
+            // Create unique name from given name
+            std::string new_name = name;
+            while (resources[std::type_index(typeid(R))].contains(new_name)) {
+                new_name = std::format("{}:{}", name, generate_random_id());
+            }
 
             // Returns the created resource
-            auto new_ressource = std::make_shared<R>(id, *this, std::forward<Args>(args)...);
-            resources[id] = new_ressource;
+            auto new_ressource = std::make_shared<R>(new_name, *this, std::forward<Args>(args)...);
+
+            if (!resources.contains(std::type_index(typeid(R)))) {
+                resources[std::type_index(typeid(R))] = {};
+            }
+
+            resources[std::type_index(typeid(R))][new_name] = new_ressource;
             return new_ressource;
         }
+
+        const ResourcePool &get_resources() const;
 
     private:
         friend class System;
 
-        std::unordered_set<EntityID> entities;
+        // Stores Entity names
+        unsigned max_entity_id = 0;
+        std::unordered_map<EntityID, std::string> entities;
 
         // Access a resource by its resource ID.
-        std::unordered_map<rsc::ResourceID, std::shared_ptr<rsc::Resource>> resources;
+        unsigned max_resource_id = 0;
+        ResourcePool resources;
 
         // Access a component first by type then by entity ID.
         // Ensure that two components of the same type cannot be applied to the same entity.
-        std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<cpt::Component>>> components;
+        ComponentPool components;
 
         static size_t generate_random_id();
 
         /// Returns true if the given entity id exists in this world.
         bool entity_exists(EntityID id) const;
-
-        // Returns true if a resource with the given id exists.
-        bool resource_exists(rsc::ResourceID id) const;
     };
 } // namespace wrld
 

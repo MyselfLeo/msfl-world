@@ -40,6 +40,8 @@ namespace wrld::cpt {
         [[nodiscard]] glm::mat4x4 rotation_matrix() const;
         [[nodiscard]] glm::mat4x4 scale_matrix() const;
 
+        std::string get_type() override { return "Transform"; }
+
     private:
         glm::vec3 position;
         glm::quat rotation;

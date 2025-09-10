@@ -32,13 +32,15 @@ namespace wrld::rsc {
     class Model final : public Resource {
     public:
         /// Loads model from file
-        explicit Model(ResourceID resource_id, World &world, const std::string &model_path);
+        explicit Model(std::string name, World &world, const std::string &model_path);
 
         /// Creates a Model with a single mesh
-        explicit Model(ResourceID resource_id, World &world, const std::shared_ptr<Mesh> &mesh);
+        explicit Model(std::string name, World &world, const std::shared_ptr<Mesh> &mesh);
 
         [[nodiscard]] size_t get_mesh_count() const;
         [[nodiscard]] const std::shared_ptr<MeshGraphNode> &get_root_mesh() const;
+
+        std::string get_type() override { return "Model"; }
 
     private:
         friend class RendererSystem;

@@ -46,17 +46,18 @@ namespace wrld::builtins {
             elements.push_back(i);
         }
 
-        const auto mesh = world.create_resource<rsc::Mesh>(std::make_shared<rsc::Material>(), vertices, elements);
+        const auto mesh =
+                world.create_resource<rsc::Mesh>("grid_mesh", std::make_shared<rsc::Material>(), vertices, elements);
 
         mesh->set_gl_primitive_type(GL_LINES);
         mesh->update();
 
         // Create model
-        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>(mesh);
+        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("grid_model", mesh);
 
 
         // Create entity
-        const EntityID entity = world.create_entity();
+        const EntityID entity = world.create_entity("Grid");
         world.attach_component<cpt::StaticModel>(entity, model);
         world.attach_component<cpt::Transform>(entity);
 
@@ -88,15 +89,16 @@ namespace wrld::builtins {
             elements.push_back(i);
         }
 
-        const auto mesh = world.create_resource<rsc::Mesh>(std::make_shared<rsc::Material>(), vertices, elements);
+        const auto mesh =
+                world.create_resource<rsc::Mesh>("axis_mesh", std::make_shared<rsc::Material>(), vertices, elements);
         mesh->set_gl_primitive_type(GL_LINES);
         mesh->update();
 
         // Create model
-        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>(mesh);
+        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("axis_model", mesh);
 
         // Create entity
-        const EntityID entity = world.create_entity();
+        const EntityID entity = world.create_entity("Axis");
         world.attach_component<cpt::StaticModel>(entity, model);
         world.attach_component<cpt::Transform>(entity);
 

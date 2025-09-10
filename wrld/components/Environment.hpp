@@ -46,6 +46,8 @@ namespace wrld::cpt {
 
         ~Environment() override;
 
+        std::string get_type() override { return "Environment"; }
+
     private:
         GLuint vao; // Required even with no data inside
         AmbiantLight ambiant_light;

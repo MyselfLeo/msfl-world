@@ -23,6 +23,8 @@ namespace wrld::cpt {
         void set_lock(bool lock);
         [[nodiscard]] bool is_locked() const;
 
+        std::string get_type() override { return "FPSControl"; }
+
     private:
         double last_mouse_x = 400;
         double last_mouse_y = 300;

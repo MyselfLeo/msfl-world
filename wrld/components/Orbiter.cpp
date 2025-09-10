@@ -72,6 +72,8 @@ namespace wrld::cpt {
         }
     }
 
+    EntityID Orbiter::get_target_entity() const { return target_entity; }
+
     void Orbiter::update() const {
         // Get the entity's transform
         const auto transform_opt = world.get_component_opt<Transform>(entity_id);

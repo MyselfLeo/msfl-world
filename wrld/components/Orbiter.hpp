@@ -38,7 +38,12 @@ namespace wrld::cpt {
         /// including a potential offset.
         glm::vec3 get_target_point() const;
 
+        /// Return the Entity targeted.
+        EntityID get_target_entity() const;
+
         void update() const;
+
+        std::string get_type() override { return "Orbiter"; }
 
 
     private:

@@ -17,6 +17,8 @@ namespace wrld::cpt {
         [[nodiscard]] const std::shared_ptr<rsc::Model> &get_model() const;
         void set_model(const std::shared_ptr<rsc::Model> &model);
 
+        std::string get_type() override { return "StaticModel"; }
+
     private:
         std::shared_ptr<rsc::Model> model;
     };

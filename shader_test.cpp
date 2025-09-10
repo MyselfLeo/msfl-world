@@ -26,6 +26,7 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include "resources/WindowViewport.hpp"
 #include "wrld/systems/RendererSystem.hpp"
+#include "wrld-gui/components.hpp"
 
 using namespace wrld;
 
@@ -187,6 +188,47 @@ GLFWwindow *init_gl(const int width, const int height) {
     return window;
 }
 
+void menu(World &world) {
+    static bool show_demo = true;
+    if (show_demo)
+        ImGui::ShowDemoWindow(&show_demo);
+
+    ImGui::Begin("Scene");
+    for (const auto &[ent_id, ent_name]: world.get_entities()) {
+        if (ImGui::TreeNode(ent_name.c_str())) {
+            ImGui::Text("%s", std::format("Entity ID: {}", ent_id).c_str());
+
+            auto component_types = world.get_components_of_entity(ent_id);
+            for (const auto &type: component_types) {
+                // Retrieve the appropriate function from the map and call it
+                if (gui::COMPONENT_FUNCTIONS.contains(type)) {
+                    gui::COMPONENT_FUNCTIONS.at(type)(world, ent_id);
+                }
+            }
+            ImGui::TreePop();
+        }
+    }
+    ImGui::End();
+
+    ImGui::Begin("Resources");
+
+    for (const auto &pool: world.get_resources() | std::views::values) {
+        if (pool.empty())
+            continue;
+
+        const std::string &type_name = pool.begin()->second->get_type();
+
+        if (ImGui::TreeNode(type_name.c_str())) {
+            for (const auto &key: pool | std::views::keys) {
+                ImGui::Text("%s", key.c_str());
+            }
+            ImGui::TreePop();
+        }
+    }
+
+    ImGui::End();
+}
+
 int main(int argc, const char **argv) {
     if (argc < 2) {
         std::cout << "Usage: shader_test <model_path>" << std::endl;
@@ -204,26 +246,25 @@ int main(int argc, const char **argv) {
     RendererSystem renderer{world, window};
 
     wrldInfo("Loading model");
-    std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>(argv[1]);
+    std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("user_model", argv[1]);
 
     wrldInfo("Creating entities");
-    const EntityID model_entity = world.create_entity();
+    const EntityID model_entity = world.create_entity("Model");
     world.attach_component<cpt::StaticModel>(model_entity, model);
     world.attach_component<cpt::Transform>(model_entity);
 
     const EntityID grid = builtins::create_grid(world);
     const EntityID axis = builtins::create_axis(world);
 
-    const EntityID camera_entity = world.create_entity();
+    const EntityID camera_entity = world.create_entity("Camera");
     auto camera = world.attach_component<cpt::Camera>(camera_entity, 45, window_viewport);
     world.attach_component<cpt::Transform>(camera_entity);
     auto orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 2);
     orbiter->set_offset({0, 0, 0});
-
     auto env = world.attach_component<cpt::Environment>(camera_entity);
     env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
 
-    const EntityID dir_light = world.create_entity();
+    const EntityID dir_light = world.create_entity("Light");
     world.attach_component<cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
     world.attach_component<cpt::Transform>(dir_light)->look_towards({-1, 0, -1}, {0, 1, 0});
     bool show_demo_window = true;
@@ -277,7 +318,7 @@ int main(int argc, const char **argv) {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow(&show_demo_window);
+        menu(world);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

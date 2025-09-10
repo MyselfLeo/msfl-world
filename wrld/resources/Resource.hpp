@@ -7,6 +7,7 @@
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include <cstddef>
+#include <string>
 
 namespace wrld {
     // Define World beforehand. We can't #include "../World.hpp" as it would
@@ -18,18 +19,22 @@ namespace wrld::rsc {
     typedef size_t ResourceID;
 
     /// Base class for all resources.
-    /// Any derived class must possess a constructor expecting ResourceID as its first parameter (in order to initialise
-    /// the base class). This constructor will be called by World::create_resource.
+    /// Any derived class must possess a constructor expecting std::string and World& as its first parameters
+    /// (in order to initialise the base class). This constructor will be called by World::create_resource.
 
     class Resource {
     public:
         virtual ~Resource() = default;
-        explicit Resource(ResourceID resource_id, World &world);
+        explicit Resource(std::string name, World &world);
 
-        [[nodiscard]] ResourceID get_id() const;
+        // [[nodiscard]] ResourceID get_id() const;
+        [[nodiscard]] std::string get_name() const;
+
+        virtual std::string get_type() { return "Resource"; }
 
     protected:
-        ResourceID resource_id;
+        // ResourceID resource_id;
+        std::string name;
         World &world;
     };
 

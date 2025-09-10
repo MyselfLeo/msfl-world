@@ -4,14 +4,19 @@
 
 #include "Mesh.hpp"
 
-namespace wrld::rsc {
-    Mesh::Mesh(const ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material) :
-        Resource(resource_id, world), default_material(default_material), current_material(default_material) {}
+#include <utility>
 
-    Mesh::Mesh(const ResourceID resource_id, World &world, const std::shared_ptr<Material> &default_material,
-               const std::vector<Vertex> &vertices, const std::vector<VertexID> &elements) :
-        Resource(resource_id, world), vertices(vertices), indices(elements), default_material(default_material),
+namespace wrld::rsc {
+    Mesh::Mesh(std::string name, World &world,
+               const std::shared_ptr<Material> &default_material) :
+        Resource(std::move(name), world), default_material(default_material),
         current_material(default_material) {}
+
+    Mesh::Mesh(std::string name, World &world,
+               const std::shared_ptr<Material> &default_material, const std::vector<Vertex> &vertices,
+               const std::vector<VertexID> &elements) :
+        Resource(std::move(name), world), vertices(vertices), indices(elements),
+        default_material(default_material), current_material(default_material) {}
 
     Mesh::~Mesh() {
         glBindVertexArray(0);

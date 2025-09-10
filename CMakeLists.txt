@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.31)
 project(msfl_world)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 
 add_subdirectory(lib/glfw-3.4)
 include_directories(lib/glfw-3.4/include)
@@ -75,6 +75,9 @@ add_library(msfl_world STATIC
         wrld/resources/Mesh.hpp
         wrld/builtins.cpp
         wrld/builtins.hpp
+
+        # GUI-specific code
+        wrld-gui/components.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

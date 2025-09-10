@@ -20,6 +20,8 @@ namespace wrld::cpt {
         [[nodiscard]] float get_intensity() const;
         void set_intensity(float intensity);
 
+        std::string get_type() override { return "PointLight"; }
+
     private:
         glm::vec3 color;
         float intensity;

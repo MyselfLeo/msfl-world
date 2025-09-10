@@ -7,6 +7,7 @@
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include <cstddef>
+#include <string>
 
 namespace wrld {
     // Define World beforehand. We can't #include "../World.hpp" as it would
@@ -27,6 +28,9 @@ namespace wrld::cpt {
         Component(EntityID entity_id, World &world);
 
         [[nodiscard]] EntityID get_entity() const;
+
+        /// Return the name of the Component type
+        virtual std::string get_type() { return "Component"; }
 
     protected:
         EntityID entity_id;
