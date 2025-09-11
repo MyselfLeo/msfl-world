@@ -52,7 +52,7 @@ add_library(msfl_world STATIC
         wrld/systems/RendererSystem.hpp
         wrld/System.cpp
         wrld/System.hpp
-        wrld/Logs.hpp
+        wrld/logs.hpp
         wrld/components/PointLight.cpp
         wrld/components/PointLight.hpp
         wrld/components/DirectionalLight.cpp
@@ -78,6 +78,11 @@ add_library(msfl_world STATIC
 
         # GUI-specific code
         wrld-gui/components.hpp
+
+        # Runtime
+        wrld/App.hpp
+        wrld/Main.hpp
+        wrld/Main.cpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
@@ -87,3 +92,6 @@ target_link_libraries(main msfl_world)
 
 add_executable(shader_test shader_test.cpp)
 target_link_libraries(shader_test msfl_world)
+
+add_executable(shader_view shader_view.cpp)
+target_link_libraries(shader_view msfl_world)

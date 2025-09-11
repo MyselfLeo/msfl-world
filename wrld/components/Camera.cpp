@@ -6,7 +6,7 @@
 
 #include "Camera.hpp"
 
-#include "Logs.hpp"
+#include "logs.hpp"
 #include "Transform.hpp"
 #include "World.hpp"
 

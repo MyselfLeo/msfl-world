@@ -4,7 +4,7 @@
 
 #include "CubemapTexture.hpp"
 
-#include "Logs.hpp"
+#include "logs.hpp"
 #include "stb_image.hpp"
 
 #include <format>

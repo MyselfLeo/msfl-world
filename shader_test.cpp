@@ -14,7 +14,7 @@
 #include <iostream>
 
 
-#include "wrld/Logs.hpp"
+#include "wrld/logs.hpp"
 #include "wrld/resources/Program.hpp"
 #include "wrld/World.hpp"
 #include "wrld/components/Camera.hpp"
@@ -186,46 +186,7 @@ GLFWwindow *init_gl(const int width, const int height) {
     return window;
 }
 
-void menu(World &world) {
-    static bool show_demo = true;
-    if (show_demo)
-        ImGui::ShowDemoWindow(&show_demo);
-
-    ImGui::Begin("Scene");
-    for (const auto &[ent_id, ent_name]: world.get_entities()) {
-        if (ImGui::TreeNode(ent_name.c_str())) {
-            ImGui::Text("%s", std::format("Entity ID: {}", ent_id).c_str());
-
-            auto component_types = world.get_components_of_entity(ent_id);
-            for (const auto &type: component_types) {
-                // Retrieve the appropriate function from the map and call it
-                if (gui::COMPONENT_FUNCTIONS.contains(type)) {
-                    gui::COMPONENT_FUNCTIONS.at(type)(world, ent_id);
-                }
-            }
-            ImGui::TreePop();
-        }
-    }
-    ImGui::End();
-
-    ImGui::Begin("Resources");
-
-    for (const auto &pool: world.get_resources() | std::views::values) {
-        if (pool.empty())
-            continue;
-
-        const std::string &type_name = pool.begin()->second->get_type();
-
-        if (ImGui::TreeNode(type_name.c_str())) {
-            for (const auto &key: pool | std::views::keys) {
-                ImGui::Text("%s", key.c_str());
-            }
-            ImGui::TreePop();
-        }
-    }
-
-    ImGui::End();
-}
+void menu(World &world) {}
 
 int main(int argc, const char **argv) {
     if (argc < 2) {

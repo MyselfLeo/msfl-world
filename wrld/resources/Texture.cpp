@@ -4,7 +4,7 @@
 
 #include "Texture.hpp"
 
-#include "Logs.hpp"
+#include "logs.hpp"
 
 #include <format>
 #include <iostream>

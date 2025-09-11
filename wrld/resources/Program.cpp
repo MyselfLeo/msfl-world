@@ -4,7 +4,7 @@
 
 #include "Program.hpp"
 
-#include "Logs.hpp"
+#include "logs.hpp"
 
 #include <format>
 #include <fstream>
