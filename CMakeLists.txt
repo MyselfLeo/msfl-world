@@ -83,6 +83,9 @@ add_library(msfl_world STATIC
         wrld/App.hpp
         wrld/Main.hpp
         wrld/Main.cpp
+        wrld-gui/components.cpp
+        wrld-gui/resources.hpp
+        wrld-gui/resources.cpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

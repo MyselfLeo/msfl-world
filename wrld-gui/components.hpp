@@ -196,6 +196,8 @@ namespace wrld::gui {
             {typeid(cpt::Transform), &component_menu<cpt::Transform>}};
 
 
+    void render_component_window(World &world);
+
 } // namespace wrld::gui
 
 #endif // COMPONENTS_HPP

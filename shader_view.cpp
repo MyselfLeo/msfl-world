@@ -14,6 +14,7 @@
 #include "components/Transform.hpp"
 #include "resources/Model.hpp"
 #include "wrld-gui/components.hpp"
+#include "wrld-gui/resources.hpp"
 
 #include <iostream>
 
@@ -24,6 +25,9 @@ public:
     ~ShaderView() override {}
 
     void init(wrld::World &world) override {
+        shader = std::make_shared<wrld::rsc::Program>("wrld/shaders/vertex/default.glsl",
+                                                      "wrld/shaders/fragment/toonshading.glsl");
+
         model = world.create_resource<wrld::rsc::Model>("user_model", model_path);
 
         const wrld::EntityID model_entity = world.create_entity("Model");
@@ -35,6 +39,7 @@ public:
 
         const wrld::EntityID camera_entity = world.create_entity("Camera");
         camera = world.attach_component<wrld::cpt::Camera>(camera_entity, 45, wrld::Main::get_window_viewport());
+        camera->set_program(shader);
         world.attach_component<wrld::cpt::Transform>(camera_entity);
         orbiter = world.attach_component<wrld::cpt::Orbiter>(camera_entity, model_entity, 2);
         orbiter->set_offset({0, 0, 0});
@@ -50,7 +55,7 @@ public:
     }
 
     void update(wrld::World &world, const double deltatime) override {
-        wrldVar(deltatime);
+        current_deltatime = deltatime;
 
         // Shader reloading
         {
@@ -99,39 +104,11 @@ public:
         if (show_demo)
             ImGui::ShowDemoWindow(&show_demo);
 
-        ImGui::Begin("Scene");
-        for (const auto &[ent_id, ent_name]: world.get_entities()) {
-            if (ImGui::TreeNode(ent_name.c_str())) {
-                ImGui::Text("%s", std::format("Entity ID: {}", ent_id).c_str());
+        wrld::gui::render_component_window(world);
+        wrld::gui::render_resources_window(world);
 
-                auto component_types = world.get_components_of_entity(ent_id);
-                for (const auto &type: component_types) {
-                    // Retrieve the appropriate function from the map and call it
-                    if (wrld::gui::COMPONENT_FUNCTIONS.contains(type)) {
-                        wrld::gui::COMPONENT_FUNCTIONS.at(type)(world, ent_id);
-                    }
-                }
-                ImGui::TreePop();
-            }
-        }
-        ImGui::End();
-
-        ImGui::Begin("Resources");
-
-        for (const auto &pool: world.get_resources() | std::views::values) {
-            if (pool.empty())
-                continue;
-
-            const std::string &type_name = pool.begin()->second->get_type();
-
-            if (ImGui::TreeNode(type_name.c_str())) {
-                for (const auto &key: pool | std::views::keys) {
-                    ImGui::Text("%s", key.c_str());
-                }
-                ImGui::TreePop();
-            }
-        }
-
+        ImGui::Begin("Info");
+        ImGui::Text("%s", std::format("DT: {}ms", rotation_rate).c_str());
         ImGui::End();
     }
 
@@ -146,9 +123,11 @@ private:
     std::shared_ptr<wrld::cpt::Transform> model_transform;
     std::shared_ptr<wrld::cpt::Camera> camera;
     std::shared_ptr<wrld::cpt::Orbiter> orbiter;
+    std::shared_ptr<wrld::rsc::Program> shader;
 
     // Runtime variables
     bool shade_reloading = false;
+    double current_deltatime = 0;
     float rotation_rate = 30.0; // Angle per second
     float camera_speed = 1.5;
 };

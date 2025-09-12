@@ -1,0 +1,27 @@
+//
+// Created by leo on 9/12/25.
+//
+
+#include "components.hpp"
+
+namespace wrld::gui {
+    void render_component_window(World &world) {
+        ImGui::Begin("Scene");
+        for (const auto &[ent_id, ent_name]: world.get_entities()) {
+            if (ImGui::TreeNode(ent_name.c_str())) {
+                ImGui::Text("%s", std::format("Entity ID: {}", ent_id).c_str());
+
+                auto component_types = world.get_components_of_entity(ent_id);
+                for (const auto &type: component_types) {
+                    // Retrieve the appropriate function from the map and call it
+                    if (wrld::gui::COMPONENT_FUNCTIONS.contains(type)) {
+                        wrld::gui::COMPONENT_FUNCTIONS.at(type)(world, ent_id);
+                    }
+                }
+                ImGui::TreePop();
+            }
+        }
+        ImGui::End();
+    }
+
+} // namespace wrld::gui
