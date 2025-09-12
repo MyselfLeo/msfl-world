@@ -41,7 +41,7 @@ namespace wrld {
 
     class RendererSystem final : public System {
     public:
-        static constexpr unsigned MAX_LIGHTS = 10;
+        static constexpr unsigned MAX_LIGHTS = 100;
 
         RendererSystem(World &world, GLFWwindow *window);
         ~RendererSystem() override;
@@ -51,7 +51,7 @@ namespace wrld {
     private:
         GLFWwindow *window;
 
-        const rsc::Program SKYBOX_PROGRAM;
+        std::shared_ptr<rsc::Program> SKYBOX_PROGRAM;
 
         /// Return the entity's transform or a default one if not provided.
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;

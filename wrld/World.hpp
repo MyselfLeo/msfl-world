@@ -114,10 +114,6 @@ namespace wrld {
 
         template<Resource R, typename... Args>
         std::shared_ptr<R> create_resource(const std::string &name, Args &&...args) {
-            // // Creates a new id
-            // max_resource_id += 1;
-            // rsc::ResourceID id = max_resource_id;
-
             // Create unique name from given name
             std::string new_name = name;
             while (resources[std::type_index(typeid(R))].contains(new_name)) {

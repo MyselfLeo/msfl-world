@@ -4,6 +4,7 @@
 
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
+#include "Resource.hpp"
 #include "assimp/material.h"
 
 
@@ -12,20 +13,24 @@
 #include <glad/glad.h>
 
 namespace wrld::rsc {
-    class Texture {
+    class Texture final : public Resource {
     public:
-        explicit Texture(const std::string &texture_path, aiTextureType type);
+        explicit Texture(const std::string &name, World &world, const std::string &texture_path, aiTextureType type,
+                         bool flip_textures = false);
 
-        Texture(Texture &&other) noexcept;
-        Texture &operator=(Texture &&other) noexcept;
+        Texture(Texture &other) = delete;
+        Texture(Texture &&other) = delete;
+        Texture &operator=(Texture &other) = delete;
+        Texture &operator=(Texture &&other) = delete;
 
         void use(unsigned unit = 0) const;
 
-        ~Texture();
+        ~Texture() override;
 
     private:
         GLuint gl_texture;
         std::string path;
+        bool flip_textures;
 
         // Using Assimp enum for now, it's good enough
         aiTextureType type;

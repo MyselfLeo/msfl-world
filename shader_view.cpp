@@ -20,7 +20,7 @@
 
 class ShaderView final : public wrld::App {
 public:
-    ShaderView(const std::string &model_path) : model_path(model_path) {}
+    explicit ShaderView(const std::string &model_path) : model_path(model_path) {}
 
     ~ShaderView() override {}
 

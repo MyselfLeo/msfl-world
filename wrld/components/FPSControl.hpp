@@ -33,7 +33,7 @@ namespace wrld::cpt {
         double yaw = -90.0;
         double pitch = 0.0;
 
-        float translation_speed = 0.1;
+        float translation_speed = 0.2;
         double camera_sensitivity = 0.1;
 
         bool lock = false;

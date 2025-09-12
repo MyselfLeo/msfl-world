@@ -12,9 +12,10 @@
 #include <stdexcept>
 
 namespace wrld::rsc {
-    Texture::Texture(const std::string &texture_path, const aiTextureType type) :
-        gl_texture(0), path(texture_path), type(type) {
-        stbi_set_flip_vertically_on_load(true);
+    Texture::Texture(const std::string &name, World &world, const std::string &texture_path, const aiTextureType type,
+                     const bool flip_textures) :
+        Resource(std::move(name), world), gl_texture(0), path(texture_path), flip_textures(flip_textures), type(type) {
+        stbi_set_flip_vertically_on_load(flip_textures);
 
         wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type), texture_path));
 
@@ -27,36 +28,48 @@ namespace wrld::rsc {
             throw std::runtime_error(std::format("Error while loading texture {}", texture_path));
         }
 
-        if (nb_channels != 3) {
-            stbi_image_free(data);
-            throw std::runtime_error("Only RGB images are supported for now");
+        GLenum format;
+        switch (nb_channels) {
+            case 3: {
+                format = GL_RGB;
+            } break;
+            case 4: {
+                format = GL_RGBA;
+            } break;
+            default: {
+                stbi_image_free(data);
+                throw std::runtime_error(
+                        std::format("Only RGB and RGBA images are supported for now. Nbchannels: {}", nb_channels));
+            }
         }
 
         glGenTextures(1, &gl_texture);
         glBindTexture(GL_TEXTURE_2D, gl_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(data);
     }
 
-    Texture::Texture(Texture &&other) noexcept :
-        gl_texture(other.gl_texture), path(std::move(other.path)), type(other.type) {
-        other.gl_texture = 0;
-    }
-
-    Texture &Texture::operator=(Texture &&other) noexcept {
-        if (gl_texture != 0)
-            glDeleteTextures(1, &gl_texture);
-
-        gl_texture = other.gl_texture;
-        path = std::move(other.path);
-        type = other.type;
-
-        other.gl_texture = 0;
-
-        return *this;
-    }
+    // Texture::Texture(Texture &&other) noexcept :
+    //     gl_texture(other.gl_texture), path(std::move(other.path)), type(other.type),
+    //     flip_textures(other.flip_textures) {
+    //     other.gl_texture = 0;
+    // }
+    //
+    // Texture &Texture::operator=(Texture &&other) noexcept {
+    //     if (gl_texture != 0)
+    //         glDeleteTextures(1, &gl_texture);
+    //
+    //     gl_texture = other.gl_texture;
+    //     path = std::move(other.path);
+    //     type = other.type;
+    //     flip_textures = other.flip_textures;
+    //
+    //     other.gl_texture = 0;
+    //
+    //     return *this;
+    // }
 
     void Texture::use(const unsigned unit) const {
         glActiveTexture(GL_TEXTURE0 + unit);

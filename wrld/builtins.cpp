@@ -46,8 +46,10 @@ namespace wrld::builtins {
             elements.push_back(i);
         }
 
-        const auto mesh =
-                world.create_resource<rsc::Mesh>("grid_mesh", std::make_shared<rsc::Material>(), vertices, elements);
+        // todo: Create default resources for each type so we can do world.get_default<rsc::Material>().
+        //       This will prevent having too much resources.
+        const auto mesh = world.create_resource<rsc::Mesh>(
+                "grid_mesh", world.create_resource<rsc::Material>("material"), vertices, elements);
 
         mesh->set_gl_primitive_type(GL_LINES);
         mesh->update();
@@ -91,8 +93,8 @@ namespace wrld::builtins {
             elements.push_back(i);
         }
 
-        const auto mesh =
-                world.create_resource<rsc::Mesh>("axis_mesh", std::make_shared<rsc::Material>(), vertices, elements);
+        const auto mesh = world.create_resource<rsc::Mesh>(
+                "axis_mesh", world.create_resource<rsc::Material>("material"), vertices, elements);
         mesh->set_gl_primitive_type(GL_LINES);
         mesh->update();
 

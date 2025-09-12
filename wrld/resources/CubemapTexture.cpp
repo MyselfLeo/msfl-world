@@ -12,7 +12,8 @@
 #include <ranges>
 
 namespace wrld::rsc {
-    CubemapTexture::CubemapTexture(const std::vector<std::string> &cubemap_paths) : gl_texture(0) {
+    CubemapTexture::CubemapTexture(std::string name, World &world, const std::vector<std::string> &cubemap_paths) :
+        Resource(std::move(name), world), gl_texture(0) {
         stbi_set_flip_vertically_on_load(false);
 
         // Filtering for cubemap
@@ -48,19 +49,19 @@ namespace wrld::rsc {
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
 
-    CubemapTexture::CubemapTexture(CubemapTexture &&other) noexcept : gl_texture(other.gl_texture) {
-        other.gl_texture = 0;
-    }
-
-    CubemapTexture &CubemapTexture::operator=(CubemapTexture &&other) noexcept {
-        if (gl_texture != 0)
-            glDeleteTextures(1, &gl_texture);
-
-        gl_texture = other.gl_texture;
-        other.gl_texture = 0;
-
-        return *this;
-    }
+    // CubemapTexture::CubemapTexture(CubemapTexture &&other) noexcept : gl_texture(other.gl_texture) {
+    //     other.gl_texture = 0;
+    // }
+    //
+    // CubemapTexture &CubemapTexture::operator=(CubemapTexture &&other) noexcept {
+    //     if (gl_texture != 0)
+    //         glDeleteTextures(1, &gl_texture);
+    //
+    //     gl_texture = other.gl_texture;
+    //     other.gl_texture = 0;
+    //
+    //     return *this;
+    // }
 
     void CubemapTexture::use(const unsigned unit) const {
         glActiveTexture(GL_TEXTURE0 + unit);

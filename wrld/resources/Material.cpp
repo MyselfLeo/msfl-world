@@ -5,7 +5,7 @@
 #include "Material.hpp"
 
 namespace wrld::rsc {
-    Material::Material() = default;
+    Material::Material(std::string name, World &world) : Resource(std::move(name), world) {}
 
     void Material::set_diffuse_map(const std::shared_ptr<Texture> &diffuse_map) { this->diffuse_map = diffuse_map; }
 

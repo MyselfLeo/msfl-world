@@ -23,21 +23,22 @@ namespace wrld::rsc {
     std::string get_type_name(ShaderType type);
 
     /// Combines a vertex and a fragment shader
-    class Program {
+    class Program final : public Resource {
     public:
         /// Loads a shader file in which both shaders (vertex & fragment)
         /// are defined (using #ifdef directives) to create the program.
-        explicit Program(const std::string &combined_shader_path);
+        explicit Program(std::string name, World &world, const std::string &combined_shader_path);
 
         /// Loads a vertex and a fragment shader file to create the program.
-        Program(const std::string &vertex_shader_path, const std::string &fragment_shader_path);
+        Program(std::string name, World &world, const std::string &vertex_shader_path,
+                const std::string &fragment_shader_path);
 
-        Program(Program &&other) noexcept;
+        Program(Program &other) = delete;
+        Program(Program &&other) = delete;
+        Program &operator=(Program &other) = delete;
+        Program &operator=(Program &&other) = delete;
 
-        Program &operator=(Program &&other) noexcept;
-
-
-        ~Program();
+        ~Program() override;
 
         /// Use this program in the GL context.
         void use() const;

@@ -32,7 +32,8 @@ namespace wrld::rsc {
     class Model final : public Resource {
     public:
         /// Loads model from file
-        explicit Model(std::string name, World &world, const std::string &model_path);
+        explicit Model(std::string name, World &world, const std::string &model_path, unsigned ai_flags = 0,
+                       bool flip_textures = false);
 
         /// Creates a Model with a single mesh
         explicit Model(std::string name, World &world, const std::shared_ptr<Mesh> &mesh);
@@ -55,13 +56,13 @@ namespace wrld::rsc {
         // to load relative textures
         std::string model_directory;
 
-        std::shared_ptr<MeshGraphNode> process_node(const aiNode *node, const aiScene *scene);
+        std::shared_ptr<MeshGraphNode> process_node(const aiNode *node, const aiScene *scene, bool flip_textures);
 
-        std::shared_ptr<Mesh> process_mesh(const aiMesh *mesh, const aiScene *scene);
+        std::shared_ptr<Mesh> process_mesh(const aiMesh *mesh, const aiScene *scene, bool flip_textures);
 
         // Load textures of the given type from aiMaterial
         std::vector<std::shared_ptr<Texture>> load_textures(const aiMaterial *material, aiTextureType type,
-                                                            const aiScene *scene);
+                                                            const aiScene *scene, bool flip_textures);
 
         // Load the first texture of the given type from aiMaterial
         // std::shared_ptr<Texture> load_texture(const aiMaterial *material, aiTextureType type, const aiScene *scene);

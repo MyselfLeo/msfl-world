@@ -27,23 +27,29 @@ namespace wrld::cpt {
 
         constexpr auto up = glm::vec3{0, 1, 0};
 
+        auto speed = translation_speed;
+
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+            speed *= 3;
+        }
+
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            translation += transform->get_direction() * translation_speed;
+            translation += transform->get_direction() * speed;
         }
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            translation -= transform->get_direction() * translation_speed;
+            translation -= transform->get_direction() * speed;
         }
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            translation -= glm::normalize(glm::cross(transform->get_direction(), up)) * translation_speed;
+            translation -= glm::normalize(glm::cross(transform->get_direction(), up)) * speed;
         }
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            translation += glm::normalize(glm::cross(transform->get_direction(), up)) * translation_speed;
+            translation += glm::normalize(glm::cross(transform->get_direction(), up)) * speed;
         }
         if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-            translation += up * translation_speed;
+            translation += up * speed;
         }
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-            translation -= up * translation_speed;
+            translation -= up * speed;
         }
 
         double mouse_x, mouse_y;

@@ -6,6 +6,7 @@
 #define CAMERACOMPONENT_HPP
 #include "Component.hpp"
 #include "Environment.hpp"
+#include "World.hpp"
 #include "glm/mat4x4.hpp"
 #include "resources/Program.hpp"
 #include "resources/WindowViewport.hpp"
@@ -16,8 +17,7 @@ namespace wrld::cpt {
     class Camera final : public Component {
     public:
         explicit Camera(EntityID entity_id, World &world, float fov, std::shared_ptr<rsc::WindowViewport> viewport,
-                        std::shared_ptr<rsc::Program> program = std::make_shared<rsc::Program>(
-                                "wrld/shaders/vertex/default.glsl", "wrld/shaders/fragment/default.glsl"));
+                        std::shared_ptr<rsc::Program> program);
 
         [[nodiscard]] float get_fov() const;
         void set_fov(float fov);

@@ -1,7 +1,7 @@
 #version 460 core
 
 // Max light per each type
-#define MAX_LIGHTS 10
+#define MAX_LIGHTS 100
 
 struct AmbiantLight {
     vec3 color;
@@ -141,6 +141,8 @@ void main() {
     }
 
     vec4 res = vec4(0.0);
+
+    if (sample_diffuse().a < 0.01) discard;
 
     // Process ambient light
     res += calc_ambiant_light();

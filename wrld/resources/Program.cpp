@@ -26,10 +26,13 @@ namespace wrld::rsc {
     }
 
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
-    Program::Program(const std::string &combined_shader_path) : Program(combined_shader_path, combined_shader_path) {}
+    Program::Program(std::string name, World &world, const std::string &combined_shader_path) :
+        Program(std::move(name), world, combined_shader_path, combined_shader_path) {}
 
-    Program::Program(const std::string &vertex_shader_path, const std::string &fragment_shader_path) :
-        vertex_shader_path(vertex_shader_path), fragment_shader_path(fragment_shader_path) {
+    Program::Program(std::string name, World &world, const std::string &vertex_shader_path,
+                     const std::string &fragment_shader_path) :
+        Resource(std::move(name), world), vertex_shader_path(vertex_shader_path),
+        fragment_shader_path(fragment_shader_path) {
         // Create both shaders
         vertex_shader = glCreateShader(GL_VERTEX_SHADER);
         if (vertex_shader == 0) {
@@ -56,22 +59,22 @@ namespace wrld::rsc {
         glLinkProgram(gl_program);
     }
 
-    Program::Program(Program &&other) noexcept :
-        vertex_shader(other.vertex_shader), fragment_shader(other.fragment_shader), gl_program(other.gl_program) {
-        other.vertex_shader = 0;
-        other.fragment_shader = 0;
-        other.gl_program = 0;
-    }
-
-    Program &Program::operator=(Program &&other) noexcept {
-        vertex_shader = other.vertex_shader;
-        fragment_shader = other.fragment_shader;
-        gl_program = other.gl_program;
-        other.vertex_shader = 0;
-        other.fragment_shader = 0;
-        other.gl_program = 0;
-        return *this;
-    }
+    // Program::Program(Program &&other) noexcept :
+    //     vertex_shader(other.vertex_shader), fragment_shader(other.fragment_shader), gl_program(other.gl_program) {
+    //     other.vertex_shader = 0;
+    //     other.fragment_shader = 0;
+    //     other.gl_program = 0;
+    // }
+    //
+    // Program &Program::operator=(Program &&other) noexcept {
+    //     vertex_shader = other.vertex_shader;
+    //     fragment_shader = other.fragment_shader;
+    //     gl_program = other.gl_program;
+    //     other.vertex_shader = 0;
+    //     other.fragment_shader = 0;
+    //     other.gl_program = 0;
+    //     return *this;
+    // }
 
     Program::~Program() {
         glDeleteShader(vertex_shader);

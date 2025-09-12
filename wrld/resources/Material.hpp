@@ -4,6 +4,7 @@
 
 #ifndef MATERIAL_HPP
 #define MATERIAL_HPP
+#include "Resource.hpp"
 #include "Texture.hpp"
 
 #include <glm/vec3.hpp>
@@ -14,9 +15,14 @@
 
 namespace wrld::rsc {
 
-    class Material {
+    class Material final : public Resource {
     public:
-        Material();
+        Material(std::string name, World &world);
+
+        Material(Material &other) = delete;
+        Material(Material &&other) = delete;
+        Material &operator=(Material &other) = delete;
+        Material &operator=(Material &&other) = delete;
 
         void set_diffuse_map(const std::shared_ptr<Texture> &diffuse_map);
         void set_specular_map(const std::shared_ptr<Texture> &specular_map);

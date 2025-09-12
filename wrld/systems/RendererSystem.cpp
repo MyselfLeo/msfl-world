@@ -33,7 +33,8 @@ namespace wrld {
                                      const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
 
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
-        System(world), window(window), SKYBOX_PROGRAM("wrld/shaders/skybox.glsl") {}
+        System(world), window(window),
+        SKYBOX_PROGRAM(world.create_resource<rsc::Program>("skybox_program", "wrld/shaders/skybox.glsl")) {}
 
     RendererSystem::~RendererSystem() = default;
 
@@ -198,16 +199,16 @@ namespace wrld {
     }
 
     void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
-        SKYBOX_PROGRAM.use();
+        SKYBOX_PROGRAM->use();
 
         const auto inv_matrix =
                 glm::inverse(camera.get_viewport_matrix() * camera.get_projection_matrix() * camera.get_view_matrix());
 
         cubemap.use(0);
 
-        SKYBOX_PROGRAM.set_uniform("inv_matrix", inv_matrix);
-        SKYBOX_PROGRAM.set_uniform("camera_pos", camera.get_position());
-        SKYBOX_PROGRAM.set_uniform("cubemap", 0);
+        SKYBOX_PROGRAM->set_uniform("inv_matrix", inv_matrix);
+        SKYBOX_PROGRAM->set_uniform("camera_pos", camera.get_position());
+        SKYBOX_PROGRAM->set_uniform("cubemap", 0);
 
         glDepthFunc(GL_LEQUAL);
         glBindVertexArray(vao);
