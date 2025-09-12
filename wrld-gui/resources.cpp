@@ -7,8 +7,8 @@
 #include "imgui.h"
 
 namespace wrld::gui {
-    void render_resources_window(const World &world) {
-        ImGui::Begin("Resources");
+    void render_resources_window(const World &world, bool *p_open) {
+        ImGui::Begin("Resources", p_open);
 
         for (const auto &pool: world.get_resources() | std::views::values) {
             if (pool.empty())

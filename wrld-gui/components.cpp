@@ -5,8 +5,8 @@
 #include "components.hpp"
 
 namespace wrld::gui {
-    void render_component_window(World &world) {
-        ImGui::Begin("Scene");
+    void render_component_window(World &world, bool *p_open) {
+        ImGui::Begin("Scene", p_open);
         for (const auto &[ent_id, ent_name]: world.get_entities()) {
             if (ImGui::TreeNode(ent_name.c_str())) {
                 ImGui::Text("%s", std::format("Entity ID: {}", ent_id).c_str());

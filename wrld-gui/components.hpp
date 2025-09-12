@@ -196,7 +196,7 @@ namespace wrld::gui {
             {typeid(cpt::Transform), &component_menu<cpt::Transform>}};
 
 
-    void render_component_window(World &world);
+    void render_component_window(World &world, bool *p_open = nullptr);
 
 } // namespace wrld::gui
 

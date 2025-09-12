@@ -100,16 +100,26 @@ public:
     }
 
     void ui(wrld::World &world) override {
-        static bool show_demo = true;
-        if (show_demo)
-            ImGui::ShowDemoWindow(&show_demo);
-
-        wrld::gui::render_component_window(world);
-        wrld::gui::render_resources_window(world);
+        static bool show_demo = false;
+        static bool show_components = false;
+        static bool show_resources = false;
 
         ImGui::Begin("Info");
         ImGui::Text("%s", std::format("DT: {}ms", rotation_rate).c_str());
+        if (ImGui::Button("Show/Hide demo"))
+            show_demo = !show_demo;
+        if (ImGui::Button("Show/Hide components"))
+            show_components = !show_components;
+        if (ImGui::Button("Show/Hide resources"))
+            show_resources = !show_resources;
         ImGui::End();
+
+        if (show_demo)
+            ImGui::ShowDemoWindow(&show_demo);
+        if (show_components)
+            wrld::gui::render_component_window(world, &show_components);
+        if (show_resources)
+            wrld::gui::render_resources_window(world, &show_resources);
     }
 
     void exit(wrld::World &world) override { std::cout << "Goodbye!" << std::endl; }

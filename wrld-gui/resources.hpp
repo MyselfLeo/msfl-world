@@ -7,7 +7,7 @@
 #include "World.hpp"
 
 namespace wrld::gui {
-    void render_resources_window(const World &world);
+    void render_resources_window(const World &world, bool *p_open = nullptr);
 }
 
 #endif // RESOURCES_HPP
