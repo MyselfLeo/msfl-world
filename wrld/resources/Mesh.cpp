@@ -4,19 +4,20 @@
 
 #include "Mesh.hpp"
 
+#include "World.hpp"
+
 #include <utility>
 
 namespace wrld::rsc {
-    Mesh::Mesh(std::string name, World &world,
-               const std::shared_ptr<Material> &default_material) :
-        Resource(std::move(name), world), default_material(default_material),
-        current_material(default_material) {}
+    Mesh::Mesh(std::string name, World &world) :
+        Resource(std::move(name), world), current_material(world.get_default<Material>()) {
+        update();
+    }
 
-    Mesh::Mesh(std::string name, World &world,
-               const std::shared_ptr<Material> &default_material, const std::vector<Vertex> &vertices,
-               const std::vector<VertexID> &elements) :
-        Resource(std::move(name), world), vertices(vertices), indices(elements),
-        default_material(default_material), current_material(default_material) {}
+    // Mesh::Mesh(std::string name, World &world, const std::shared_ptr<Material> &default_material,
+    //            const std::vector<Vertex> &vertices, const std::vector<VertexID> &elements) :
+    //     Resource(std::move(name), world), vertices(vertices), indices(elements), default_material(default_material),
+    //     current_material(default_material) {}
 
     Mesh::~Mesh() {
         glBindVertexArray(0);
@@ -25,9 +26,24 @@ namespace wrld::rsc {
         glDeleteVertexArrays(1, &vao);
     }
 
-    void Mesh::set_material(const std::shared_ptr<Material> &material) { this->current_material = material; }
+    Mesh &Mesh::set_material(const std::shared_ptr<const Material> &material) {
+        this->current_material = material;
+        return *this;
+    }
 
-    void Mesh::use_default_material() { this->current_material = default_material; }
+    Mesh &Mesh::set_vertices(const std::vector<Vertex> &vertices) {
+        this->vertices = vertices;
+        return *this;
+    }
+
+    Mesh &Mesh::set_elements(const std::vector<VertexID> &elements) {
+        this->indices = elements;
+        return *this;
+    }
+
+    // void Mesh::set_material(const std::shared_ptr<Material> &material) { this->current_material = material; }
+    //
+    // void Mesh::use_default_material() { this->current_material = default_material; }
 
     VertexID Mesh::add_vertex(const Vertex &vertex) {
         this->vertices.push_back(vertex);
@@ -43,15 +59,21 @@ namespace wrld::rsc {
 
     VertexID &Mesh::get_element(const ElementID element_id) { return this->indices[element_id]; }
 
-    void Mesh::set_gl_primitive_type(const GLenum type) { this->gl_primitive_type = type; }
+    Mesh &Mesh::set_gl_primitive_type(const GLenum type) {
+        this->gl_primitive_type = type;
+        return *this;
+    }
 
     GLenum Mesh::get_gl_primitive_type() const { return gl_primitive_type; }
 
-    void Mesh::set_gl_usage(const GLenum usage) { this->gl_usage = usage; }
+    Mesh &Mesh::set_gl_usage(const GLenum usage) {
+        this->gl_usage = usage;
+        return *this;
+    }
 
     GLenum Mesh::get_gl_usage() const { return gl_usage; }
 
-    const std::shared_ptr<Material> &Mesh::get_material() const { return current_material; }
+    const std::shared_ptr<const Material> &Mesh::get_material() const { return current_material; }
 
     void Mesh::update() {
         if (!buffers_created) {

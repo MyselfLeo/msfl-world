@@ -7,6 +7,7 @@
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include <cstddef>
+#include <memory>
 #include <string>
 
 namespace wrld {
@@ -16,11 +17,13 @@ namespace wrld {
 } // namespace wrld
 
 namespace wrld::rsc {
-    typedef size_t ResourceID;
-
     /// Base class for all resources.
-    /// Any derived class must possess a constructor expecting std::string and World& as its first parameters
-    /// (in order to initialise the base class). This constructor will be called by World::create_resource.
+    /// Any derived class must possess a constructor expecting std::string and World& as its firt
+    /// AND ONLY parameters. This constructor will be called by World::create_resource.
+    /// Any parameter should have default values that can be changed by setters afterward.
+    /// Why : This allows the framework to create "default" Resources of each type, accessible via
+    /// world.get_default<>().
+    /// Furthermore : TODO
 
     class Resource {
     public:

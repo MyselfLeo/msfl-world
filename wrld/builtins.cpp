@@ -10,9 +10,19 @@
 #include "resources/Model.hpp"
 
 namespace wrld::builtins {
+    std::shared_ptr<const rsc::Material> unlit_material(World &world) {
+        std::shared_ptr<rsc::Material> ptr;
+
+        if (ptr == nullptr) {
+            ptr = world.create_resource<rsc::Material>("unlit");
+            ptr->do_lighting(false);
+        }
+
+        return ptr;
+    }
+
     EntityID create_grid(World &world, const unsigned nb_lines, const float line_spacing) {
         // Create the mesh
-        // todo: make it not lighted
         auto vertex = rsc::Vertex({0, 0, 0}, {1, 0, 0}, {0, 0}, {0.7, 0.7, 0.7});
 
         float offset = line_spacing * (static_cast<float>(nb_lines) / 2.0f);
@@ -48,17 +58,15 @@ namespace wrld::builtins {
 
         // todo: Create default resources for each type so we can do world.get_default<rsc::Material>().
         //       This will prevent having too much resources.
-        const auto mesh = world.create_resource<rsc::Mesh>(
-                "grid_mesh", world.create_resource<rsc::Material>("material"), vertices, elements);
 
-        mesh->set_gl_primitive_type(GL_LINES);
+        const auto mesh = world.create_resource<rsc::Mesh>("grid_mesh");
+        mesh->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
+                unlit_material(world));
         mesh->update();
 
-        mesh->get_material()->do_lighting(false);
-
         // Create model
-        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("grid_model", mesh);
-
+        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("grid_model");
+        model->from_mesh(mesh);
 
         // Create entity
         const EntityID entity = world.create_entity("Grid");
@@ -70,7 +78,6 @@ namespace wrld::builtins {
 
     EntityID create_axis(World &world, float axis_length) {
         // Create the mesh
-        // todo: make it not lighted
 
         std::vector<rsc::Vertex> vertices;
         std::vector<rsc::VertexID> elements;
@@ -93,15 +100,14 @@ namespace wrld::builtins {
             elements.push_back(i);
         }
 
-        const auto mesh = world.create_resource<rsc::Mesh>(
-                "axis_mesh", world.create_resource<rsc::Material>("material"), vertices, elements);
-        mesh->set_gl_primitive_type(GL_LINES);
+        const auto mesh = world.create_resource<rsc::Mesh>("axis_mesh");
+        mesh->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
+                unlit_material(world));
         mesh->update();
 
-        mesh->get_material()->do_lighting(false);
-
         // Create model
-        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("axis_model", mesh);
+        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("axis_model");
+        model->from_mesh(mesh);
 
         // Create entity
         const EntityID entity = world.create_entity("Axis");

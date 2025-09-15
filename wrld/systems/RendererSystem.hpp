@@ -32,11 +32,11 @@ namespace wrld {
 
     struct EnvironmentData {
         EnvironmentData(cpt::AmbiantLight ambiant_light,
-                        const std::optional<std::shared_ptr<rsc::CubemapTexture>> &skybox, GLuint vao);
+                        const std::optional<std::shared_ptr<const rsc::CubemapTexture>> &skybox, GLuint vao);
 
         GLuint vao;
         cpt::AmbiantLight ambiant_light;
-        std::optional<std::shared_ptr<rsc::CubemapTexture>> skybox;
+        std::optional<std::shared_ptr<const rsc::CubemapTexture>> skybox;
     };
 
     class RendererSystem final : public System {
@@ -51,18 +51,18 @@ namespace wrld {
     private:
         GLFWwindow *window;
 
-        std::shared_ptr<rsc::Program> SKYBOX_PROGRAM;
+        std::shared_ptr<const rsc::Program> skybox_program;
 
         /// Return the entity's transform or a default one if not provided.
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;
 
         /// Return the active camera component (for now, the first CameraComponent found).
         /// Returns std::nullopt if there is none.
-        [[nodiscard]] std::optional<std::shared_ptr<cpt::Camera>> get_camera() const;
+        [[nodiscard]] std::optional<std::shared_ptr<const cpt::Camera>> get_camera() const;
 
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.
-        [[nodiscard]] std::shared_ptr<rsc::Model> get_entity_model(EntityID id) const;
+        [[nodiscard]] std::shared_ptr<const rsc::Model> get_entity_model(EntityID id) const;
 
         /*/// Return the program (shader) which shall be used to render an entity.
         /// It's either the one defined using a cpt::Shader or the default one.

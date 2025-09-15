@@ -25,13 +25,14 @@ namespace wrld::rsc {
     /// Combines a vertex and a fragment shader
     class Program final : public Resource {
     public:
+        explicit Program(std::string name, World &world /*, const std::string &combined_shader_path*/);
+
         /// Loads a shader file in which both shaders (vertex & fragment)
         /// are defined (using #ifdef directives) to create the program.
-        explicit Program(std::string name, World &world, const std::string &combined_shader_path);
+        Program &set_shader(const std::string &combined_shader_path);
 
-        /// Loads a vertex and a fragment shader file to create the program.
-        Program(std::string name, World &world, const std::string &vertex_shader_path,
-                const std::string &fragment_shader_path);
+        /// Loads a shader separated in 2 files (one vertex, one fragment).
+        Program &set_shader(const std::string &vertex_path, const std::string &fragment_path);
 
         Program(Program &other) = delete;
         Program(Program &&other) = delete;
@@ -61,15 +62,20 @@ namespace wrld::rsc {
 
         void reload() const;
 
-    private:
-        std::string vertex_shader_path;
-        std::string fragment_shader_path;
+        std::string get_type() override { return "Program"; }
 
-        GLuint vertex_shader;
-        GLuint fragment_shader;
-        GLuint gl_program;
+    private:
+        std::string vertex_shader_path = "wrld/shaders/vertex/default.glsl";
+        std::string fragment_shader_path = "wrld/shaders/fragment/default.glsl";
+
+        GLuint vertex_shader = 0;
+        GLuint fragment_shader = 0;
+        GLuint gl_program = 0;
 
         static std::string read_file(const std::string &path);
+
+        bool compiled_once = false;
+        void recompile();
 
         /// Preprocess the GLSL source code to fit our needs.
         /// We add a #define with the expected type of the shader. This allows to

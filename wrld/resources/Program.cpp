@@ -26,37 +26,20 @@ namespace wrld::rsc {
     }
 
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
-    Program::Program(std::string name, World &world, const std::string &combined_shader_path) :
-        Program(std::move(name), world, combined_shader_path, combined_shader_path) {}
+    Program::Program(std::string name, World &world) : Resource(std::move(name), world) { recompile(); }
 
-    Program::Program(std::string name, World &world, const std::string &vertex_shader_path,
-                     const std::string &fragment_shader_path) :
-        Resource(std::move(name), world), vertex_shader_path(vertex_shader_path),
-        fragment_shader_path(fragment_shader_path) {
-        // Create both shaders
-        vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-        if (vertex_shader == 0) {
-            throw std::runtime_error("Unable to create OpenGL vertex shader object");
-        }
+    Program &Program::set_shader(const std::string &combined_shader_path) {
+        this->vertex_shader_path = combined_shader_path;
+        this->fragment_shader_path = combined_shader_path;
+        recompile();
+        return *this;
+    }
 
-        fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-        if (fragment_shader == 0) {
-            throw std::runtime_error("Unable to create OpenGL fragment shader object");
-        }
-
-        // Compile the shaders, check for error
-        compile_shader(vertex_shader, vertex_shader_path, VERTEX_SHADER);
-        compile_shader(fragment_shader, fragment_shader_path, FRAGMENT_SHADER);
-
-        // Create the program
-        gl_program = glCreateProgram();
-        if (gl_program == 0) {
-            throw std::runtime_error("Unable to create OpenGL program object");
-        }
-
-        glAttachShader(gl_program, vertex_shader);
-        glAttachShader(gl_program, fragment_shader);
-        glLinkProgram(gl_program);
+    Program &Program::set_shader(const std::string &vertex_path, const std::string &fragment_path) {
+        this->vertex_shader_path = vertex_path;
+        this->fragment_shader_path = fragment_path;
+        recompile();
+        return *this;
     }
 
     // Program::Program(Program &&other) noexcept :
@@ -209,6 +192,41 @@ namespace wrld::rsc {
 
         file.close();
         return buffer.str();
+    }
+
+    void Program::recompile() {
+        if (vertex_shader == 0) {
+            vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+            if (vertex_shader == 0) {
+                throw std::runtime_error("Unable to create OpenGL vertex shader object");
+            }
+        }
+
+        if (fragment_shader == 0) {
+            fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+            if (fragment_shader == 0) {
+                throw std::runtime_error("Unable to create OpenGL fragment shader object");
+            }
+        }
+
+        // Compile the shaders, check for error
+        compile_shader(vertex_shader, vertex_shader_path, VERTEX_SHADER);
+        compile_shader(fragment_shader, fragment_shader_path, FRAGMENT_SHADER);
+
+        // Create the program
+        if (gl_program == 0) {
+            gl_program = glCreateProgram();
+            if (gl_program == 0) {
+                throw std::runtime_error("Unable to create OpenGL program object");
+            }
+
+            glAttachShader(gl_program, vertex_shader);
+            glAttachShader(gl_program, fragment_shader);
+        }
+
+        glLinkProgram(gl_program);
+
+        compiled_once = true;
     }
 
     std::string Program::preprocess_source(const std::string &shader_source, ShaderType shader_type) {

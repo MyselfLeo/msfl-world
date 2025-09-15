@@ -21,6 +21,7 @@ namespace wrld {
     typedef size_t EntityID;
     typedef std::unordered_map<std::type_index, std::unordered_map<std::string, std::shared_ptr<rsc::Resource>>>
             ResourcePool;
+    typedef std::unordered_map<std::type_index, std::shared_ptr<const rsc::Resource>> DefaultResourcePool;
     typedef std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<cpt::Component>>>
             ComponentPool;
 
@@ -112,8 +113,8 @@ namespace wrld {
         // todo: maybe store thoses maps to accelerate this
         std::vector<std::type_index> get_components_of_entity(EntityID id) const;
 
-        template<Resource R, typename... Args>
-        std::shared_ptr<R> create_resource(const std::string &name, Args &&...args) {
+        template<Resource R>
+        std::shared_ptr<R> create_resource(const std::string &name) {
             // Create unique name from given name
             std::string new_name = name;
             while (resources[std::type_index(typeid(R))].contains(new_name)) {
@@ -121,7 +122,7 @@ namespace wrld {
             }
 
             // Returns the created resource
-            auto new_ressource = std::make_shared<R>(new_name, *this, std::forward<Args>(args)...);
+            auto new_ressource = std::make_shared<R>(new_name, *this /*, std::forward<Args>(args)...*/);
 
             if (!resources.contains(std::type_index(typeid(R)))) {
                 resources[std::type_index(typeid(R))] = {};
@@ -129,6 +130,28 @@ namespace wrld {
 
             resources[std::type_index(typeid(R))][new_name] = new_ressource;
             return new_ressource;
+        }
+
+        /// Return the resource of the given type with the given name.
+        /// Throws std::runtime_error if no such resource exists.
+        template<Resource R>
+        std::shared_ptr<const R> get_resource(const std::string &name) {
+            if (!resources.contains(std::type_index(typeid(R))))
+                throw std::runtime_error("This resource does not exists");
+
+            if (!resources[std::type_index(typeid(R))].contains(name))
+                throw std::runtime_error("This resource does not exists");
+
+            return static_pointer_cast<const R>(resources[std::type_index(typeid(R))][name]);
+        }
+
+        template<Resource R>
+        std::shared_ptr<const R> get_default() {
+            if (!default_resources.contains(std::type_index(typeid(R)))) {
+                default_resources[std::type_index(typeid(R))] = std::make_shared<R>("default", *this);
+            }
+
+            return static_pointer_cast<const R>(default_resources[std::type_index(typeid(R))]);
         }
 
         const ResourcePool &get_resources() const;
@@ -140,8 +163,10 @@ namespace wrld {
         unsigned max_entity_id = 0;
         std::unordered_map<EntityID, std::string> entities;
 
-        // Access a resource by its resource ID.
-        unsigned max_resource_id = 0;
+        // Default resources, one for each type. They are immutable.
+        DefaultResourcePool default_resources;
+
+        // Access a resource by its name. World::create_resource ensure that this name is unique.
         ResourcePool resources;
 
         // Access a component first by type then by entity ID.

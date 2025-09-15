@@ -26,30 +26,23 @@ public:
     ~ProIma() override {}
 
     void init(World &world) override {
-        auto skybox = world.create_resource<rsc::CubemapTexture>(
-                "cubemap",
-                std::vector<std::string>{"data/textures/lake_cm/right.jpg", "data/textures/lake_cm/left.jpg",
-                                         "data/textures/lake_cm/top.jpg", "data/textures/lake_cm/bottom.jpg",
-                                         "data/textures/lake_cm/front.jpg", "data/textures/lake_cm/back.jpg"});
-
-        auto default_program = world.create_resource<rsc::Program>(
-                "default_program", "wrld/shaders/vertex/default.glsl", "wrld/shaders/fragment/default.glsl");
-
-        city_model = world.create_resource<rsc::Model>("city_model", "data/rungholt/house.obj",
-                                                       aiProcess_Triangulate | aiProcess_FlipUVs, false);
+        city_model = world.create_resource<rsc::Model>("city_model");
+        // city_model->from_file("data/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
+        city_model->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
 
         const EntityID city_entity = world.create_entity("City");
         world.attach_component<cpt::StaticModel>(city_entity, city_model);
         world.attach_component<cpt::Transform>(city_entity);
 
         const EntityID camera_entity = world.create_entity("Camera");
-        world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(), default_program);
+        world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(),
+                                            world.get_default<rsc::Program>());
         // camera->set_program(shader);
         world.attach_component<cpt::Transform>(camera_entity);
         control = world.attach_component<cpt::FPSControl>(camera_entity);
         const auto &env = world.attach_component<cpt::Environment>(camera_entity);
         env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.83, 0.64}, 0.1});
-        env->set_cubemap(skybox);
+        env->set_cubemap(world.get_default<rsc::CubemapTexture>());
 
         const EntityID sun = world.create_entity("Sun");
         world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.1);

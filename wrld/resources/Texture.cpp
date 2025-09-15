@@ -12,43 +12,18 @@
 #include <stdexcept>
 
 namespace wrld::rsc {
-    Texture::Texture(const std::string &name, World &world, const std::string &texture_path, const aiTextureType type,
-                     const bool flip_textures) :
-        Resource(std::move(name), world), gl_texture(0), path(texture_path), flip_textures(flip_textures), type(type) {
-        stbi_set_flip_vertically_on_load(flip_textures);
+    Texture::Texture(const std::string &name, World &world/*, const std::string &texture_path, const aiTextureType type,
+                     const bool flip_textures*/) :
+        Resource(name, world) {
+        reload();
+    }
 
-        wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type), texture_path));
-
-        // Load texture file
-        int width, height, nb_channels;
-        unsigned char *data = stbi_load(texture_path.c_str(), &width, &height, &nb_channels, 0);
-
-        if (data == nullptr) {
-            stbi_image_free(data);
-            throw std::runtime_error(std::format("Error while loading texture {}", texture_path));
-        }
-
-        GLenum format;
-        switch (nb_channels) {
-            case 3: {
-                format = GL_RGB;
-            } break;
-            case 4: {
-                format = GL_RGBA;
-            } break;
-            default: {
-                stbi_image_free(data);
-                throw std::runtime_error(
-                        std::format("Only RGB and RGBA images are supported for now. Nbchannels: {}", nb_channels));
-            }
-        }
-
-        glGenTextures(1, &gl_texture);
-        glBindTexture(GL_TEXTURE_2D, gl_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(data);
+    Texture &Texture::set_texture(const std::string &texture_path, const aiTextureType type, const bool flip_textures) {
+        this->path = texture_path;
+        this->type = type;
+        this->flip_textures = flip_textures;
+        reload();
+        return *this;
     }
 
     // Texture::Texture(Texture &&other) noexcept :
@@ -77,4 +52,44 @@ namespace wrld::rsc {
     }
 
     Texture::~Texture() { glDeleteTextures(1, &gl_texture); }
+
+    void Texture::reload() {
+        stbi_set_flip_vertically_on_load(flip_textures);
+
+        wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type), path));
+
+        // Load texture file
+        int width, height, nb_channels;
+        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nb_channels, 0);
+
+        if (data == nullptr) {
+            stbi_image_free(data);
+            throw std::runtime_error(std::format("Error while loading texture {}", path));
+        }
+
+        GLenum format;
+        switch (nb_channels) {
+            case 3: {
+                format = GL_RGB;
+            } break;
+            case 4: {
+                format = GL_RGBA;
+            } break;
+            default: {
+                stbi_image_free(data);
+                throw std::runtime_error(
+                        std::format("Only RGB and RGBA images are supported for now. Nbchannels: {}", nb_channels));
+            }
+        }
+
+        if (gl_texture == 0) {
+            glGenTextures(1, &gl_texture);
+        }
+
+        glBindTexture(GL_TEXTURE_2D, gl_texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(data);
+    }
 } // namespace wrld::rsc

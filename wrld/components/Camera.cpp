@@ -16,12 +16,12 @@ namespace wrld::cpt {
     const glm::vec3 Camera::UP_VECTOR = glm::vec3(0, 1, 0);
 
     Camera::Camera(const EntityID entity_id, World &world, const float fov,
-                   std::shared_ptr<rsc::WindowViewport> viewport, std::shared_ptr<rsc::Program> program) :
+                   std::shared_ptr<rsc::WindowViewport> viewport, std::shared_ptr<const rsc::Program> program) :
         Component(entity_id, world), fov(fov), viewport(std::move(viewport)), program(std::move(program)) {}
 
-    std::shared_ptr<rsc::Program> Camera::get_program() const { return program; }
+    const std::shared_ptr<const rsc::Program> &Camera::get_program() const { return program; }
 
-    void Camera::set_program(const std::shared_ptr<rsc::Program> &program) { this->program = program; }
+    void Camera::set_program(const std::shared_ptr<const rsc::Program> &program) { this->program = program; }
 
     float Camera::get_fov() const { return fov; }
 

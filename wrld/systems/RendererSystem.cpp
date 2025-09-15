@@ -29,12 +29,14 @@ namespace wrld {
         direction(direction), color(color), intensity(intensity) {}
 
     EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
-                                     const std::optional<std::shared_ptr<rsc::CubemapTexture>> &skybox,
+                                     const std::optional<std::shared_ptr<const rsc::CubemapTexture>> &skybox,
                                      const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
 
-    RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
-        System(world), window(window),
-        SKYBOX_PROGRAM(world.create_resource<rsc::Program>("skybox_program", "wrld/shaders/skybox.glsl")) {}
+    RendererSystem::RendererSystem(World &world, GLFWwindow *window) : System(world), window(window) {
+        const auto program = world.create_resource<rsc::Program>("skybox_program");
+        program->set_shader("wrld/shaders/skybox.glsl");
+        skybox_program = program;
+    }
 
     RendererSystem::~RendererSystem() = default;
 
@@ -58,14 +60,14 @@ namespace wrld {
         return glm::mat4x4(1.0);
     }
 
-    std::optional<std::shared_ptr<cpt::Camera>> RendererSystem::get_camera() const {
+    std::optional<std::shared_ptr<const cpt::Camera>> RendererSystem::get_camera() const {
         if (const std::vector camera_entities = world.get_entities_with_component<cpt::Camera>();
             !camera_entities.empty())
             return world.get_component_opt<cpt::Camera>(camera_entities[0]);
         return std::nullopt;
     }
 
-    std::shared_ptr<rsc::Model> RendererSystem::get_entity_model(const EntityID id) const {
+    std::shared_ptr<const rsc::Model> RendererSystem::get_entity_model(const EntityID id) const {
         return world.get_component<cpt::StaticModel>(id)->get_model();
     }
 
@@ -199,16 +201,16 @@ namespace wrld {
     }
 
     void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
-        SKYBOX_PROGRAM->use();
+        skybox_program->use();
 
         const auto inv_matrix =
                 glm::inverse(camera.get_viewport_matrix() * camera.get_projection_matrix() * camera.get_view_matrix());
 
         cubemap.use(0);
 
-        SKYBOX_PROGRAM->set_uniform("inv_matrix", inv_matrix);
-        SKYBOX_PROGRAM->set_uniform("camera_pos", camera.get_position());
-        SKYBOX_PROGRAM->set_uniform("cubemap", 0);
+        skybox_program->set_uniform("inv_matrix", inv_matrix);
+        skybox_program->set_uniform("camera_pos", camera.get_position());
+        skybox_program->set_uniform("cubemap", 0);
 
         glDepthFunc(GL_LEQUAL);
         glBindVertexArray(vao);

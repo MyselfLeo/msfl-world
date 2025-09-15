@@ -29,7 +29,7 @@ namespace wrld::cpt {
 
         auto speed = translation_speed;
 
-        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
             speed *= 3;
         }
 

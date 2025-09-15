@@ -14,8 +14,8 @@ namespace wrld::gui {
                 auto component_types = world.get_components_of_entity(ent_id);
                 for (const auto &type: component_types) {
                     // Retrieve the appropriate function from the map and call it
-                    if (wrld::gui::COMPONENT_FUNCTIONS.contains(type)) {
-                        wrld::gui::COMPONENT_FUNCTIONS.at(type)(world, ent_id);
+                    if (COMPONENT_FUNCTIONS.contains(type)) {
+                        COMPONENT_FUNCTIONS.at(type)(world, ent_id);
                     }
                 }
                 ImGui::TreePop();

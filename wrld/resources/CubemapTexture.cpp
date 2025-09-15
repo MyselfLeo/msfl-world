@@ -4,16 +4,19 @@
 
 #include "CubemapTexture.hpp"
 
-#include "logs.hpp"
 #include "stb_image.hpp"
 
 #include <format>
-#include <iostream>
 #include <ranges>
 
 namespace wrld::rsc {
-    CubemapTexture::CubemapTexture(std::string name, World &world, const std::vector<std::string> &cubemap_paths) :
-        Resource(std::move(name), world), gl_texture(0) {
+    CubemapTexture::CubemapTexture(std::string name, World &world) : Resource(std::move(name), world), gl_texture(0) {
+        set_texture({"data/textures/lake_cm/right.jpg", "data/textures/lake_cm/left.jpg",
+                     "data/textures/lake_cm/top.jpg", "data/textures/lake_cm/bottom.jpg",
+                     "data/textures/lake_cm/front.jpg", "data/textures/lake_cm/back.jpg"});
+    }
+
+    CubemapTexture &CubemapTexture::set_texture(const std::vector<std::string> &cubemap_paths) {
         stbi_set_flip_vertically_on_load(false);
 
         // Filtering for cubemap
@@ -23,8 +26,10 @@ namespace wrld::rsc {
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        glGenTextures(1, &gl_texture);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, gl_texture);
+        if (gl_texture == 0) {
+            glGenTextures(1, &gl_texture);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, gl_texture);
+        }
 
         // Load each faces into the glTexture
         int width, height, nb_channels;
@@ -47,6 +52,8 @@ namespace wrld::rsc {
             stbi_image_free(data);
         }
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+        return *this;
     }
 
     // CubemapTexture::CubemapTexture(CubemapTexture &&other) noexcept : gl_texture(other.gl_texture) {

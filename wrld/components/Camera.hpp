@@ -17,13 +17,13 @@ namespace wrld::cpt {
     class Camera final : public Component {
     public:
         explicit Camera(EntityID entity_id, World &world, float fov, std::shared_ptr<rsc::WindowViewport> viewport,
-                        std::shared_ptr<rsc::Program> program);
+                        std::shared_ptr<const rsc::Program> program);
 
         [[nodiscard]] float get_fov() const;
         void set_fov(float fov);
 
-        [[nodiscard]] std::shared_ptr<rsc::Program> get_program() const;
-        void set_program(const std::shared_ptr<rsc::Program> &program);
+        [[nodiscard]] const std::shared_ptr<const rsc::Program> &get_program() const;
+        void set_program(const std::shared_ptr<const rsc::Program> &program);
 
         /// Either returns the Transform attached to the Entity,
         /// or the identity transform.
@@ -40,8 +40,8 @@ namespace wrld::cpt {
     private:
         static const glm::vec3 UP_VECTOR;
         float fov;
-        std::shared_ptr<rsc::Program> program;
-        std::shared_ptr<rsc::WindowViewport> viewport;
+        std::shared_ptr<const rsc::Program> program;
+        std::shared_ptr<const rsc::WindowViewport> viewport;
     };
 
 } // namespace wrld::cpt

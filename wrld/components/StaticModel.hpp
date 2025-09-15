@@ -14,13 +14,13 @@ namespace wrld::cpt {
     public:
         StaticModel(EntityID entity_id, World &world, const std::shared_ptr<rsc::Model> &model);
 
-        [[nodiscard]] const std::shared_ptr<rsc::Model> &get_model() const;
-        void set_model(const std::shared_ptr<rsc::Model> &model);
+        [[nodiscard]] std::shared_ptr<const rsc::Model> get_model() const;
+        void set_model(const std::shared_ptr<const rsc::Model> &model);
 
         std::string get_type() override { return "StaticModel"; }
 
     private:
-        std::shared_ptr<rsc::Model> model;
+        std::shared_ptr<const rsc::Model> model;
     };
 } // namespace wrld::cpt
 

@@ -27,10 +27,7 @@ namespace wrld::rsc {
 
     class Mesh : public Resource {
     public:
-        explicit Mesh(std::string name, World &world, const std::shared_ptr<Material> &default_material);
-
-        Mesh(std::string name, World &world, const std::shared_ptr<Material> &default_material,
-             const std::vector<Vertex> &vertices, const std::vector<VertexID> &elements);
+        explicit Mesh(std::string name, World &world);
 
         Mesh(Mesh &other) = delete;
         Mesh(Mesh &&other) = delete;
@@ -39,8 +36,9 @@ namespace wrld::rsc {
 
         ~Mesh() override;
 
-        void set_material(const std::shared_ptr<Material> &material);
-        void use_default_material();
+        Mesh &set_material(const std::shared_ptr<const Material> &material);
+        Mesh &set_vertices(const std::vector<Vertex> &vertices);
+        Mesh &set_elements(const std::vector<VertexID> &elements);
 
         VertexID add_vertex(const Vertex &vertex);
         Vertex &get_vertex(VertexID vertex_id);
@@ -48,13 +46,13 @@ namespace wrld::rsc {
         ElementID add_element(VertexID vertex_id);
         VertexID &get_element(ElementID element_id);
 
-        void set_gl_primitive_type(GLenum type);
+        Mesh &set_gl_primitive_type(GLenum type);
         [[nodiscard]] GLenum get_gl_primitive_type() const;
 
-        void set_gl_usage(GLenum usage);
+        Mesh &set_gl_usage(GLenum usage);
         [[nodiscard]] GLenum get_gl_usage() const;
 
-        [[nodiscard]] const std::shared_ptr<Material> &get_material() const;
+        [[nodiscard]] const std::shared_ptr<const Material> &get_material() const;
 
         /// Sends/Updates mesh data on the GPU, setup vao/vbo/ebo is required
         void update();
@@ -72,8 +70,7 @@ namespace wrld::rsc {
         std::vector<VertexID> indices;
         // std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
 
-        std::shared_ptr<Material> default_material;
-        std::shared_ptr<Material> current_material;
+        std::shared_ptr<const Material> current_material;
 
         GLenum gl_primitive_type = GL_TRIANGLES;
         GLenum gl_usage = GL_STATIC_DRAW;
