@@ -26,9 +26,22 @@ public:
     ~ProIma() override = default;
 
     void init(World &world) override {
+        // Load a material to be shared by every mesh.
+        // In rungholt.obj, each mesh represent a block type, and each has a specific material
+        // If we let the Model importer do its job, we'll have too much materials (not worth it for now).
+        // We create a custom basic material with the texture attached to it, it will work just fine but
+        // we'll have only 1 material meaning 1 draw call needed
+        const auto texture = world.create_resource<rsc::Texture>("minecraft_texture");
+        texture->set_texture("data/models/rungholt/house-RGBA.png", aiTextureType_DIFFUSE, false);
+
+        const auto material = world.create_resource<rsc::Material>("city_material");
+        material->set_diffuse_map(texture);
+        material->set_specular_intensity(0.9);
+        material->set_shininess(64);
+
         city_model = world.create_resource<rsc::Model>("city_model");
-        city_model->from_file("data/models/rungholt/rungholt.obj",
-                              aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs, false);
+        city_model->from_file("data/models/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false,
+                              material);
 
         const EntityID city_entity = world.create_entity("City");
         world.attach_component<cpt::StaticModel>(city_entity, city_model);
@@ -118,8 +131,6 @@ private:
 
 int main() {
     ProIma app{};
-
-    wrldInfo("Start");
     Main::run(app, 1280, 900);
     return 0;
 }

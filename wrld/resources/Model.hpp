@@ -16,6 +16,9 @@
 #include <memory>
 #include <unordered_map>
 
+// todo: it may be easier to have subclasses "FileModel" (loaded from 3D file)
+// and "MeshModel" (loaded from a mesh in memory)
+
 namespace wrld::rsc {
 
     class MeshGraphNode {
@@ -34,7 +37,8 @@ namespace wrld::rsc {
         explicit Model(std::string name, World &world);
 
         /// Loads model from file
-        Model &from_file(const std::string &model_path, unsigned ai_flags = 0, bool flip_textures = false);
+        Model &from_file(const std::string &model_path, unsigned ai_flags = 0, bool flip_textures = false,
+                         const std::optional<std::shared_ptr<const Material>> &custom_material = std::nullopt);
 
         /// Creates a Model with a single mesh
         Model &from_mesh(const std::shared_ptr<const Mesh> &mesh);
@@ -49,9 +53,13 @@ namespace wrld::rsc {
 
         std::shared_ptr<MeshGraphNode> root_mesh;
         size_t mesh_count;
-        std::unordered_map<std::string, std::shared_ptr<const Texture>> loaded_textures;
 
         ////// BELOW : Data & functions when model is loaded from file
+
+        // Cache loaded textures
+        std::unordered_map<std::string, std::shared_ptr<const Texture>> loaded_textures;
+        // Loaded materials
+        std::vector<std::shared_ptr<const Material>> loaded_materials;
 
         // Save the directory where we loaded the model in order
         // to load relative textures
@@ -59,16 +67,21 @@ namespace wrld::rsc {
         std::string model_path;
         unsigned ai_flags;
         bool flip_textures;
+        std::optional<std::shared_ptr<const Material>> custom_material;
 
         void reload_from_file();
 
-        std::shared_ptr<MeshGraphNode> process_node(const aiNode *node, const aiScene *scene, bool flip_textures);
+        std::vector<std::shared_ptr<const Material>> load_materials(const aiScene *scene);
 
-        std::shared_ptr<const Mesh> process_mesh(const aiMesh *mesh, const aiScene *scene, bool flip_textures);
+        std::shared_ptr<MeshGraphNode> process_node(const aiNode *node, const aiScene *scene);
 
-        // Load textures of the given type from aiMaterial
+        std::shared_ptr<const Mesh> process_mesh(const aiMesh *mesh);
+
+        /// Load textures of the given type from aiMaterial.
+        /// Will only return a maximum of max textures.
         std::vector<std::shared_ptr<const Texture>> load_textures(const aiMaterial *material, aiTextureType type,
-                                                                  const aiScene *scene, bool flip_textures);
+                                                                  const aiScene *scene, bool flip_textures,
+                                                                  unsigned max = 1);
 
         // Load the first texture of the given type from aiMaterial
         // std::shared_ptr<Texture> load_texture(const aiMaterial *material, aiTextureType type, const aiScene *scene);

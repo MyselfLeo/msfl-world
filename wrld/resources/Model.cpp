@@ -7,7 +7,6 @@
 #include "World.hpp"
 #include "logs.hpp"
 #include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
 #include "assimp/scene.h"
 
 #include <format>
@@ -41,11 +40,13 @@ namespace wrld::rsc {
     Model::Model(std::string name, World &world) :
         Resource(std::move(name), world), mesh_count(0), ai_flags(0), flip_textures(false) {}
 
-    Model &Model::from_file(const std::string &model_path, const unsigned ai_flags, const bool flip_textures) {
+    Model &Model::from_file(const std::string &model_path, const unsigned ai_flags, const bool flip_textures,
+                            const std::optional<std::shared_ptr<const Material>> &custom_material) {
         this->model_path = model_path;
         model_directory = model_path.substr(0, model_path.find_last_of('/'));
         this->ai_flags = ai_flags;
         this->flip_textures = flip_textures;
+        this->custom_material = custom_material;
 
         reload_from_file();
         return *this;
@@ -70,51 +71,69 @@ namespace wrld::rsc {
             throw std::runtime_error(std::format("Model `{}` has no meshes", model_path));
         }
 
-        root_mesh = process_node(scene->mRootNode, scene, flip_textures);
+        loaded_materials.clear();
+        if (!custom_material.has_value()) {
+            loaded_materials = load_materials(scene);
+        }
+
+        root_mesh = process_node(scene->mRootNode, scene);
+    }
+
+    std::vector<std::shared_ptr<const Material>> Model::load_materials(const aiScene *scene) {
+        std::vector<std::shared_ptr<const Material>> res;
+        res.reserve(scene->mNumMaterials);
+
+        for (int i = 0; i < scene->mNumMaterials; i++) {
+            // todo: load more data from the material
+
+            // Create the material
+            const aiMaterial *ai_material = scene->mMaterials[i];
+            const auto material = world.create_resource<Material>(ai_material->GetName().C_Str());
+
+            // Load the textures
+            const auto diffuse_textures = load_textures(ai_material, aiTextureType_DIFFUSE, scene, flip_textures, 1);
+            const auto specular_textures = load_textures(ai_material, aiTextureType_SPECULAR, scene, flip_textures, 1);
+
+            if (!diffuse_textures.empty())
+                material->set_diffuse_map(diffuse_textures[0]);
+            if (!specular_textures.empty())
+                material->set_specular_map(specular_textures[0]);
+
+            res.push_back(material);
+        }
+
+        return res;
     }
 
     size_t Model::get_mesh_count() const { return mesh_count; }
 
     const std::shared_ptr<MeshGraphNode> &Model::get_root_mesh() const { return root_mesh; }
 
-    std::shared_ptr<MeshGraphNode> Model::process_node(const aiNode *node, const aiScene *scene,
-                                                       const bool flip_textures) {
+    std::shared_ptr<MeshGraphNode> Model::process_node(const aiNode *node, const aiScene *scene) {
         auto wrld_node = std::make_shared<MeshGraphNode>();
 
         // One node can contain multiple meshes
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-            wrld_node->meshes.push_back(process_mesh(mesh, scene, flip_textures));
+            wrld_node->meshes.push_back(process_mesh(mesh));
         }
 
         // One node can have multiple children
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            wrld_node->children.push_back(process_node(node->mChildren[i], scene, flip_textures));
+            wrld_node->children.push_back(process_node(node->mChildren[i], scene));
         }
 
         return wrld_node;
     }
 
-    std::shared_ptr<const Mesh> Model::process_mesh(const aiMesh *mesh, const aiScene *scene,
-                                                    const bool flip_textures) {
-        // Get the mesh material first
-        // there is always at least one material thanks to AI_SCENE_FLAGS_INCOMPLETE
-        // todo: load materials first, assign them to meshes later
-        // this will prevent resource duplication
-        const aiMaterial *ai_material = scene->mMaterials[mesh->mMaterialIndex];
-        const auto mesh_material = world.create_resource<Material>("material");
+    std::shared_ptr<const Mesh> Model::process_mesh(const aiMesh *mesh) {
+        auto new_mesh = world.create_resource<Mesh>(mesh->mName.C_Str());
+        if (custom_material.has_value()) {
+            new_mesh->set_material(custom_material.value());
+        } else {
+            new_mesh->set_material(loaded_materials[mesh->mMaterialIndex]);
+        }
 
-        // We take the first texture of each type
-        const auto diffuse_textures = load_textures(ai_material, aiTextureType_DIFFUSE, scene, flip_textures);
-        const auto specular_textures = load_textures(ai_material, aiTextureType_SPECULAR, scene, flip_textures);
-
-        if (!diffuse_textures.empty())
-            mesh_material->set_diffuse_map(diffuse_textures[0]);
-        if (!specular_textures.empty())
-            mesh_material->set_specular_map(specular_textures[0]);
-
-        auto new_mesh = world.create_resource<Mesh>("mesh");
-        new_mesh->set_material(mesh_material);
 
         // Process vertices
         for (unsigned i = 0; i < mesh->mNumVertices; i++) {
@@ -150,10 +169,13 @@ namespace wrld::rsc {
 
     std::vector<std::shared_ptr<const Texture>> Model::load_textures(const aiMaterial *material,
                                                                      const aiTextureType type, const aiScene *scene,
-                                                                     const bool flip_textures) {
-        std::vector<std::shared_ptr<const Texture>> res;
+                                                                     const bool flip_textures, const unsigned max) {
+        const unsigned count = std::min(material->GetTextureCount(type), max);
 
-        for (unsigned i = 0; i < material->GetTextureCount(type); i++) {
+        std::vector<std::shared_ptr<const Texture>> res;
+        res.reserve(count);
+
+        for (unsigned i = 0; i < count; i++) {
             // str can either be an embedded texture OR an external texture that will be loaded from filesystem
             aiString str;
             material->GetTexture(type, i, &str);
@@ -173,7 +195,7 @@ namespace wrld::rsc {
             }
 
             // If not, load the texture to GPU, add it to cache and return
-            auto texture = world.create_resource<Texture>("texture");
+            auto texture = world.create_resource<Texture>(str.C_Str());
             texture->set_texture(texture_path, type, flip_textures);
             loaded_textures.insert_or_assign(texture_path, texture);
             res.push_back(texture);

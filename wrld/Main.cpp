@@ -33,8 +33,10 @@ namespace wrld {
         DeferredRendererSystem renderer{world, window};
 
         should_close = false;
+        wrldInfo("Initializing app");
         app.init(world);
 
+        wrldInfo("Starting main loop");
         while (!should_close) {
             // todo: move this to the camera
             glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
@@ -72,6 +74,8 @@ namespace wrld {
                 should_close = true;
             }
         }
+
+        wrldInfo("Exiting app");
         app.exit(world);
     }
 
