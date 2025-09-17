@@ -9,26 +9,28 @@
 #include "Main.hpp"
 
 #include "logs.hpp"
+#include "systems/DeferredRendererSystem.hpp"
 #include "systems/RendererSystem.hpp"
 
 namespace wrld {
     // Default Main values
     World Main::world;
     GLFWwindow *Main::window = nullptr;
-    std::shared_ptr<rsc::WindowViewport> Main::window_viewport = nullptr;
+    std::shared_ptr<rsc::WindowFramebuffer> Main::window_viewport = nullptr;
     bool Main::should_close = false;
     double Main::last_frame = 0;
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
         window = init_gl(width, height);
-        window_viewport = std::make_shared<rsc::WindowViewport>(window);
+        window_viewport = std::make_shared<rsc::WindowFramebuffer>(window);
         glfwSetWindowSizeCallback(window, window_resize_callback);
 
         world = World();
 
         // Create systems
         wrldInfo("Initialising systems");
-        RendererSystem renderer{world, window};
+        // RendererSystem renderer{world, window};
+        DeferredRendererSystem renderer{world, window};
 
         should_close = false;
         app.init(world);
@@ -77,7 +79,7 @@ namespace wrld {
 
     GLFWwindow *Main::get_window() { return window; }
 
-    std::shared_ptr<rsc::WindowViewport> Main::get_window_viewport() { return window_viewport; }
+    std::shared_ptr<rsc::WindowFramebuffer> Main::get_window_viewport() { return window_viewport; }
 
     GLFWwindow *Main::init_gl(const int width, const int height) {
         wrldInfo("Initialising OpenGL context");

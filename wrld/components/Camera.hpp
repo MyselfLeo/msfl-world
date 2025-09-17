@@ -9,14 +9,14 @@
 #include "World.hpp"
 #include "glm/mat4x4.hpp"
 #include "resources/Program.hpp"
-#include "resources/WindowViewport.hpp"
+#include "resources/WindowFramebuffer.hpp"
 
 namespace wrld::cpt {
 
     /// Attach a camera to the Entity.
     class Camera final : public Component {
     public:
-        explicit Camera(EntityID entity_id, World &world, float fov, std::shared_ptr<rsc::WindowViewport> viewport,
+        explicit Camera(EntityID entity_id, World &world, float fov, std::shared_ptr<rsc::WindowFramebuffer> viewport,
                         std::shared_ptr<const rsc::Program> program);
 
         [[nodiscard]] float get_fov() const;
@@ -35,13 +35,15 @@ namespace wrld::cpt {
         /// This is directly related to the attached Transform component (if any).
         glm::vec3 get_position() const;
 
+        // todo: add ortographic mode
+
         std::string get_type() override { return "Camera"; }
 
     private:
         static const glm::vec3 UP_VECTOR;
         float fov;
         std::shared_ptr<const rsc::Program> program;
-        std::shared_ptr<const rsc::WindowViewport> viewport;
+        std::shared_ptr<const rsc::WindowFramebuffer> viewport;
     };
 
 } // namespace wrld::cpt

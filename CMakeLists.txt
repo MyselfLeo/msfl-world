@@ -50,6 +50,8 @@ add_library(msfl_world STATIC
         wrld/resources/Model.hpp
         wrld/systems/RendererSystem.cpp
         wrld/systems/RendererSystem.hpp
+        wrld/systems/DeferredRendererSystem.hpp
+        wrld/systems/DeferredRendererSystem.cpp
         wrld/System.cpp
         wrld/System.hpp
         wrld/logs.hpp
@@ -65,8 +67,8 @@ add_library(msfl_world STATIC
         wrld/components/Environment.hpp
         wrld/resources/Material.hpp
         wrld/resources/Material.cpp
-        wrld/resources/WindowViewport.hpp
-        wrld/resources/WindowViewport.cpp
+        wrld/resources/WindowFramebuffer.hpp
+        wrld/resources/WindowFramebuffer.cpp
         wrld/components/Orbiter.hpp
         wrld/components/Orbiter.cpp
         wrld/resources/Resource.cpp
@@ -86,8 +88,10 @@ add_library(msfl_world STATIC
         wrld-gui/components.cpp
         wrld-gui/resources.hpp
         wrld-gui/resources.cpp
-        wrld/resources/Viewport.cpp
-        wrld/resources/Viewport.hpp
+        wrld/resources/Framebuffer.cpp
+        wrld/resources/Framebuffer.hpp
+        wrld/resources/DeferredFramebuffer.cpp
+        wrld/resources/DeferredFramebuffer.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

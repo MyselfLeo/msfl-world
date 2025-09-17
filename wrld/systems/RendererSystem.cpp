@@ -16,9 +16,6 @@
 
 #include <format>
 
-// Todo: I will probably need to move a lot of logic from there to cpt::Camera.
-// RendererSystem would then only render each camera in the world.
-
 namespace wrld {
 
     PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color, const float intensity) :
@@ -212,12 +209,13 @@ namespace wrld {
         skybox_program->set_uniform("camera_pos", camera.get_position());
         skybox_program->set_uniform("cubemap", 0);
 
+        glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
-
         glDepthFunc(GL_LESS);
+        glDepthMask(GL_TRUE);
     }
 
     void RendererSystem::draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix,
@@ -242,7 +240,7 @@ namespace wrld {
             node_stack.pop_back();
 
             for (auto &mesh: meshes) {
-                this->draw_mesh(*mesh, program);
+                draw_mesh(*mesh, program);
             }
 
             // Add children to be processed

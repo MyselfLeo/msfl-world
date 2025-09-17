@@ -58,6 +58,11 @@ namespace wrld::rsc {
 
         wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type), path));
 
+        // Filtering for regular textures
+        // todo: move to material
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
         // Load texture file
         int width, height, nb_channels;
         unsigned char *data = stbi_load(path.c_str(), &width, &height, &nb_channels, 0);

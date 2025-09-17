@@ -11,7 +11,7 @@
 
 #include "App.hpp"
 #include "World.hpp"
-#include "resources/WindowViewport.hpp"
+#include "resources/WindowFramebuffer.hpp"
 
 namespace wrld {
 
@@ -21,12 +21,12 @@ namespace wrld {
         static void exit();
 
         static GLFWwindow *get_window();
-        static std::shared_ptr<rsc::WindowViewport> get_window_viewport();
+        static std::shared_ptr<rsc::WindowFramebuffer> get_window_viewport();
 
     private:
         static World world;
         static GLFWwindow *window;
-        static std::shared_ptr<rsc::WindowViewport> window_viewport;
+        static std::shared_ptr<rsc::WindowFramebuffer> window_viewport;
 
         static bool should_close;
 

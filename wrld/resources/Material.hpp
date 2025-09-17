@@ -7,7 +7,6 @@
 #include "Resource.hpp"
 #include "Texture.hpp"
 
-#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
 #include <memory>
@@ -65,6 +64,17 @@ namespace wrld::rsc {
         // Maps
         std::optional<std::shared_ptr<const Texture>> diffuse_map; // Diffuse color
         std::optional<std::shared_ptr<const Texture>> specular_map; // Specular intensity
+
+        // todo: parameters that should be in the material
+        // - depth mask (enable/disable)
+        // - depth func
+        // - enable/disable each type of light (ambiant, diffuse, specular)
+        // - keep do_lighting. If the three are disabled, the object would be black otherwise
+        // - cull mode
+        // - do depth test. If disable the object will be drawn on top of every others
+        // - do projected shadows
+        // - texture filtering mode (LINEAR, NEAREST, etc..)
+        // others...
 
         // Physical values
         float shininess = 32;

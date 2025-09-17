@@ -22,13 +22,13 @@
 #include "wrld/components/StaticModel.hpp"
 #include "wrld/components/Transform.hpp"
 #include "glm/gtx/rotate_vector.hpp"
-#include "resources/WindowViewport.hpp"
+#include "resources/WindowFramebuffer.hpp"
 #include "wrld/systems/RendererSystem.hpp"
 #include "wrld-gui/components.hpp"
 
 using namespace wrld;
 
-static std::shared_ptr<rsc::WindowViewport> window_viewport;
+static std::shared_ptr<rsc::WindowFramebuffer> window_viewport;
 
 void window_resize_callback(GLFWwindow *window, const int width, const int height) {
     glViewport(0, 0, width, height);
@@ -198,7 +198,7 @@ int main(int argc, const char **argv) {
 
     World world;
 
-    window_viewport = std::make_shared<rsc::WindowViewport>(window);
+    window_viewport = std::make_shared<rsc::WindowFramebuffer>(window);
     glfwSetWindowSizeCallback(window, window_resize_callback);
 
     wrldInfo("Initialising systems");

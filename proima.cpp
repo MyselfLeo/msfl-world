@@ -23,12 +23,12 @@ class ProIma final : public App {
 public:
     ProIma() = default;
 
-    ~ProIma() override {}
+    ~ProIma() override = default;
 
     void init(World &world) override {
         city_model = world.create_resource<rsc::Model>("city_model");
-        // city_model->from_file("data/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
-        city_model->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
+        city_model->from_file("data/models/rungholt/rungholt.obj",
+                              aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_FlipUVs, false);
 
         const EntityID city_entity = world.create_entity("City");
         world.attach_component<cpt::StaticModel>(city_entity, city_model);
@@ -37,15 +37,15 @@ public:
         const EntityID camera_entity = world.create_entity("Camera");
         world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(),
                                             world.get_default<rsc::Program>());
-        // camera->set_program(shader);
+
         world.attach_component<cpt::Transform>(camera_entity);
         control = world.attach_component<cpt::FPSControl>(camera_entity);
         const auto &env = world.attach_component<cpt::Environment>(camera_entity);
-        env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.83, 0.64}, 0.1});
+        env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.83, 0.64}, 0.4});
         env->set_cubemap(world.get_default<rsc::CubemapTexture>());
 
         const EntityID sun = world.create_entity("Sun");
-        world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.1);
+        world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.4);
         world.attach_component<cpt::Transform>(sun);
 
         for (int i = 0; i < LIGHT_COUNT; i++) {
@@ -113,7 +113,7 @@ private:
     bool capture_cursor = true;
     bool l_key_pressed = false;
 
-    double deltatime;
+    double deltatime = 0.0;
 };
 
 int main() {

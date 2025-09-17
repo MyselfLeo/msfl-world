@@ -23,7 +23,7 @@
 #include "wrld/components/StaticModel.hpp"
 #include "wrld/components/Transform.hpp"
 #include "glm/gtx/rotate_vector.hpp"
-#include "resources/WindowViewport.hpp"
+#include "resources/WindowFramebuffer.hpp"
 #include "wrld/systems/RendererSystem.hpp"
 
 using namespace wrld;
@@ -56,7 +56,7 @@ int main() {
 
     World world;
 
-    window_viewport = std::make_shared<rsc::WindowViewport>(window);
+    window_viewport = std::make_shared<rsc::WindowFramebuffer>(window);
     glfwSetWindowSizeCallback(window, window_resize_callback);
 
     wrldInfo("Initialising systems");

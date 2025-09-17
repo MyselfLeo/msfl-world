@@ -4,16 +4,22 @@
 
 #ifndef WINDOWVIEWPORT_HPP
 #define WINDOWVIEWPORT_HPP
-#include "../../lib/glfw-3.4/include/GLFW/glfw3.h"
+
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 
 namespace wrld::rsc {
 
-    class WindowViewport {
+    class WindowFramebuffer {
     public:
-        explicit WindowViewport(GLFWwindow *window);
+        explicit WindowFramebuffer(GLFWwindow *window);
 
         int get_width() const;
         int get_height() const;
+
+        void use() const;
+
+        GLuint get_fbo() const;
 
         void set_size(unsigned width, unsigned height);
 

@@ -39,7 +39,7 @@ namespace wrld {
         std::optional<std::shared_ptr<const rsc::CubemapTexture>> skybox;
     };
 
-    class RendererSystem final : public System {
+    class RendererSystem : public System {
     public:
         static constexpr unsigned MAX_LIGHTS = 100;
 
@@ -48,7 +48,7 @@ namespace wrld {
         void exec() override;
         [[nodiscard]] GLFWwindow *get_window() const;
 
-    private:
+    protected:
         GLFWwindow *window;
 
         std::shared_ptr<const rsc::Program> skybox_program;
@@ -68,7 +68,7 @@ namespace wrld {
         /// It's either the one defined using a cpt::Shader or the default one.
         [[nodiscard]] Program get_entity_program(EntityID id) const;*/
 
-        void render_camera(const cpt::Camera &camera) const;
+        virtual void render_camera(const cpt::Camera &camera) const;
 
         /// Return the environment attached to the camera, or a default one if not provided.
         [[nodiscard]] EnvironmentData get_environment(const cpt::Camera &camera) const;
