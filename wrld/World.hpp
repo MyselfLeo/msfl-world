@@ -19,20 +19,10 @@
 
 namespace wrld {
     typedef size_t EntityID;
-    typedef std::unordered_map<std::type_index, std::unordered_map<std::string, std::shared_ptr<rsc::Resource>>>
+    typedef std::unordered_map<std::type_index, std::unordered_map<std::string, std::shared_ptr<Resource>>>
             ResourcePool;
-    typedef std::unordered_map<std::type_index, std::shared_ptr<const rsc::Resource>> DefaultResourcePool;
-    typedef std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<cpt::Component>>>
-            ComponentPool;
-
-
-    /// Concept of a Component: it must inherit the cpt::Component class
-    template<class T>
-    concept Component = std::is_base_of_v<cpt::Component, T>;
-
-    /// Concept of a Resource: it must inherit the rsc::Resource class
-    template<class T>
-    concept Resource = std::is_base_of_v<rsc::Resource, T>;
+    typedef std::unordered_map<std::type_index, std::shared_ptr<const Resource>> DefaultResourcePool;
+    typedef std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<Component>>> ComponentPool;
 
     class World {
     public:
@@ -50,7 +40,7 @@ namespace wrld {
 
         /// Attach a new component of the given type to the entity,
         /// returning a reference to it.
-        template<Component C, typename... Args>
+        template<ComponentConcept C, typename... Args>
         std::shared_ptr<C> attach_component(const EntityID id, Args &&...args) {
             if (!entity_exists(id))
                 throw std::runtime_error("Creating a Component on inexisting Entity");
@@ -70,7 +60,7 @@ namespace wrld {
 
         /// Returns an optional pointer to the component of the given type
         /// attached to the given object.
-        template<Component C>
+        template<ComponentConcept C>
         std::optional<std::shared_ptr<C>> get_component_opt(const EntityID id) {
             if (!components.contains(std::type_index(typeid(C))))
                 return std::nullopt;
@@ -83,7 +73,7 @@ namespace wrld {
         /// Returns a pointer to the component of the given type attached to the
         /// given object. Throws std::runtime_error if no component of this type
         /// is attached to the object.
-        template<Component C>
+        template<ComponentConcept C>
         std::shared_ptr<C> get_component(const EntityID id) {
             if (!components.contains(std::type_index(typeid(C))))
                 throw std::runtime_error(
@@ -97,7 +87,7 @@ namespace wrld {
 
         /// Return a vector of entities that have the given type
         /// of component attached to them.
-        template<Component C>
+        template<ComponentConcept C>
         std::vector<EntityID> get_entities_with_component() {
             std::vector<EntityID> res;
             res.reserve(components[std::type_index(typeid(C))].size());
@@ -113,7 +103,7 @@ namespace wrld {
         // todo: maybe store thoses maps to accelerate this
         std::vector<std::type_index> get_components_of_entity(EntityID id) const;
 
-        template<Resource R>
+        template<ResourceConcept R>
         std::shared_ptr<R> create_resource(const std::string &name) {
             // Create unique name from given name
             std::string new_name = name;
@@ -134,18 +124,18 @@ namespace wrld {
 
         /// Return the resource of the given type with the given name.
         /// Throws std::runtime_error if no such resource exists.
-        template<Resource R>
-        std::shared_ptr<const R> get_resource(const std::string &name) {
+        template<ResourceConcept R>
+        std::shared_ptr<R> get_resource(const std::string &name) {
             if (!resources.contains(std::type_index(typeid(R))))
                 throw std::runtime_error("This resource does not exists");
 
             if (!resources[std::type_index(typeid(R))].contains(name))
                 throw std::runtime_error("This resource does not exists");
 
-            return static_pointer_cast<const R>(resources[std::type_index(typeid(R))][name]);
+            return static_pointer_cast<R>(resources[std::type_index(typeid(R))][name]);
         }
 
-        template<Resource R>
+        template<ResourceConcept R>
         std::shared_ptr<const R> get_default() {
             if (!default_resources.contains(std::type_index(typeid(R)))) {
                 default_resources[std::type_index(typeid(R))] = std::make_shared<R>("default", *this);

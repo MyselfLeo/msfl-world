@@ -92,6 +92,7 @@ add_library(msfl_world STATIC
         wrld/resources/Framebuffer.hpp
         wrld/resources/DeferredFramebuffer.cpp
         wrld/resources/DeferredFramebuffer.hpp
+        wrld/concepts.hpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

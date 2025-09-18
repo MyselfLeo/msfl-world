@@ -21,7 +21,7 @@ namespace wrld::gui {
     // Function pointer type for component menu handlers
     using ComponentMenuFunction = void (*)(World &, const EntityID &);
 
-    template<Component C>
+    template<ComponentConcept C>
     void component_menu(World &world, const EntityID &entity) {
         if (const auto &cpt = world.get_component<C>(entity); ImGui::TreeNode(cpt->get_type().c_str())) {
             // Default behavior for any component type

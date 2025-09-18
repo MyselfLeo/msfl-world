@@ -40,7 +40,9 @@ public:
         material->set_shininess(64);
 
         city_model = world.create_resource<rsc::Model>("city_model");
-        city_model->from_file("data/models/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false,
+        // city_model->from_file("data/models/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false,
+        //                       material);
+        city_model->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false,
                               material);
 
         const EntityID city_entity = world.create_entity("City");
