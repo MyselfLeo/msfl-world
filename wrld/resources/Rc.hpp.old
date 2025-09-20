@@ -1,0 +1,186 @@
+//
+// Created by leo on 9/19/25.
+//
+
+#ifndef RC_HPP
+#define RC_HPP
+
+#include <memory>
+#include <unordered_map>
+#include <vector>
+#include <ranges>
+#include <typeindex>
+
+#include "../concepts.hpp"
+
+namespace wrld {
+    class World;
+    class Resource;
+    class Component;
+} // namespace wrld
+
+namespace wrld {
+    /// ResourceCounter
+    template<ResourceConcept R>
+    class Rc {
+        typedef std::unordered_map<std::type_index,
+                                   std::unordered_map<const Component *, std::shared_ptr<const Component>>>
+                UserComponentPool;
+
+        typedef std::unordered_map<std::type_index, std::unordered_map<const Resource *, Rc<Resource>>>
+                UserResourcePool;
+
+    public:
+        Rc();
+
+        Rc(std::string name, World &world);
+
+        Rc(std::shared_ptr<R> ptr, std::shared_ptr<UserComponentPool> comp_users,
+           std::shared_ptr<UserResourcePool> res_users) :
+            resource(std::move(ptr)), component_users(std::move(comp_users)), resource_users(std::move(res_users)) {}
+
+        const R *get() const;
+
+        R *get_mut() const;
+
+        std::shared_ptr<R> get_ptr() const;
+
+        R &get_ref() const;
+
+        void attach_component_user(const std::shared_ptr<const Component> &user) const;
+
+        void detach_component_user(const Component *user) const;
+
+        void attach_resource_user(const Rc<Resource> &user) const;
+
+        void detach_resource_user(const Resource *user) const;
+
+        template<ComponentConcept T>
+        std::vector<std::shared_ptr<const T>> get_users() const;
+
+        template<ResourceConcept T>
+        std::vector<Rc<T>> get_users() const;
+
+        template<ResourceConcept T>
+        std::vector<Rc<T>> get_common_users(const std::vector<Rc<T>> &list) const;
+
+        template<ComponentConcept T>
+        std::vector<Rc<T>> get_common_users(const std::vector<Rc<T>> &list) const;
+
+        template<ResourceConcept T>
+        Rc<T> as() const;
+
+    private:
+        std::shared_ptr<R> resource;
+
+        /// List of components using this resource.
+        std::shared_ptr<UserComponentPool> component_users;
+        /// List of resources using this resource.
+        std::shared_ptr<UserResourcePool> resource_users;
+    };
+
+} // namespace wrld
+
+#include "components/Component.hpp"
+#include "resources/Resource.hpp"
+
+namespace wrld {
+    template<ResourceConcept R>
+    void Rc<R>::attach_component_user(const std::shared_ptr<const Component> &user) const {
+        const Component *ptr = user.get();
+
+        if (!component_users->contains(std::type_index(typeid(*ptr)))) {
+            component_users->at(std::type_index(typeid(*ptr))) = {};
+        }
+        component_users->at(std::type_index(typeid(*ptr)))[ptr] = user;
+    }
+
+    template<ResourceConcept R>
+    void Rc<R>::detach_component_user(const Component *user) const {
+        component_users->at(std::type_index(typeid(user))).erase(user);
+    }
+
+    template<ResourceConcept R>
+    void Rc<R>::attach_resource_user(const Rc<Resource> &user) const {
+        const Resource *ptr = user.get();
+
+        if (!resource_users->contains(std::type_index(typeid(*ptr)))) {
+            resource_users->at(std::type_index(typeid(*ptr))) = {};
+        }
+        resource_users->at(std::type_index(typeid(*ptr)))[ptr] = user;
+    }
+
+    template<ResourceConcept R>
+    void Rc<R>::detach_resource_user(const Resource *user) const {
+        resource_users->at(std::type_index(typeid(user))).erase(user);
+    }
+
+    template<ResourceConcept R>
+    template<ComponentConcept T>
+    std::vector<std::shared_ptr<const T>> Rc<R>::get_users() const {
+        std::vector<std::shared_ptr<const Component>> res;
+        res.reserve(component_users->at(std::type_index(typeid(T))).size());
+
+        for (const auto &v: component_users->at(std::type_index(typeid(T))) | std::views::values) {
+            res.push_back(std::dynamic_pointer_cast<const T>(v));
+        }
+
+        return res;
+    }
+
+    template<ResourceConcept R>
+    template<ResourceConcept T>
+    std::vector<Rc<T>> Rc<R>::get_users() const {
+        std::vector<Rc<T>> res;
+        res.reserve(resource_users->at(std::type_index(typeid(T))).size());
+
+        for (const auto &v: resource_users->at(std::type_index(typeid(T))) | std::views::values) {
+            std::shared_ptr<Resource> ptr = v.resource;
+            std::shared_ptr<T> casted = std::dynamic_pointer_cast<T>(ptr);
+
+            res.emplace_back(casted, component_users, resource_users);
+        }
+
+        return res;
+    }
+
+    template<ResourceConcept R>
+    template<ResourceConcept T>
+    std::vector<Rc<T>> Rc<R>::get_common_users(const std::vector<Rc<T>> &list) const {
+        std::vector<Rc<T>> res;
+
+        for (const auto &o: list) {
+            if (resource_users->at(std::type_index(typeid(T))).contains(o.get())) {
+                res.push_back(o);
+            }
+        }
+
+        return res;
+    }
+
+    template<ResourceConcept R>
+    template<ComponentConcept T>
+    std::vector<Rc<T>> Rc<R>::get_common_users(const std::vector<Rc<T>> &list) const {
+        std::vector<Rc<T>> res;
+
+        for (const auto &o: list) {
+            if (component_users->at(std::type_index(typeid(T))).contains(o.get())) {
+                res.push_back(o);
+            }
+        }
+
+        return res;
+    }
+
+    template<ResourceConcept R>
+    template<ResourceConcept T>
+    Rc<T> Rc<R>::as() const {
+        auto casted = std::dynamic_pointer_cast<T>(resource);
+        if (!casted) {
+            throw std::bad_cast();
+        }
+        return Rc<T>(casted, component_users, resource_users);
+    }
+} // namespace wrld
+
+#endif // RC_HPP

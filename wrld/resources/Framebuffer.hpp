@@ -12,7 +12,7 @@
 namespace wrld::rsc {
     class Framebuffer : public Resource {
     public:
-        Framebuffer(std::string name, World &world);
+        Framebuffer(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         ~Framebuffer() override;
 
@@ -25,11 +25,12 @@ namespace wrld::rsc {
         [[nodiscard]] unsigned get_width() const;
         [[nodiscard]] unsigned get_height() const;
 
-        std::string get_type() override { return "Viewport"; }
+        std::string get_type() const override { return "Viewport"; }
 
         void use() const;
 
         void recreate();
+        void load_default_resources() override;
 
     private:
         GLuint fbo;

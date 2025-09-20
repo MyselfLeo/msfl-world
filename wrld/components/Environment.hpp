@@ -29,20 +29,20 @@ namespace wrld::cpt {
     public:
         Environment(EntityID entity_id, World &world, AmbiantLight ambiant_light = {});
 
-        Environment(EntityID entity_id, World &world, const std::shared_ptr<const rsc::CubemapTexture> &cubemap,
+        Environment(EntityID entity_id, World &world, const Rc<rsc::CubemapTexture> &cubemap,
                     AmbiantLight ambiant_light = {});
 
         Environment(Environment &&other) noexcept;
 
         Environment &operator=(Environment &&other) noexcept = delete;
 
-        [[nodiscard]] bool has_cubemap() const;
+        // [[nodiscard]] bool has_cubemap() const;
 
         [[nodiscard]] const AmbiantLight &get_ambiant_light() const;
-        [[nodiscard]] const std::optional<std::shared_ptr<const rsc::CubemapTexture>> &get_cubemap() const;
+        [[nodiscard]] std::optional<Rc<rsc::CubemapTexture>> get_cubemap() const;
 
         void set_ambiant_light(AmbiantLight ambiant_light);
-        void set_cubemap(const std::shared_ptr<const rsc::CubemapTexture> &cubemap);
+        void set_cubemap(const Rc<rsc::CubemapTexture> &cubemap);
         void remove_cubemap();
 
         [[nodiscard]] GLuint get_vao() const;
@@ -54,7 +54,6 @@ namespace wrld::cpt {
     private:
         GLuint vao; // Required even with no data inside
         AmbiantLight ambiant_light;
-        std::optional<std::shared_ptr<const rsc::CubemapTexture>> skybox;
     };
 
 } // namespace wrld::cpt

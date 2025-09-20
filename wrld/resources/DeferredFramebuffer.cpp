@@ -12,8 +12,8 @@
 #include <iostream>
 
 namespace wrld::rsc {
-    DeferredFramebuffer::DeferredFramebuffer(std::string name, World &world) :
-        Resource(std::move(name), world), fbo(0), position_texture(0), normal_texture(0), diffuse_texture(0),
+    DeferredFramebuffer::DeferredFramebuffer(std::string name, World &world /*, Rc<Resource> *rc*/) :
+        Resource(std::move(name), world /*, rc*/), fbo(0), position_texture(0), normal_texture(0), diffuse_texture(0),
         depth_texture(0), width(0), height(0) {}
 
     DeferredFramebuffer::~DeferredFramebuffer() {
@@ -116,5 +116,7 @@ namespace wrld::rsc {
     GLuint DeferredFramebuffer::get_diffuse_texture() const { return diffuse_texture; }
 
     GLuint DeferredFramebuffer::get_depth_texture() const { return depth_texture; }
+
+    void DeferredFramebuffer::load_default_resources() {}
 
 } // namespace wrld::rsc

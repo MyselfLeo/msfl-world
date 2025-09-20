@@ -25,7 +25,7 @@ namespace wrld::rsc {
     /// Combines a vertex and a fragment shader
     class Program final : public Resource {
     public:
-        explicit Program(std::string name, World &world /*, const std::string &combined_shader_path*/);
+        explicit Program(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         /// Loads a shader file in which both shaders (vertex & fragment)
         /// are defined (using #ifdef directives) to create the program.
@@ -62,7 +62,10 @@ namespace wrld::rsc {
 
         void reload() const;
 
-        std::string get_type() override { return "Program"; }
+        std::string get_type() const override { return "Program"; }
+
+        void load_default_resources() override;
+
 
     private:
         std::string vertex_shader_path = "wrld/shaders/vertex/default.glsl";

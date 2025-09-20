@@ -15,7 +15,7 @@
 namespace wrld::rsc {
     class Texture final : public Resource {
     public:
-        explicit Texture(const std::string &name, World &world);
+        explicit Texture(const std::string &name, World &world /*, Rc<Resource> *rc*/);
 
         Texture &set_texture(const std::string &texture_path, aiTextureType type, bool flip_textures = false);
 
@@ -28,7 +28,7 @@ namespace wrld::rsc {
 
         ~Texture() override;
 
-        std::string get_type() override { return "Texture"; }
+        std::string get_type() const override { return "Texture"; }
 
     private:
         GLuint gl_texture = 0;
@@ -37,6 +37,10 @@ namespace wrld::rsc {
 
         void reload();
 
+    public:
+        void load_default_resources() override;
+
+    private:
         // Using Assimp enum for now, it's good enough
         aiTextureType type = aiTextureType_DIFFUSE;
     };

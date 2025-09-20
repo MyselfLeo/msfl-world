@@ -14,7 +14,7 @@ namespace wrld::gui {
             if (pool.empty())
                 continue;
 
-            const std::string &type_name = pool.begin()->second->get_type();
+            const std::string &type_name = pool.begin()->second.get()->get_type();
 
             if (ImGui::TreeNode(type_name.c_str())) {
                 for (const auto &key: pool | std::views::keys) {

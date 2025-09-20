@@ -7,8 +7,8 @@
 #include <format>
 
 namespace wrld::rsc {
-    Framebuffer::Framebuffer(std::string name, World &world) :
-        Resource(std::move(name), world), fbo(0), width(0), height(0) {}
+    Framebuffer::Framebuffer(std::string name, World &world /*, Rc<Resource> *rc*/) :
+        Resource(std::move(name), world /*, rc*/), fbo(0), width(0), height(0) {}
 
     Framebuffer::~Framebuffer() {
         if (fbo != 0) {
@@ -90,5 +90,7 @@ namespace wrld::rsc {
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
+
+    void Framebuffer::load_default_resources() {}
 
 } // namespace wrld::rsc

@@ -12,9 +12,7 @@
 #include <stdexcept>
 
 namespace wrld::rsc {
-    Texture::Texture(const std::string &name, World &world/*, const std::string &texture_path, const aiTextureType type,
-                     const bool flip_textures*/) :
-        Resource(name, world) {
+    Texture::Texture(const std::string &name, World &world /*, Rc<Resource> *rc*/) : Resource(name, world /*, rc*/) {
         reload();
     }
 
@@ -97,4 +95,6 @@ namespace wrld::rsc {
 
         stbi_image_free(data);
     }
+
+    void Texture::load_default_resources() {}
 } // namespace wrld::rsc

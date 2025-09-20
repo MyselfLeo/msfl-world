@@ -7,6 +7,7 @@
 
 #include "RendererSystem.hpp"
 
+#include "logs.hpp"
 #include "components/Camera.hpp"
 #include "components/DirectionalLight.hpp"
 #include "components/StaticModel.hpp"
@@ -15,6 +16,7 @@
 #include "components/PointLight.hpp"
 
 #include <format>
+#include <iostream>
 
 namespace wrld {
 
@@ -26,12 +28,12 @@ namespace wrld {
         direction(direction), color(color), intensity(intensity) {}
 
     EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
-                                     const std::optional<std::shared_ptr<const rsc::CubemapTexture>> &skybox,
-                                     const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
+                                     const std::optional<Rc<rsc::CubemapTexture>> &skybox, const GLuint vao) :
+        vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
 
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) : System(world), window(window) {
         const auto program = world.create_resource<rsc::Program>("skybox_program");
-        program->set_shader("wrld/shaders/skybox.glsl");
+        program.get_mut()->set_shader("wrld/shaders/skybox.glsl");
         skybox_program = program;
     }
 
@@ -64,7 +66,7 @@ namespace wrld {
         return std::nullopt;
     }
 
-    std::shared_ptr<const rsc::Model> RendererSystem::get_entity_model(const EntityID id) const {
+    Rc<rsc::Model> RendererSystem::get_entity_model(const EntityID id) const {
         return world.get_component<cpt::StaticModel>(id)->get_model();
     }
 
@@ -77,7 +79,7 @@ namespace wrld {
     }*/
 
     void RendererSystem::render_camera(const cpt::Camera &camera) const {
-        const rsc::Program &program = *camera.get_program();
+        const rsc::Program &program = camera.get_program().get_ref();
 
         // Todo: In the future, a camera should be attached to a viewport
         // of a given size. We should get this viewport size instead of the window size.
@@ -93,7 +95,7 @@ namespace wrld {
         const std::vector<DirectionalLightData> directional_lights = get_directional_lights();
 
         if (environment_data.skybox.has_value()) {
-            draw_skybox(*environment_data.skybox.value(), camera, environment_data.vao);
+            draw_skybox(environment_data.skybox.value().get_ref(), camera, environment_data.vao);
         }
 
         // Camera dependent uniforms
@@ -133,7 +135,7 @@ namespace wrld {
             glm::mat4x4 model_matrix = get_entity_transform(entity);
 
             // Actual draw call
-            draw_model(*model, model_matrix, program);
+            draw_model(model.get_ref(), model_matrix, program);
         }
     }
 
@@ -198,16 +200,17 @@ namespace wrld {
     }
 
     void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
-        skybox_program->use();
+        const auto &skybox_prgm = skybox_program.get_ref();
+        skybox_prgm.use();
 
         const auto inv_matrix =
                 glm::inverse(camera.get_viewport_matrix() * camera.get_projection_matrix() * camera.get_view_matrix());
 
         cubemap.use(0);
 
-        skybox_program->set_uniform("inv_matrix", inv_matrix);
-        skybox_program->set_uniform("camera_pos", camera.get_position());
-        skybox_program->set_uniform("cubemap", 0);
+        skybox_prgm.set_uniform("inv_matrix", inv_matrix);
+        skybox_prgm.set_uniform("camera_pos", camera.get_position());
+        skybox_prgm.set_uniform("cubemap", 0);
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
@@ -230,27 +233,22 @@ namespace wrld {
         const glm::mat4x4 normal_model_matrix = glm::transpose(glm::inverse(model_matrix));
         program.set_uniform("model_normal", normal_model_matrix);
 
-        std::vector<std::shared_ptr<rsc::MeshGraphNode>> node_stack;
-        node_stack.push_back(model.get_root_mesh());
+        // todo: switch to multi draw call
+        // Draw meshes material by material
+        for (const auto &mat: model.get_materials()) {
+            // meshes of this model with the given material
+            const auto &meshes = mat.get_common_users(model.get_meshes());
 
-        // Draw meshes by visiting the tree in depth
-        while (!node_stack.empty()) {
-            const auto &meshes = node_stack.back()->meshes;
-            const auto &children = node_stack.back()->children;
-            node_stack.pop_back();
-
-            for (auto &mesh: meshes) {
-                draw_mesh(*mesh, program);
+            for (auto &mesh_name: meshes) {
+                const auto &mesh = world.get_resource<rsc::Mesh>(mesh_name);
+                draw_mesh(mesh.get_ref(), program);
             }
-
-            // Add children to be processed
-            node_stack.insert(node_stack.end(), children.begin(), children.end());
         }
     }
 
     void RendererSystem::draw_mesh(const rsc::Mesh &mesh, const rsc::Program &program) {
 
-        program.set_uniform("material", *mesh.get_material());
+        program.set_uniform("material", mesh.get_material().get_ref());
 
         glActiveTexture(GL_TEXTURE0);
 

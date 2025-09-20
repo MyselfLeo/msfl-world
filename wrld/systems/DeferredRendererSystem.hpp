@@ -24,10 +24,10 @@ namespace wrld {
     private:
         GLuint vao;
 
-        std::shared_ptr<const rsc::Program> pass1_program;
-        std::shared_ptr<const rsc::Program> pass2_program;
+        Rc<rsc::Program> pass1_program;
+        Rc<rsc::Program> pass2_program;
 
-        std::shared_ptr<rsc::DeferredFramebuffer> framebuffer;
+        Rc<rsc::DeferredFramebuffer> framebuffer;
 
         // GLFWwindow *window;
         //

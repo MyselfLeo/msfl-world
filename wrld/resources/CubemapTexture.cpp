@@ -10,7 +10,8 @@
 #include <ranges>
 
 namespace wrld::rsc {
-    CubemapTexture::CubemapTexture(std::string name, World &world) : Resource(std::move(name), world), gl_texture(0) {
+    CubemapTexture::CubemapTexture(std::string name, World &world /*, Rc<Resource> *rc*/) :
+        Resource(std::move(name), world /*, rc*/), gl_texture(0) {
         set_texture({"data/textures/lake_cm/right.jpg", "data/textures/lake_cm/left.jpg",
                      "data/textures/lake_cm/top.jpg", "data/textures/lake_cm/bottom.jpg",
                      "data/textures/lake_cm/front.jpg", "data/textures/lake_cm/back.jpg"});
@@ -76,4 +77,6 @@ namespace wrld::rsc {
     }
 
     CubemapTexture::~CubemapTexture() { glDeleteTextures(1, &gl_texture); }
+
+    void CubemapTexture::load_default_resources() {}
 } // namespace wrld::rsc

@@ -7,6 +7,8 @@
 #include "components/Component.hpp"
 #include "resources/Resource.hpp"
 
+#include "resources/Rc.hpp"
+
 #include <format>
 #include <memory>
 #include <optional>
@@ -19,9 +21,8 @@
 
 namespace wrld {
     typedef size_t EntityID;
-    typedef std::unordered_map<std::type_index, std::unordered_map<std::string, std::shared_ptr<Resource>>>
-            ResourcePool;
-    typedef std::unordered_map<std::type_index, std::shared_ptr<const Resource>> DefaultResourcePool;
+    typedef std::unordered_map<std::type_index, std::unordered_map<std::string, Rc<Resource>>> ResourcePool;
+    typedef std::unordered_map<std::type_index, Rc<Resource>> DefaultResourcePool;
     typedef std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<Component>>> ComponentPool;
 
     class World {
@@ -104,44 +105,51 @@ namespace wrld {
         std::vector<std::type_index> get_components_of_entity(EntityID id) const;
 
         template<ResourceConcept R>
-        std::shared_ptr<R> create_resource(const std::string &name) {
+        Rc<R> create_resource(const std::string &name) {
+            if (!resources.contains(std::type_index(typeid(R)))) {
+                resources[std::type_index(typeid(R))] = {};
+            }
+
             // Create unique name from given name
             std::string new_name = name;
-            while (resources[std::type_index(typeid(R))].contains(new_name)) {
+            while (resources.at(std::type_index(typeid(R))).contains(new_name)) {
                 new_name = std::format("{}:{}", name, generate_random_id());
             }
 
             // Returns the created resource
-            auto new_ressource = std::make_shared<R>(new_name, *this /*, std::forward<Args>(args)...*/);
+            Rc<R> new_ressource = Rc<R>(new_name, *this);
 
             if (!resources.contains(std::type_index(typeid(R)))) {
                 resources[std::type_index(typeid(R))] = {};
             }
 
-            resources[std::type_index(typeid(R))][new_name] = new_ressource;
+            resources.at(std::type_index(typeid(R))).insert_or_assign(new_name, new_ressource.template as<Resource>());
             return new_ressource;
         }
 
         /// Return the resource of the given type with the given name.
         /// Throws std::runtime_error if no such resource exists.
         template<ResourceConcept R>
-        std::shared_ptr<R> get_resource(const std::string &name) {
+        Rc<R> get_resource(const std::string &name) {
             if (!resources.contains(std::type_index(typeid(R))))
                 throw std::runtime_error("This resource does not exists");
 
-            if (!resources[std::type_index(typeid(R))].contains(name))
+            if (!resources.at(std::type_index(typeid(R))).contains(name))
                 throw std::runtime_error("This resource does not exists");
 
-            return static_pointer_cast<R>(resources[std::type_index(typeid(R))][name]);
+            return resources.at(std::type_index(typeid(R)))[name].as<R>();
         }
 
         template<ResourceConcept R>
-        std::shared_ptr<const R> get_default() {
+        Rc<R> get_default() {
             if (!default_resources.contains(std::type_index(typeid(R)))) {
-                default_resources[std::type_index(typeid(R))] = std::make_shared<R>("default", *this);
+                Rc<R> new_resource = Rc<R>("default", *this);
+                const Rc<Resource> casted = new_resource.template as<Resource>();
+
+                default_resources.insert_or_assign(std::type_index(typeid(R)), casted);
             }
 
-            return static_pointer_cast<const R>(default_resources[std::type_index(typeid(R))]);
+            return default_resources.at(std::type_index(typeid(R))).as<R>();
         }
 
         const ResourcePool &get_resources() const;

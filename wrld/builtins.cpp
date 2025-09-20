@@ -10,12 +10,13 @@
 #include "resources/Model.hpp"
 
 namespace wrld::builtins {
-    std::shared_ptr<const rsc::Material> unlit_material(World &world) {
-        std::shared_ptr<rsc::Material> ptr;
+    Rc<rsc::Material> unlit_material(World &world) {
+        static bool set = false;
+        static Rc<rsc::Material> ptr;
 
-        if (ptr == nullptr) {
+        if (!set) {
             ptr = world.create_resource<rsc::Material>("unlit");
-            ptr->do_lighting(false);
+            ptr.get_mut()->do_lighting(false);
         }
 
         return ptr;
@@ -60,13 +61,13 @@ namespace wrld::builtins {
         //       This will prevent having too much resources.
 
         const auto mesh = world.create_resource<rsc::Mesh>("grid_mesh");
-        mesh->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
+        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
                 unlit_material(world));
-        mesh->update();
+        mesh.get_mut()->update();
 
         // Create model
-        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("grid_model");
-        model->from_mesh(mesh);
+        Rc<rsc::Model> model = world.create_resource<rsc::Model>("grid_model");
+        model.get_mut()->from_mesh(mesh);
 
         // Create entity
         const EntityID entity = world.create_entity("Grid");
@@ -101,13 +102,13 @@ namespace wrld::builtins {
         }
 
         const auto mesh = world.create_resource<rsc::Mesh>("axis_mesh");
-        mesh->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
+        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
                 unlit_material(world));
-        mesh->update();
+        mesh.get_mut()->update();
 
         // Create model
-        std::shared_ptr<rsc::Model> model = world.create_resource<rsc::Model>("axis_model");
-        model->from_mesh(mesh);
+        Rc<rsc::Model> model = world.create_resource<rsc::Model>("axis_model");
+        model.get_mut()->from_mesh(mesh);
 
         // Create entity
         const EntityID entity = world.create_entity("Axis");

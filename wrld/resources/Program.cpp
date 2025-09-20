@@ -4,6 +4,7 @@
 
 #include "Program.hpp"
 
+#include "Rc.hpp"
 #include "logs.hpp"
 
 #include <format>
@@ -26,7 +27,10 @@ namespace wrld::rsc {
     }
 
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
-    Program::Program(std::string name, World &world) : Resource(std::move(name), world) { recompile(); }
+    Program::Program(std::string name, World &world /*, Rc<Resource> *rc*/) :
+        Resource(std::move(name), world /*, rc*/) {
+        recompile();
+    }
 
     Program &Program::set_shader(const std::string &combined_shader_path) {
         this->vertex_shader_path = combined_shader_path;
@@ -134,7 +138,7 @@ namespace wrld::rsc {
 
         // Diffuse map
         if (material.get_diffuse_map().has_value()) {
-            material.get_diffuse_map().value()->use(0);
+            material.get_diffuse_map().value().get()->use(0);
 
             set_uniform(uniform + ".use_diffuse", true);
             set_uniform(uniform + ".diffuse", 0);
@@ -144,7 +148,7 @@ namespace wrld::rsc {
 
         // Specular map
         if (material.get_specular_map().has_value()) {
-            material.get_specular_map().value()->use(1);
+            material.get_specular_map().value().get()->use(1);
 
             set_uniform(uniform + ".use_specular", true);
             set_uniform(uniform + ".specular", 1);
@@ -168,6 +172,8 @@ namespace wrld::rsc {
         // glAttachShader(gl_program, fragment_shader);
         // glLinkProgram(gl_program);
     }
+
+    void Program::load_default_resources() {}
 
     void Program::set_uniform(const std::string &uniform, const glm::mat4x4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());

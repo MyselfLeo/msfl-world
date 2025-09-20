@@ -14,10 +14,10 @@ namespace wrld::cpt {
         glGenVertexArrays(1, &vao);
     }
 
-    Environment::Environment(const EntityID entity_id, World &world,
-                             const std::shared_ptr<const rsc::CubemapTexture> &cubemap,
+    Environment::Environment(const EntityID entity_id, World &world, const Rc<rsc::CubemapTexture> &cubemap,
                              const AmbiantLight ambiant_light) :
-        Component(entity_id, world), vao(0), ambiant_light(ambiant_light), skybox(cubemap) {
+        Component(entity_id, world), vao(0), ambiant_light(ambiant_light) {
+        attach_resource("skybox", cubemap);
         glGenVertexArrays(1, &vao);
     }
 
@@ -26,17 +26,19 @@ namespace wrld::cpt {
         other.vao = 0;
     }
 
-    bool Environment::has_cubemap() const { return skybox.has_value(); }
-
     const AmbiantLight &Environment::get_ambiant_light() const { return ambiant_light; }
 
-    const std::optional<std::shared_ptr<const rsc::CubemapTexture>> &Environment::get_cubemap() const { return skybox; }
+    std::optional<Rc<rsc::CubemapTexture>> Environment::get_cubemap() const {
+        if (!has_resource("skybox"))
+            return std::nullopt;
+        return get_resource<rsc::CubemapTexture>("skybox");
+    }
 
     void Environment::set_ambiant_light(const AmbiantLight ambiant_light) { this->ambiant_light = ambiant_light; }
 
-    void Environment::set_cubemap(const std::shared_ptr<const rsc::CubemapTexture> &cubemap) { this->skybox = cubemap; }
+    void Environment::set_cubemap(const Rc<rsc::CubemapTexture> &cubemap) { attach_resource("skybox", cubemap); }
 
-    void Environment::remove_cubemap() { this->skybox = std::nullopt; }
+    void Environment::remove_cubemap() { detach_resource("skybox"); }
 
     GLuint Environment::get_vao() const { return vao; }
 

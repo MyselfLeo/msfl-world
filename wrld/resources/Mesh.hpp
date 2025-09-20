@@ -27,7 +27,7 @@ namespace wrld::rsc {
 
     class Mesh : public Resource {
     public:
-        explicit Mesh(std::string name, World &world);
+        explicit Mesh(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         Mesh(Mesh &other) = delete;
         Mesh(Mesh &&other) = delete;
@@ -36,7 +36,7 @@ namespace wrld::rsc {
 
         ~Mesh() override;
 
-        Mesh &set_material(const std::shared_ptr<const Material> &material);
+        Mesh &set_material(const Rc<Material> &material);
         Mesh &set_vertices(const std::vector<Vertex> &vertices);
         Mesh &set_elements(const std::vector<VertexID> &elements);
 
@@ -52,7 +52,7 @@ namespace wrld::rsc {
         Mesh &set_gl_usage(GLenum usage);
         [[nodiscard]] GLenum get_gl_usage() const;
 
-        [[nodiscard]] const std::shared_ptr<const Material> &get_material() const;
+        [[nodiscard]] Rc<Material> get_material() const;
 
         /// Sends/Updates mesh data on the GPU, setup vao/vbo/ebo is required
         void update();
@@ -61,7 +61,9 @@ namespace wrld::rsc {
 
         [[nodiscard]] unsigned get_element_count() const;
 
-        std::string get_type() override { return "Mesh"; }
+        std::string get_type() const override { return "Mesh"; }
+
+        void load_default_resources() override;
 
     private:
         bool buffers_created = false;
@@ -70,7 +72,7 @@ namespace wrld::rsc {
         std::vector<VertexID> indices;
         // std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
 
-        std::shared_ptr<const Material> current_material;
+        // std::shared_ptr<const Material> current_material;
 
         GLenum gl_primitive_type = GL_TRIANGLES;
         GLenum gl_usage = GL_STATIC_DRAW;

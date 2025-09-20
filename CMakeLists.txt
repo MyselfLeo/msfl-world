@@ -38,6 +38,7 @@ add_library(msfl_world STATIC
         wrld/resources/Texture.cpp
         wrld/components/Component.cpp
         wrld/components/Component.hpp
+        wrld/components/Component.tpp
         wrld/World.cpp
         wrld/World.hpp
         wrld/components/Transform.cpp
@@ -73,15 +74,12 @@ add_library(msfl_world STATIC
         wrld/components/Orbiter.cpp
         wrld/resources/Resource.cpp
         wrld/resources/Resource.hpp
+        wrld/resources/Resource.tpp
         wrld/resources/Mesh.cpp
         wrld/resources/Mesh.hpp
         wrld/builtins.cpp
         wrld/builtins.hpp
-
-        # GUI-specific code
         wrld-gui/components.hpp
-
-        # Runtime
         wrld/App.hpp
         wrld/Main.hpp
         wrld/Main.cpp
@@ -93,6 +91,9 @@ add_library(msfl_world STATIC
         wrld/resources/DeferredFramebuffer.cpp
         wrld/resources/DeferredFramebuffer.hpp
         wrld/concepts.hpp
+        wrld/resources/Rc.cpp
+        wrld/resources/Rc.hpp
+        wrld/resources/Rc.tpp
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

@@ -5,14 +5,15 @@
 #include "Material.hpp"
 
 namespace wrld::rsc {
-    Material::Material(std::string name, World &world) : Resource(std::move(name), world) {}
+    Material::Material(std::string name, World &world /*, Rc<Resource> *rc*/) :
+        Resource(std::move(name), world /*, rc*/) {}
 
-    Material &Material::set_diffuse_map(const std::shared_ptr<const Texture> &diffuse_map) {
+    Material &Material::set_diffuse_map(const Rc<Texture> &diffuse_map) {
         this->diffuse_map = diffuse_map;
         return *this;
     }
 
-    Material &Material::set_specular_map(const std::shared_ptr<const Texture> &specular_map) {
+    Material &Material::set_specular_map(const Rc<Texture> &specular_map) {
         this->specular_map = specular_map;
         return *this;
     }
@@ -21,9 +22,9 @@ namespace wrld::rsc {
 
     void Material::remove_specular_map() { this->specular_map = std::nullopt; }
 
-    std::optional<std::shared_ptr<const Texture>> Material::get_diffuse_map() const { return this->diffuse_map; }
+    std::optional<Rc<Texture>> Material::get_diffuse_map() const { return this->diffuse_map; }
 
-    std::optional<std::shared_ptr<const Texture>> Material::get_specular_map() const { return this->specular_map; }
+    std::optional<Rc<Texture>> Material::get_specular_map() const { return this->specular_map; }
 
     Material &Material::set_diffuse_color(const glm::vec4 &color) {
         this->diffuse_color = color;
@@ -53,4 +54,6 @@ namespace wrld::rsc {
     bool Material::is_using_mesh_color() const { return this->_use_mesh_color; }
 
     bool Material::is_doing_lighting() const { return this->_do_lighting; }
+
+    void Material::load_default_resources() {}
 } // namespace wrld::rsc

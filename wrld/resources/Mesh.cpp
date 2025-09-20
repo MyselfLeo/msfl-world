@@ -9,8 +9,7 @@
 #include <utility>
 
 namespace wrld::rsc {
-    Mesh::Mesh(std::string name, World &world) :
-        Resource(std::move(name), world), current_material(world.get_default<Material>()) {
+    Mesh::Mesh(std::string name, World &world /*, Rc<Resource> *rc*/) : Resource(std::move(name), world /*, rc*/) {
         update();
     }
 
@@ -26,8 +25,8 @@ namespace wrld::rsc {
         glDeleteVertexArrays(1, &vao);
     }
 
-    Mesh &Mesh::set_material(const std::shared_ptr<const Material> &material) {
-        this->current_material = material;
+    Mesh &Mesh::set_material(const Rc<Material> &material) {
+        attach_resource("current_material", material);
         return *this;
     }
 
@@ -73,7 +72,7 @@ namespace wrld::rsc {
 
     GLenum Mesh::get_gl_usage() const { return gl_usage; }
 
-    const std::shared_ptr<const Material> &Mesh::get_material() const { return current_material; }
+    Rc<Material> Mesh::get_material() const { return get_resource<Material>("current_material"); }
 
     void Mesh::update() {
         if (!buffers_created) {
@@ -117,4 +116,6 @@ namespace wrld::rsc {
     GLuint Mesh::get_vao() const { return vao; }
 
     unsigned Mesh::get_element_count() const { return indices.size(); }
+
+    void Mesh::load_default_resources() { attach_resource("current_material", world.get_default<Material>()); }
 } // namespace wrld::rsc

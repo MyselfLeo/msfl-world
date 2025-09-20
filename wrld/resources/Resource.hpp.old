@@ -1,0 +1,88 @@
+//
+// Created by leo on 9/6/25.
+//
+
+#ifndef RESOURCE_HPP
+#define RESOURCE_HPP
+
+#include "../components/Component.hpp"
+
+#include <memory>
+#include <string>
+#include <format>
+
+// Forward declaration
+namespace wrld {
+    class Component;
+    class World;
+
+    template<ResourceConcept>
+    class Rc;
+} // namespace wrld
+
+namespace wrld {
+    /// Base class for all resources.
+    /// Any derived class must possess a constructor expecting std::string and World& as its firt
+    /// AND ONLY parameters. This constructor will be called by World::create_resource.
+    /// Any parameter should have default values that can be changed by setters afterward.
+    /// Why : This allows the framework to create "default" Resources of each type, accessible via
+    /// world.get_default<>().
+    /// Furthermore : TODO
+
+    class Resource : public std::enable_shared_from_this<Resource> {
+    public:
+        virtual ~Resource() = default;
+        explicit Resource(std::string name, World &world, Rc<Resource> &rc);
+
+        [[nodiscard]] std::string get_name() const;
+
+        virtual std::string get_type() const { return "Resource"; }
+
+    protected:
+        friend class Rc<Resource>;
+        friend class Component;
+
+        // ResourceID resource_id;
+        std::string name;
+        World &world;
+        Rc<Resource> &rc;
+
+        template<ResourceConcept R>
+        void attach_resource(const std::string &unique_name, const Rc<R> &resource);
+
+        template<ResourceConcept R>
+        Rc<R> get_resource(const std::string &unique_name) const;
+
+        void detach_resource(const std::string &unique_name);
+
+        /// Resources attached to this resource.
+        /// We don't use shared_ptr as direct members of the class because we'd like to
+        /// track components attached to each resource.
+        std::unordered_map<std::string, std::shared_ptr<Rc<Resource>>> attached_resources;
+    };
+
+} // namespace wrld
+
+#include "Rc.hpp"
+
+namespace wrld {
+    template<ResourceConcept R>
+    void Resource::attach_resource(const std::string &unique_name, const Rc<R> &resource) {
+        if (attached_resources.contains(unique_name)) {
+            attached_resources[unique_name]->detach_resource_user(this);
+        }
+
+        resource.attach_resource_user(shared_from_this());
+        attached_resources[unique_name] = resource;
+    }
+
+    template<ResourceConcept R>
+    Rc<R> Resource::get_resource(const std::string &unique_name) const {
+        if (!attached_resources.contains(unique_name))
+            throw std::runtime_error(std::format("Tried to access unbound resource {}", unique_name));
+
+        return attached_resources.at(unique_name)->as<R>();
+    }
+} // namespace wrld
+
+#endif // RESOURCE_HPP

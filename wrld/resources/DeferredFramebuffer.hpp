@@ -12,7 +12,7 @@
 namespace wrld::rsc {
     class DeferredFramebuffer : public Resource {
     public:
-        DeferredFramebuffer(std::string name, World &world);
+        DeferredFramebuffer(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         ~DeferredFramebuffer() override;
 
@@ -23,7 +23,7 @@ namespace wrld::rsc {
         [[nodiscard]] unsigned get_width() const;
         [[nodiscard]] unsigned get_height() const;
 
-        std::string get_type() override { return "DeferredViewport"; }
+        std::string get_type() const override { return "DeferredViewport"; }
 
         void use() const;
 
@@ -33,6 +33,8 @@ namespace wrld::rsc {
         [[nodiscard]] GLuint get_normal_texture() const;
         [[nodiscard]] GLuint get_diffuse_texture() const;
         [[nodiscard]] GLuint get_depth_texture() const;
+
+        void load_default_resources() override;
 
     private:
         friend class DeferredRendererSystem;

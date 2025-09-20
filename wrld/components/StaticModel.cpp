@@ -5,10 +5,12 @@
 #include "StaticModel.hpp"
 
 namespace wrld::cpt {
-    StaticModel::StaticModel(const EntityID entity_id, World &world, const std::shared_ptr<rsc::Model> &model) :
-        Component(entity_id, world), model(model) {}
+    StaticModel::StaticModel(const EntityID entity_id, World &world, const Rc<rsc::Model> &model) :
+        Component(entity_id, world) {
+        attach_resource("model", model);
+    }
 
-    std::shared_ptr<const rsc::Model> StaticModel::get_model() const { return model; }
+    Rc<rsc::Model> StaticModel::get_model() const { return get_resource<rsc::Model>("model"); }
 
-    void StaticModel::set_model(const std::shared_ptr<const rsc::Model> &model) { this->model = model; }
+    void StaticModel::set_model(const Rc<rsc::Model> &model) { attach_resource("model", model); }
 } // namespace wrld::cpt

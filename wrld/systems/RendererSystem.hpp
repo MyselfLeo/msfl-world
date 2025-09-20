@@ -8,7 +8,6 @@
 #include "GLFW/glfw3.h"
 #include "components/Camera.hpp"
 #include "components/Environment.hpp"
-#include "components/StaticModel.hpp"
 #include "resources/CubemapTexture.hpp"
 #include "resources/Model.hpp"
 #include "resources/Program.hpp"
@@ -31,12 +30,12 @@ namespace wrld {
     };
 
     struct EnvironmentData {
-        EnvironmentData(cpt::AmbiantLight ambiant_light,
-                        const std::optional<std::shared_ptr<const rsc::CubemapTexture>> &skybox, GLuint vao);
+        EnvironmentData(cpt::AmbiantLight ambiant_light, const std::optional<Rc<rsc::CubemapTexture>> &skybox,
+                        GLuint vao);
 
         GLuint vao;
         cpt::AmbiantLight ambiant_light;
-        std::optional<std::shared_ptr<const rsc::CubemapTexture>> skybox;
+        std::optional<Rc<rsc::CubemapTexture>> skybox;
     };
 
     class RendererSystem : public System {
@@ -51,7 +50,7 @@ namespace wrld {
     protected:
         GLFWwindow *window;
 
-        std::shared_ptr<const rsc::Program> skybox_program;
+        Rc<rsc::Program> skybox_program;
 
         /// Return the entity's transform or a default one if not provided.
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;
@@ -62,7 +61,7 @@ namespace wrld {
 
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.
-        [[nodiscard]] std::shared_ptr<const rsc::Model> get_entity_model(EntityID id) const;
+        [[nodiscard]] Rc<rsc::Model> get_entity_model(EntityID id) const;
 
         /*/// Return the program (shader) which shall be used to render an entity.
         /// It's either the one defined using a cpt::Shader or the default one.

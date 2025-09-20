@@ -16,21 +16,21 @@ namespace wrld::rsc {
 
     class Material final : public Resource {
     public:
-        Material(std::string name, World &world);
+        Material(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         Material(Material &other) = delete;
         Material(Material &&other) = delete;
         Material &operator=(Material &other) = delete;
         Material &operator=(Material &&other) = delete;
 
-        Material &set_diffuse_map(const std::shared_ptr<const Texture> &diffuse_map);
-        Material &set_specular_map(const std::shared_ptr<const Texture> &specular_map);
+        Material &set_diffuse_map(const Rc<Texture> &diffuse_map);
+        Material &set_specular_map(const Rc<Texture> &specular_map);
 
         void remove_diffuse_map();
         void remove_specular_map();
 
-        [[nodiscard]] std::optional<std::shared_ptr<const Texture>> get_diffuse_map() const;
-        [[nodiscard]] std::optional<std::shared_ptr<const Texture>> get_specular_map() const;
+        [[nodiscard]] std::optional<Rc<Texture>> get_diffuse_map() const;
+        [[nodiscard]] std::optional<Rc<Texture>> get_specular_map() const;
 
         Material &set_diffuse_color(const glm::vec4 &color);
         Material &set_specular_intensity(float intensity);
@@ -54,7 +54,9 @@ namespace wrld::rsc {
         [[nodiscard]] bool is_using_mesh_color() const;
         [[nodiscard]] bool is_doing_lighting() const;
 
-        std::string get_type() override { return "Material"; }
+        std::string get_type() const override { return "Material"; }
+
+        void load_default_resources() override;
 
     private:
         // Constant colors if maps are not specified
@@ -62,8 +64,8 @@ namespace wrld::rsc {
         float specular_intensity = 0.5;
 
         // Maps
-        std::optional<std::shared_ptr<const Texture>> diffuse_map; // Diffuse color
-        std::optional<std::shared_ptr<const Texture>> specular_map; // Specular intensity
+        std::optional<Rc<Texture>> diffuse_map; // Diffuse color
+        std::optional<Rc<Texture>> specular_map; // Specular intensity
 
         // todo: parameters that should be in the material
         // - depth mask (enable/disable)

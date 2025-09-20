@@ -15,7 +15,7 @@ namespace wrld::rsc {
     class CubemapTexture final : public Resource {
     public:
         /// Order of textures: +X, -X, +Y, -Y, +Z, -Z
-        explicit CubemapTexture(std::string name, World &world /*, const std::vector<std::string> &cubemap_paths*/);
+        explicit CubemapTexture(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         CubemapTexture &set_texture(const std::vector<std::string> &cubemap_paths);
 
@@ -28,7 +28,9 @@ namespace wrld::rsc {
 
         ~CubemapTexture() override;
 
-        std::string get_type() override { return "CubemapTexture"; }
+        std::string get_type() const override { return "CubemapTexture"; }
+
+        void load_default_resources() override;
 
     private:
         GLuint gl_texture;
