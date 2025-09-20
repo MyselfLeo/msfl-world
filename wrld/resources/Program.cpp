@@ -173,8 +173,6 @@ namespace wrld::rsc {
         // glLinkProgram(gl_program);
     }
 
-    void Program::load_default_resources() {}
-
     void Program::set_uniform(const std::string &uniform, const glm::mat4x4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {

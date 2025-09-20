@@ -63,8 +63,6 @@ namespace wrld::rsc {
 
         std::string get_type() const override { return "Mesh"; }
 
-        void load_default_resources() override;
-
     private:
         bool buffers_created = false;
 

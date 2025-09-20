@@ -30,8 +30,6 @@ namespace wrld::rsc {
 
         std::string get_type() const override { return "CubemapTexture"; }
 
-        void load_default_resources() override;
-
     private:
         GLuint gl_texture;
     };

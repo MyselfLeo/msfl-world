@@ -17,6 +17,7 @@ namespace wrld::builtins {
         if (!set) {
             ptr = world.create_resource<rsc::Material>("unlit");
             ptr.get_mut()->do_lighting(false);
+            set = true;
         }
 
         return ptr;

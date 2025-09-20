@@ -50,8 +50,6 @@ namespace wrld::rsc {
         const std::vector<Rc<Material>> &get_materials() const;
         const std::vector<Rc<Mesh>> &get_meshes() const;
 
-        void load_default_resources() override;
-
 
     private:
         friend class RendererSystem;

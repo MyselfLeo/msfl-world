@@ -26,7 +26,7 @@ namespace wrld {
 
         // todo: move to a higher class common with component
         // todo: DO THE SAME FOR COMPONENTS
-        virtual void load_default_resources() = 0;
+        // virtual void load_default_resources() = 0;
 
         [[nodiscard]] std::string get_name() const;
 

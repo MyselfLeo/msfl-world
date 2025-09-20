@@ -54,6 +54,4 @@ namespace wrld::rsc {
     bool Material::is_using_mesh_color() const { return this->_use_mesh_color; }
 
     bool Material::is_doing_lighting() const { return this->_do_lighting; }
-
-    void Material::load_default_resources() {}
 } // namespace wrld::rsc

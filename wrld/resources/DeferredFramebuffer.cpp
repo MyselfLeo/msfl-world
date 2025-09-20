@@ -116,7 +116,4 @@ namespace wrld::rsc {
     GLuint DeferredFramebuffer::get_diffuse_texture() const { return diffuse_texture; }
 
     GLuint DeferredFramebuffer::get_depth_texture() const { return depth_texture; }
-
-    void DeferredFramebuffer::load_default_resources() {}
-
 } // namespace wrld::rsc

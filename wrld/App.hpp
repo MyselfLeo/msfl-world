@@ -7,7 +7,6 @@
 #include "World.hpp"
 
 namespace wrld {
-
     class App {
     public:
         virtual ~App() = default;

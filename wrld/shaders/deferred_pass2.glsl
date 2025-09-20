@@ -61,7 +61,7 @@ vec3 sample_diffuse(vec2 uv) {
 }
 
 float sample_specular(vec2 uv) {
-    return 1 - texture(diffuse_texture, uv).a;
+    return max(1 - texture(diffuse_texture, uv).a, 1.0);
 }
 
 float calc_diffuse(vec3 light_direction, vec3 normal) {

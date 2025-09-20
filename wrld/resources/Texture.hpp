@@ -37,10 +37,6 @@ namespace wrld::rsc {
 
         void reload();
 
-    public:
-        void load_default_resources() override;
-
-    private:
         // Using Assimp enum for now, it's good enough
         aiTextureType type = aiTextureType_DIFFUSE;
     };

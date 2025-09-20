@@ -95,6 +95,4 @@ namespace wrld::rsc {
 
         stbi_image_free(data);
     }
-
-    void Texture::load_default_resources() {}
 } // namespace wrld::rsc

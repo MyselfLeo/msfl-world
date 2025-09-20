@@ -77,6 +77,4 @@ namespace wrld::rsc {
     }
 
     CubemapTexture::~CubemapTexture() { glDeleteTextures(1, &gl_texture); }
-
-    void CubemapTexture::load_default_resources() {}
 } // namespace wrld::rsc

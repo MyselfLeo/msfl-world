@@ -17,7 +17,7 @@ namespace wrld {
         this->component_users = std::make_shared<UserComponentPool>();
         this->resource_users = std::make_shared<UserResourcePool>();
         resource = std::make_shared<R>(name, world /*, this->as_ptr<Resource>()*/);
-        resource->load_default_resources();
+        // resource->load_default_resources();
     }
 
     template<ResourceConcept R>

@@ -12,6 +12,8 @@
 #include "systems/DeferredRendererSystem.hpp"
 #include "systems/RendererSystem.hpp"
 
+#include <utility>
+
 namespace wrld {
     // Default Main values
     World Main::world;
@@ -19,6 +21,7 @@ namespace wrld {
     std::shared_ptr<rsc::WindowFramebuffer> Main::window_viewport = nullptr;
     bool Main::should_close = false;
     double Main::last_frame = 0;
+    RendererType Main::renderer_type = FORWARD_RENDERER;
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
         window = init_gl(width, height);
@@ -30,7 +33,8 @@ namespace wrld {
         // Create systems
         wrldInfo("Initialising systems");
         // RendererSystem renderer{world, window};
-        DeferredRendererSystem renderer{world, window};
+        std::unique_ptr<RendererSystem> renderer = get_renderer();
+        // DeferredRendererSystem renderer{world, window};
 
         should_close = false;
         wrldInfo("Initializing app");
@@ -52,7 +56,7 @@ namespace wrld {
             app.update(world, deltatime);
 
             // Execute systems
-            renderer.exec();
+            renderer->exec();
 
             // Render UI using ImGUI
             {
@@ -84,6 +88,21 @@ namespace wrld {
     GLFWwindow *Main::get_window() { return window; }
 
     std::shared_ptr<rsc::WindowFramebuffer> Main::get_window_viewport() { return window_viewport; }
+
+    void Main::set_renderer_type(const RendererType _renderer_type) { renderer_type = _renderer_type; }
+
+    std::unique_ptr<RendererSystem> Main::get_renderer() {
+        switch (renderer_type) {
+            case FORWARD_RENDERER:
+                wrldInfo("Using forward renderer");
+                return std::make_unique<RendererSystem>(world, window);
+            case DEFERRED_RENDERER:
+                wrldInfo("Using deferred renderer");
+                return std::make_unique<DeferredRendererSystem>(world, window);
+            default:
+                std::unreachable();
+        }
+    }
 
     GLFWwindow *Main::init_gl(const int width, const int height) {
         wrldInfo("Initialising OpenGL context");

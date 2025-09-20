@@ -10,6 +10,7 @@
 
 namespace wrld::rsc {
     Mesh::Mesh(std::string name, World &world /*, Rc<Resource> *rc*/) : Resource(std::move(name), world /*, rc*/) {
+        attach_resource("current_material", world.get_default<Material>());
         update();
     }
 
@@ -116,6 +117,4 @@ namespace wrld::rsc {
     GLuint Mesh::get_vao() const { return vao; }
 
     unsigned Mesh::get_element_count() const { return indices.size(); }
-
-    void Mesh::load_default_resources() { attach_resource("current_material", world.get_default<Material>()); }
 } // namespace wrld::rsc

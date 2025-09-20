@@ -26,6 +26,8 @@ public:
     ~ProIma() override = default;
 
     void init(World &world) override {
+        Main::set_renderer_type(FORWARD_RENDERER);
+
         // Load a material to be shared by every mesh.
         // In rungholt.obj, each mesh represent a block type, and each has a specific material
         // If we let the Model importer do its job, we'll have too much materials (not worth it for now).

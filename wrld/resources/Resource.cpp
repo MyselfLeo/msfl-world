@@ -14,8 +14,6 @@ namespace wrld {
     Resource::Resource(std::string name, World &world /*, Rc<Resource> *rc*/) :
         name(std::move(name)), world(world) /*, rc(rc)*/ {}
 
-    void Resource::load_default_resources() {}
-
     std::string Resource::get_name() const { return name; }
 
     bool Resource::has_resource(const std::string &unique_name) const {

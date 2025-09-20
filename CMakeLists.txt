@@ -98,12 +98,6 @@ add_library(msfl_world STATIC
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
 
-add_executable(main main.cpp)
-target_link_libraries(main msfl_world)
-
-add_executable(shader_test shader_test.cpp)
-target_link_libraries(shader_test msfl_world)
-
 add_executable(shader_view shader_view.cpp)
 target_link_libraries(shader_view msfl_world)
 

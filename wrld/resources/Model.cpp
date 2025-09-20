@@ -58,6 +58,9 @@ namespace wrld::rsc {
         root_mesh->meshes.push_back(mesh);
         meshes.push_back(mesh);
 
+        loaded_materials.clear();
+        loaded_materials.push_back(mesh.get()->get_material());
+
         return *this;
     }
 
@@ -117,8 +120,6 @@ namespace wrld::rsc {
     const std::vector<Rc<Material>> &Model::get_materials() const { return loaded_materials; }
 
     const std::vector<Rc<Mesh>> &Model::get_meshes() const { return meshes; }
-
-    void Model::load_default_resources() {}
 
     std::shared_ptr<MeshGraphNode> Model::process_node(const aiNode *node, const aiScene *scene) {
         auto wrld_node = std::make_shared<MeshGraphNode>();

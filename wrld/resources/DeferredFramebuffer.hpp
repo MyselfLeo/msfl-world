@@ -34,8 +34,6 @@ namespace wrld::rsc {
         [[nodiscard]] GLuint get_diffuse_texture() const;
         [[nodiscard]] GLuint get_depth_texture() const;
 
-        void load_default_resources() override;
-
     private:
         friend class DeferredRendererSystem;
 

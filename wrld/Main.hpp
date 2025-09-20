@@ -12,8 +12,14 @@
 #include "App.hpp"
 #include "World.hpp"
 #include "resources/WindowFramebuffer.hpp"
+#include "systems/RendererSystem.hpp"
 
 namespace wrld {
+
+    enum RendererType {
+        FORWARD_RENDERER,
+        DEFERRED_RENDERER,
+    };
 
     class Main {
     public:
@@ -23,15 +29,21 @@ namespace wrld {
         static GLFWwindow *get_window();
         static std::shared_ptr<rsc::WindowFramebuffer> get_window_viewport();
 
+        static void set_renderer_type(RendererType _renderer_type);
+
     private:
         static World world;
         static GLFWwindow *window;
         static std::shared_ptr<rsc::WindowFramebuffer> window_viewport;
 
+        static RendererType renderer_type;
+
         static bool should_close;
 
         // Deltatime computing
         static double last_frame;
+
+        static std::unique_ptr<RendererSystem> get_renderer();
 
         static GLFWwindow *init_gl(int width, int height);
         static void window_resize_callback(GLFWwindow *window, int width, int height);

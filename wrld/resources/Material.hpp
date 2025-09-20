@@ -56,8 +56,6 @@ namespace wrld::rsc {
 
         std::string get_type() const override { return "Material"; }
 
-        void load_default_resources() override;
-
     private:
         // Constant colors if maps are not specified
         glm::vec4 diffuse_color = {1.0, 1.0, 1.0, 1.0};

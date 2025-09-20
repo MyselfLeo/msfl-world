@@ -90,7 +90,4 @@ namespace wrld::rsc {
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
-
-    void Framebuffer::load_default_resources() {}
-
 } // namespace wrld::rsc

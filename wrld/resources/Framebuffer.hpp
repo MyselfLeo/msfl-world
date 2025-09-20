@@ -30,7 +30,6 @@ namespace wrld::rsc {
         void use() const;
 
         void recreate();
-        void load_default_resources() override;
 
     private:
         GLuint fbo;

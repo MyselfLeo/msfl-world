@@ -7,6 +7,7 @@
 #include "builtins.hpp"
 #include "imgui.h"
 #include "logs.hpp"
+#include "assimp/postprocess.h"
 #include "components/Camera.hpp"
 #include "components/DirectionalLight.hpp"
 #include "components/Orbiter.hpp"
@@ -18,52 +19,55 @@
 
 #include <iostream>
 
-class ShaderView final : public wrld::App {
+using namespace wrld;
+
+class ShaderView final : public App {
 public:
     explicit ShaderView(const std::string &model_path) : model_path(model_path) {}
 
     ~ShaderView() override {}
 
-    void init(wrld::World &world) override {
-        shader = std::make_shared<wrld::rsc::Program>("wrld/shaders/vertex/default.glsl",
-                                                      "wrld/shaders/fragment/toonshading.glsl");
+    void init(World &world) override {
+        shader = world.create_resource<rsc::Program>("shader");
+        shader.get_mut()->set_shader("wrld/shaders/vertex/default.glsl", "wrld/shaders/fragment/toonshading.glsl");
 
-        model = world.create_resource<wrld::rsc::Model>("user_model", model_path);
+        model = world.create_resource<rsc::Model>("user_model");
+        model.get_mut()->from_file(model_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
-        const wrld::EntityID model_entity = world.create_entity("Model");
-        world.attach_component<wrld::cpt::StaticModel>(model_entity, model);
-        model_transform = world.attach_component<wrld::cpt::Transform>(model_entity);
+        const EntityID model_entity = world.create_entity("Model");
+        world.attach_component<cpt::StaticModel>(model_entity, model);
+        model_transform = world.attach_component<cpt::Transform>(model_entity);
 
-        wrld::builtins::create_grid(world);
-        wrld::builtins::create_axis(world);
+        builtins::create_grid(world);
+        builtins::create_axis(world);
 
-        const wrld::EntityID camera_entity = world.create_entity("Camera");
-        camera = world.attach_component<wrld::cpt::Camera>(camera_entity, 45, wrld::Main::get_window_viewport());
-        camera->set_program(shader);
-        world.attach_component<wrld::cpt::Transform>(camera_entity);
-        orbiter = world.attach_component<wrld::cpt::Orbiter>(camera_entity, model_entity, 2);
+        const EntityID camera_entity = world.create_entity("Camera");
+        camera = world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(),
+                                                     world.get_default<rsc::Program>());
+        world.attach_component<cpt::Transform>(camera_entity);
+        orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 2);
         orbiter->set_offset({0, 0, 0});
-        world.attach_component<wrld::cpt::Environment>(camera_entity)
-                ->set_ambiant_light(wrld::cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
+        world.attach_component<cpt::Environment>(camera_entity)
+                ->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 1.0, 1.0}, 0.0});
 
-        const wrld::EntityID dir_light = world.create_entity("Light");
-        world.attach_component<wrld::cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
-        world.attach_component<wrld::cpt::Transform>(dir_light)->look_towards({-1, 0, -1}, {0, 1, 0});
+        const EntityID dir_light = world.create_entity("Light");
+        world.attach_component<cpt::DirectionalLight>(dir_light, glm::vec3{1.0, 1.0, 1.0}, 1.0);
+        world.attach_component<cpt::Transform>(dir_light)->look_towards({-1, 0, -1}, {0, 1, 0});
 
         // bool show_demo_window = true;
         shade_reloading = false;
     }
 
-    void update(wrld::World &world, const double deltatime) override {
+    void update(World &world, const double deltatime) override {
         current_deltatime = deltatime;
 
         // Shader reloading
         {
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_R) == GLFW_PRESS && !shade_reloading) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_R) == GLFW_PRESS && !shade_reloading) {
                 shade_reloading = true;
-                camera->get_program()->reload();
+                camera->get_program().get_mut()->reload();
             }
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_R) == GLFW_RELEASE) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_R) == GLFW_RELEASE) {
                 shade_reloading = false;
             }
         }
@@ -77,29 +81,29 @@ public:
 
         // Orbiter control
         {
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_UP) == GLFW_PRESS) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_UP) == GLFW_PRESS) {
                 orbiter->set_vert_angle(orbiter->get_vert_angle() + camera_speed);
             }
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_DOWN) == GLFW_PRESS) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_DOWN) == GLFW_PRESS) {
                 orbiter->set_vert_angle(orbiter->get_vert_angle() - camera_speed);
             }
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_LEFT) == GLFW_PRESS) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_LEFT) == GLFW_PRESS) {
                 orbiter->set_hor_angle(orbiter->get_hor_angle() + camera_speed);
             }
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_RIGHT) == GLFW_PRESS) {
                 orbiter->set_hor_angle(orbiter->get_hor_angle() - camera_speed);
             }
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
                 orbiter->set_distance(orbiter->get_distance() * 0.95);
             }
-            if (glfwGetKey(wrld::Main::get_window(), GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) {
+            if (glfwGetKey(Main::get_window(), GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) {
                 orbiter->set_distance(orbiter->get_distance() / 0.95);
             }
             orbiter->update();
         }
     }
 
-    void ui(wrld::World &world) override {
+    void ui(World &world) override {
         static bool show_demo = false;
         static bool show_components = false;
         static bool show_resources = false;
@@ -117,23 +121,24 @@ public:
         if (show_demo)
             ImGui::ShowDemoWindow(&show_demo);
         if (show_components)
-            wrld::gui::render_component_window(world, &show_components);
+            gui::render_component_window(world, &show_components);
         if (show_resources)
-            wrld::gui::render_resources_window(world, &show_resources);
+            gui::render_resources_window(world, &show_resources);
     }
 
-    void exit(wrld::World &world) override { std::cout << "Goodbye!" << std::endl; }
+    void exit(World &world) override { std::cout << "Goodbye!" << std::endl; }
 
 private:
     // Input from user
     std::string model_path;
 
     // Data
-    std::shared_ptr<wrld::rsc::Model> model;
-    std::shared_ptr<wrld::cpt::Transform> model_transform;
-    std::shared_ptr<wrld::cpt::Camera> camera;
-    std::shared_ptr<wrld::cpt::Orbiter> orbiter;
-    std::shared_ptr<wrld::rsc::Program> shader;
+    Rc<rsc::Model> model;
+    Rc<rsc::Program> shader;
+
+    std::shared_ptr<cpt::Transform> model_transform;
+    std::shared_ptr<cpt::Camera> camera;
+    std::shared_ptr<cpt::Orbiter> orbiter;
 
     // Runtime variables
     bool shade_reloading = false;
@@ -146,6 +151,6 @@ int main() {
     ShaderView app("data/models/queen/queen.off");
 
     wrldInfo("Start");
-    wrld::Main::run(app, 1280, 900);
+    Main::run(app, 1280, 900);
     return 0;
 }

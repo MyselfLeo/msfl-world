@@ -64,9 +64,6 @@ namespace wrld::rsc {
 
         std::string get_type() const override { return "Program"; }
 
-        void load_default_resources() override;
-
-
     private:
         std::string vertex_shader_path = "wrld/shaders/vertex/default.glsl";
         std::string fragment_shader_path = "wrld/shaders/fragment/default.glsl";
