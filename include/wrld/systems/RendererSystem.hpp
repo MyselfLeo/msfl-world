@@ -86,7 +86,7 @@ namespace wrld {
 
         void draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix, const rsc::Program &program) const;
 
-        static void draw_mesh(const rsc::Mesh &mesh, const rsc::Program &program);
+        static void draw_mesh(const rsc::Mesh &mesh);
     };
 } // namespace wrld
 

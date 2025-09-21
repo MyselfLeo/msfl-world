@@ -16,7 +16,8 @@
 #include <GLFW/glfw3.h>
 
 namespace wrld {
-    DeferredRendererSystem::DeferredRendererSystem(World &world, GLFWwindow *window) : RendererSystem(world, window) {
+    DeferredRendererSystem::DeferredRendererSystem(World &world, GLFWwindow *window) :
+        RendererSystem(world, window), vao(0) {
         glGenVertexArrays(1, &vao);
 
         const auto pass1 = world.create_resource<rsc::Program>("pass1_program");

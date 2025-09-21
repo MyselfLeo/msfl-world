@@ -236,19 +236,26 @@ namespace wrld {
         // todo: switch to multi draw call
         // Draw meshes material by material
         for (const auto &mat: model.get_materials()) {
+            program.set_uniform("material", mat.get_ref());
+
             // meshes of this model with the given material
             const auto &meshes = mat.get_common_users(model.get_meshes());
+            //
+            // GLsizei draw_count = meshes.size();
+            // GLsizei count[draw_count] = {};
+            // void *indices[draw_count] = {};
 
-            for (auto &mesh_name: meshes) {
-                const auto &mesh = world.get_resource<rsc::Mesh>(mesh_name);
-                draw_mesh(mesh.get_ref(), program);
+            for (auto [i, mesh_name]: meshes | std::views::enumerate) {
+                const auto &mesh = world.get_resource<rsc::Mesh>(mesh_name).get_ref();
+                // count[i] = mesh.get_element_count();
+                // indices[i] = mesh.
+
+                draw_mesh(mesh);
             }
         }
-    }
+    } // namespace wrld
 
-    void RendererSystem::draw_mesh(const rsc::Mesh &mesh, const rsc::Program &program) {
-        program.set_uniform("material", mesh.get_material().get_ref());
-
+    void RendererSystem::draw_mesh(const rsc::Mesh &mesh) {
         glActiveTexture(GL_TEXTURE0);
 
         glBindVertexArray(mesh.get_vao());
