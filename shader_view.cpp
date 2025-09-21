@@ -16,6 +16,9 @@
 #include <wrld-gui/components.hpp>
 #include <wrld-gui/resources.hpp>
 
+#include <wrld/shaders/vertex/default_shader.hpp>
+#include <wrld/shaders/fragment/default_shader.hpp>
+
 #include "imgui.h"
 #include "assimp/postprocess.h"
 
@@ -31,7 +34,7 @@ public:
 
     void init(World &world) override {
         shader = world.create_resource<rsc::Program>("shader");
-        shader.get_mut()->from_file("wrld/shaders/vertex/default.glsl", "wrld/shaders/fragment/toonshading.glsl");
+        shader.get_mut()->from_source(shader::DEFAULT_VERTEX, shader::DEFAULT_FRAGMENT);
 
         model = world.create_resource<rsc::Model>("user_model");
         model.get_mut()->from_file(model_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
