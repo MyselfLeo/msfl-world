@@ -48,7 +48,7 @@ public:
 
         const EntityID camera_entity = world.create_entity("Camera");
         camera = world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(),
-                                                     world.get_default<rsc::Program>());
+                                                     shader);
         world.attach_component<cpt::Transform>(camera_entity);
         orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 2);
         orbiter->set_offset({0, 0, 0});

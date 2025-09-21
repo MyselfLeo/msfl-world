@@ -70,17 +70,19 @@ add_library(msfl_world STATIC
 )
 
 target_include_directories(msfl_world PUBLIC
-        "include"
-        #        "lib/glfw-3.4/include"
-        #        "lib/glm"
-        #        "lib/assimp-6.0.2/include"
-        #        "lib/imgui-1.92.2b"
-        #        "lib/imgui-1.92.2b/backends"
-        #        "lib/glad/include"
-        #        "lib/stb_image"
+        lib/glfw-3.4/include
+        lib/glm
+        lib/assimp-6.0.2/include
+        lib/imgui-1.92.2b
+        lib/imgui-1.92.2b/backends
+        lib/glad/include
+        lib/stb_image
+        src/wrld
+        include
 )
 
-target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
+
+target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
 
 add_executable(shader_view shader_view.cpp)
 target_link_libraries(shader_view msfl_world)

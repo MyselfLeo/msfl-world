@@ -57,6 +57,7 @@ namespace wrld::rsc {
         root_mesh = std::make_shared<MeshGraphNode>();
         root_mesh->meshes.push_back(mesh);
         meshes.push_back(mesh);
+        mesh_count = 1;
 
         loaded_materials.clear();
         loaded_materials.push_back(mesh.get()->get_material());

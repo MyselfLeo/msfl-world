@@ -15,6 +15,8 @@
 #include <wrld/shaders/skybox_shader.hpp>
 
 #include <format>
+#include <iostream>
+#include <wrld/logs.hpp>
 
 namespace wrld {
 
@@ -245,7 +247,6 @@ namespace wrld {
     }
 
     void RendererSystem::draw_mesh(const rsc::Mesh &mesh, const rsc::Program &program) {
-
         program.set_uniform("material", mesh.get_material().get_ref());
 
         glActiveTexture(GL_TEXTURE0);
