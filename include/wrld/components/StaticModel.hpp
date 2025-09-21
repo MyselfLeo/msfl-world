@@ -1,0 +1,27 @@
+//
+// Created by leo on 8/13/25.
+//
+
+#ifndef MODELCOMPONENT_HPP
+#define MODELCOMPONENT_HPP
+#include <wrld/components/Component.hpp>
+#include <wrld/resources/Model.hpp>
+
+namespace wrld::cpt {
+    /// Defines a model for an entity.
+    /// This model will be used to render the entity in the virtual world.
+    class StaticModel final : public Component {
+    public:
+        StaticModel(EntityID entity_id, World &world, const Rc<rsc::Model> &model);
+
+        [[nodiscard]] Rc<rsc::Model> get_model() const;
+        void set_model(const Rc<rsc::Model> &model);
+
+        std::string get_type() override { return "StaticModel"; }
+
+    private:
+        // std::shared_ptr<const rsc::Model> model;
+    };
+} // namespace wrld::cpt
+
+#endif // MODELCOMPONENT_HPP

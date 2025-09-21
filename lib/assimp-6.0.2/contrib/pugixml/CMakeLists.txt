@@ -106,7 +106,7 @@ set(libs)
 if (BUILD_SHARED_LIBS)
     add_library(pugixml-shared SHARED
             ${PROJECT_SOURCE_DIR}/scripts/pugixml_dll.rc
-            ${PROJECT_SOURCE_DIR}/wrld/pugixml.cpp)
+            ../../../../src/wrld/pugixml.cpp)
     add_library(pugixml::shared ALIAS pugixml-shared)
     list(APPEND libs pugixml-shared)
     string(CONCAT pugixml.msvc $<OR:
@@ -135,7 +135,7 @@ endif ()
 
 if (NOT BUILD_SHARED_LIBS OR PUGIXML_BUILD_SHARED_AND_STATIC_LIBS)
     add_library(pugixml-static STATIC
-            ${PROJECT_SOURCE_DIR}/wrld/pugixml.cpp)
+            ../../../../src/wrld/pugixml.cpp)
     add_library(pugixml::static ALIAS pugixml-static)
     list(APPEND libs pugixml-static)
 
@@ -265,8 +265,8 @@ if (PUGIXML_INSTALL)
 
     install(
             FILES
-            "${PROJECT_SOURCE_DIR}/wrld/pugiconfig.hpp"
-            "${PROJECT_SOURCE_DIR}/wrld/pugixml.hpp"
+            "../../../../src/wrld/pugiconfig.hpp"
+            "../../../../src/wrld/pugixml.hpp"
             DESTINATION
             ${CMAKE_INSTALL_INCLUDEDIR}${versioned-dir} COMPONENT ${PUGIXML_DEVELOPMENT_COMPONENT})
 endif ()

@@ -119,7 +119,7 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION lib
         INCLUDES DESTINATION ${INCLUDE_INSTALL_DIR}
 )
-install(FILES ${PROJECT_SOURCE_DIR}/wrld/zip.h DESTINATION ${INCLUDE_INSTALL_DIR}/zip)
+install(FILES ../../../../src/wrld/zip.h DESTINATION ${INCLUDE_INSTALL_DIR}/zip)
 
 # uninstall target (https://gitlab.kitware.com/cmake/community/wikis/FAQ#can-i-do-make-uninstall-with-cmake)
 if (NOT TARGET uninstall)

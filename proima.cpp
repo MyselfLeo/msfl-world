@@ -2,21 +2,23 @@
 // Created by leo on 9/12/25.
 //
 
-#include "App.hpp"
-#include "Main.hpp"
-#include "logs.hpp"
+#include <wrld/App.hpp>
+#include <wrld/Main.hpp>
+
+#include <wrld/components/Camera.hpp>
+#include <wrld/components/DirectionalLight.hpp>
+#include <wrld/components/FPSControl.hpp>
+#include <wrld/components/StaticModel.hpp>
+#include <wrld/components/Transform.hpp>
+#include <wrld/resources/Model.hpp>
+
+#include <wrld-gui/components.hpp>
+#include <wrld-gui/resources.hpp>
+
 #include "assimp/postprocess.h"
-#include "components/Camera.hpp"
-#include "components/DirectionalLight.hpp"
-#include "components/FPSControl.hpp"
-#include "components/StaticModel.hpp"
-#include "components/Transform.hpp"
-#include "resources/Model.hpp"
-#include "wrld-gui/components.hpp"
-#include "wrld-gui/resources.hpp"
 
 #include <iostream>
-#include <sys/stat.h>
+
 using namespace wrld;
 
 class ProIma final : public App {

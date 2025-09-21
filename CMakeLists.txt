@@ -23,77 +23,61 @@ add_subdirectory(lib/imgui-1.92.2b)
 include_directories(lib/imgui-1.92.2b)
 include_directories(lib/imgui-1.92.2b/backends)
 
-include_directories(lib/glad/include lib/stb_image wrld)
+include_directories(lib/glad/include lib/stb_image src/wrld)
 
 add_library(msfl_world STATIC
-
         # Libraries that are not compiled beforehand
         lib/glad/src/glad.c
         lib/stb_image/stb_image.cpp
 
         # Source code
-        wrld/resources/Program.hpp
-        wrld/resources/Program.cpp
-        wrld/resources/Texture.hpp
-        wrld/resources/Texture.cpp
-        wrld/components/Component.cpp
-        wrld/components/Component.hpp
-        wrld/components/Component.tpp
-        wrld/World.cpp
-        wrld/World.hpp
-        wrld/components/Transform.cpp
-        wrld/components/Transform.hpp
-        wrld/components/StaticModel.cpp
-        wrld/components/StaticModel.hpp
-        wrld/components/Camera.cpp
-        wrld/components/Camera.hpp
-        wrld/resources/Model.cpp
-        wrld/resources/Model.hpp
-        wrld/systems/RendererSystem.cpp
-        wrld/systems/RendererSystem.hpp
-        wrld/systems/DeferredRendererSystem.hpp
-        wrld/systems/DeferredRendererSystem.cpp
-        wrld/System.cpp
-        wrld/System.hpp
-        wrld/logs.hpp
-        wrld/components/PointLight.cpp
-        wrld/components/PointLight.hpp
-        wrld/components/DirectionalLight.cpp
-        wrld/components/DirectionalLight.hpp
-        wrld/components/FPSControl.cpp
-        wrld/components/FPSControl.hpp
-        wrld/resources/CubemapTexture.cpp
-        wrld/resources/CubemapTexture.hpp
-        wrld/components/Environment.cpp
-        wrld/components/Environment.hpp
-        wrld/resources/Material.hpp
-        wrld/resources/Material.cpp
-        wrld/resources/WindowFramebuffer.hpp
-        wrld/resources/WindowFramebuffer.cpp
-        wrld/components/Orbiter.hpp
-        wrld/components/Orbiter.cpp
-        wrld/resources/Resource.cpp
-        wrld/resources/Resource.hpp
-        wrld/resources/Resource.tpp
-        wrld/resources/Mesh.cpp
-        wrld/resources/Mesh.hpp
-        wrld/builtins.cpp
-        wrld/builtins.hpp
-        wrld-gui/components.hpp
-        wrld/App.hpp
-        wrld/Main.hpp
-        wrld/Main.cpp
-        wrld-gui/components.cpp
-        wrld-gui/resources.hpp
-        wrld-gui/resources.cpp
-        wrld/resources/Framebuffer.cpp
-        wrld/resources/Framebuffer.hpp
-        wrld/resources/DeferredFramebuffer.cpp
-        wrld/resources/DeferredFramebuffer.hpp
-        wrld/concepts.hpp
-        wrld/resources/Rc.cpp
-        wrld/resources/Rc.hpp
-        wrld/resources/Rc.tpp
+        src/wrld/World.cpp
+        src/wrld/System.cpp
+        src/wrld/builtins.cpp
+        src/wrld/Main.cpp
+
+
+        src/wrld/components/Component.cpp
+        src/wrld/components/Transform.cpp
+        src/wrld/components/StaticModel.cpp
+        src/wrld/components/Camera.cpp
+        src/wrld/components/PointLight.cpp
+        src/wrld/components/DirectionalLight.cpp
+        src/wrld/components/FPSControl.cpp
+        src/wrld/components/Environment.cpp
+        src/wrld/components/Orbiter.cpp
+
+
+        src/wrld/resources/Program.cpp
+        src/wrld/resources/Texture.cpp
+        src/wrld/resources/Model.cpp
+        src/wrld/resources/CubemapTexture.cpp
+        src/wrld/resources/Material.cpp
+        src/wrld/resources/WindowFramebuffer.cpp
+        src/wrld/resources/Resource.cpp
+        src/wrld/resources/Mesh.cpp
+        src/wrld/resources/Framebuffer.cpp
+        src/wrld/resources/DeferredFramebuffer.cpp
+        src/wrld/resources/Rc.cpp
+
+
+        src/wrld/systems/RendererSystem.cpp
+        src/wrld/systems/DeferredRendererSystem.cpp
+
+
+        src/wrld-gui/components.cpp
+        src/wrld-gui/resources.cpp
+)
+
+target_include_directories(msfl_world PUBLIC
+        "include"
+        #        "lib/glfw-3.4/include"
+        #        "lib/glm"
+        #        "lib/assimp-6.0.2/include"
+        #        "lib/imgui-1.92.2b"
+        #        "lib/imgui-1.92.2b/backends"
+        #        "lib/glad/include"
+        #        "lib/stb_image"
 )
 
 target_link_libraries(msfl_world glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)

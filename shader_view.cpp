@@ -2,34 +2,36 @@
 // Created by leo on 9/11/25.
 //
 
-#include "App.hpp"
-#include "Main.hpp"
-#include "builtins.hpp"
+#include <wrld/App.hpp>
+#include <wrld/Main.hpp>
+#include <wrld/builtins.hpp>
+#include <wrld/logs.hpp>
+#include <wrld/components/Camera.hpp>
+#include <wrld/components/DirectionalLight.hpp>
+#include <wrld/components/Orbiter.hpp>
+#include <wrld/components/StaticModel.hpp>
+#include <wrld/components/Transform.hpp>
+#include <wrld/resources/Model.hpp>
+
+#include <wrld-gui/components.hpp>
+#include <wrld-gui/resources.hpp>
+
 #include "imgui.h"
-#include "logs.hpp"
 #include "assimp/postprocess.h"
-#include "components/Camera.hpp"
-#include "components/DirectionalLight.hpp"
-#include "components/Orbiter.hpp"
-#include "components/StaticModel.hpp"
-#include "components/Transform.hpp"
-#include "resources/Model.hpp"
-#include "wrld-gui/components.hpp"
-#include "wrld-gui/resources.hpp"
 
 #include <iostream>
 
 using namespace wrld;
 
-class ShaderView final : public App {
+class BlobApp final : public App {
 public:
-    explicit ShaderView(const std::string &model_path) : model_path(model_path) {}
+    explicit BlobApp(const std::string &model_path) : model_path(model_path) {}
 
-    ~ShaderView() override {}
+    ~BlobApp() override {}
 
     void init(World &world) override {
         shader = world.create_resource<rsc::Program>("shader");
-        shader.get_mut()->set_shader("wrld/shaders/vertex/default.glsl", "wrld/shaders/fragment/toonshading.glsl");
+        shader.get_mut()->from_file("wrld/shaders/vertex/default.glsl", "wrld/shaders/fragment/toonshading.glsl");
 
         model = world.create_resource<rsc::Model>("user_model");
         model.get_mut()->from_file(model_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
@@ -148,7 +150,7 @@ private:
 };
 
 int main() {
-    ShaderView app("data/models/queen/queen.off");
+    BlobApp app("data/models/queen/queen.off");
 
     wrldInfo("Start");
     Main::run(app, 1280, 900);
