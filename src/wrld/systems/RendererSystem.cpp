@@ -222,7 +222,7 @@ namespace wrld {
     }
 
     void RendererSystem::draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix,
-                                    const rsc::Program &program) const {
+                                    const rsc::Program &program) {
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
@@ -233,25 +233,37 @@ namespace wrld {
         const glm::mat4x4 normal_model_matrix = glm::transpose(glm::inverse(model_matrix));
         program.set_uniform("model_normal", normal_model_matrix);
 
+        const auto &starts = model.get_meshes_start();
+        const auto &sizes = model.get_meshes_size();
+
         // todo: switch to multi draw call
         // Draw meshes material by material
         for (const auto &mat: model.get_materials()) {
             program.set_uniform("material", mat.get_ref());
+            const auto &meshes = model.get_material_meshes(mat.get_ref().get_name());
+            std::vector<int64_t> mat_starts{};
+            mat_starts.reserve(meshes.size());
+            std::vector<GLsizei> mat_sizes{};
+            mat_sizes.reserve(meshes.size());
+
+            for (const auto i: meshes) {
+                mat_starts.push_back(starts[i] * sizeof(GLuint));
+                mat_sizes.push_back(sizes[i]);
+            }
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindVertexArray(model.get_vao());
+            glMultiDrawElements(GL_TRIANGLES, mat_sizes.data(), GL_UNSIGNED_INT,
+                                reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
+            glBindVertexArray(0);
 
             // meshes of this model with the given material
-            const auto &meshes = mat.get_common_users(model.get_meshes());
+            // const auto &meshes = mat.get_common_users(model.get_meshes());
             //
-            // GLsizei draw_count = meshes.size();
-            // GLsizei count[draw_count] = {};
-            // void *indices[draw_count] = {};
-
-            for (auto [i, mesh_name]: meshes | std::views::enumerate) {
-                const auto &mesh = world.get_resource<rsc::Mesh>(mesh_name).get_ref();
-                // count[i] = mesh.get_element_count();
-                // indices[i] = mesh.
-
-                draw_mesh(mesh);
-            }
+            // for (auto [i, mesh_name]: meshes | std::views::enumerate) {
+            //     const auto &mesh = world.get_resource<rsc::Mesh>(mesh_name).get_ref();
+            //     draw_mesh(mesh);
+            // }
         }
     } // namespace wrld
 

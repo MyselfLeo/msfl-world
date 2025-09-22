@@ -49,9 +49,23 @@ namespace wrld::rsc {
         const std::vector<Rc<Material>> &get_materials() const;
         const std::vector<Rc<Mesh>> &get_meshes() const;
 
+        const std::vector<unsigned> &get_material_meshes(const std::string &mat_name) const;
+        const std::vector<size_t> &get_meshes_start() const;
+        const std::vector<size_t> &get_meshes_size() const;
+        const std::vector<Vertex> &get_vertices() const;
+        const std::vector<VertexID> &get_elements() const;
+
+        GLuint get_vao() const;
 
     private:
         friend class RendererSystem;
+
+        // const std::vector<unsigned> &get_material_meshes(const std::string &mat_name) const;
+        // const std::vector<size_t> &get_meshes_start() const;
+        // const std::vector<size_t> &get_meshes_size() const;
+        // const std::vector<Vertex> &get_vertices() const;
+        // const std::vector<VertexID> &get_elements() const;
+
 
         // todo: we store mesh references twice (in MeshGraphNode and in meshes)
         std::shared_ptr<MeshGraphNode> root_mesh;
@@ -60,9 +74,15 @@ namespace wrld::rsc {
 
         // todo: aggregate mesh data in one
         // question: are Meshes as resource even pertinent?
-        // GLuint vao, vbo, ebo;
-        // std::vector<size_t> meshes_start; // Start position of the meshes in the EBO
-        // std::vector<size_t> meshes_size;  // in vertices
+        GLuint vao, vbo, ebo;
+        std::vector<Vertex> vertices;
+        std::vector<VertexID> elements;
+        std::vector<size_t> meshes_start; // Start position of the meshes in the EBO
+        std::vector<size_t> meshes_size; // in vertices
+
+        // For each material, list the ids of the meshes using it.
+        std::unordered_map<std::string, std::vector<unsigned>> material_meshes;
+
         // std::vector<Rc<Material>> meshes_materials; // Material of each mesh
 
         ////// BELOW : Data & functions when model is loaded from file
@@ -81,6 +101,8 @@ namespace wrld::rsc {
         std::optional<Rc<Material>> custom_material;
 
         void reload_from_file();
+
+        void aggregate();
 
         std::vector<Rc<Material>> load_materials(const aiScene *scene);
 

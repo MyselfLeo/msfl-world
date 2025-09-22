@@ -63,6 +63,7 @@ namespace wrld::rsc {
         std::string get_type() const override { return "Mesh"; }
 
     private:
+        friend class Model;
         bool buffers_created = false;
 
         std::vector<Vertex> vertices;

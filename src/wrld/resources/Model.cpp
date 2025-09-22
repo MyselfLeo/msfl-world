@@ -12,7 +12,6 @@
 #include <format>
 #include <iostream>
 #include <stdexcept>
-#include <ranges>
 #include <utility>
 
 namespace wrld::rsc {
@@ -37,10 +36,10 @@ namespace wrld::rsc {
         return *this;
     }
 
-    Model::Model(std::string name, World &world /*, Rc<Resource> *rc*/) :
-        Resource(std::move(name), world), mesh_count(0), ai_flags(0), flip_textures(false) {}
+    Model::Model(std::string name, World &world) :
+        Resource(std::move(name), world), mesh_count(0), vao(0), vbo(0), ebo(0), ai_flags(0), flip_textures(false) {}
 
-    Model &Model::from_file(const std::string &model_path, unsigned ai_flags, bool flip_textures,
+    Model &Model::from_file(const std::string &model_path, const unsigned ai_flags, const bool flip_textures,
                             const std::optional<Rc<Material>> &custom_material) {
         this->model_path = model_path;
         model_directory = model_path.substr(0, model_path.find_last_of('/'));
@@ -49,6 +48,7 @@ namespace wrld::rsc {
         this->custom_material = custom_material;
 
         reload_from_file();
+        aggregate();
         return *this;
     }
 
@@ -61,6 +61,8 @@ namespace wrld::rsc {
 
         loaded_materials.clear();
         loaded_materials.push_back(mesh.get()->get_material());
+
+        aggregate();
 
         return *this;
     }
@@ -86,6 +88,88 @@ namespace wrld::rsc {
 
         meshes.clear();
         root_mesh = process_node(scene->mRootNode, scene);
+    }
+
+    void Model::aggregate() {
+        vertices.clear();
+        elements.clear();
+        meshes_start.clear();
+        meshes_size.clear();
+        // meshes_materials.clear();
+        material_meshes.clear();
+
+        // Pre-allocate vectors
+        meshes_start.reserve(meshes.size());
+        meshes_size.reserve(meshes.size());
+        // meshes_materials.reserve(meshes.size());
+
+        size_t total_vertex_size = 0;
+        size_t total_element_size = 0;
+        for (const auto &[i, m]: meshes | std::views::enumerate) {
+            total_vertex_size += m.get_ref().vertices.size();
+            total_element_size += m.get_ref().indices.size();
+
+            const auto &mat = m.get_ref().get_material().get_ref();
+            if (!material_meshes.contains(mat.get_name())) {
+                material_meshes.insert_or_assign(mat.get_name(), std::vector<unsigned>());
+            }
+
+            material_meshes.at(mat.get_name()).push_back(i);
+        }
+
+        vertices.reserve(total_vertex_size);
+        elements.reserve(total_element_size);
+
+        // Aggregate
+        for (const auto &m: meshes) {
+            const auto &mesh = m.get_ref();
+
+            meshes_start.push_back(elements.size());
+            meshes_size.push_back(mesh.indices.size());
+
+            for (const auto &e: mesh.indices) {
+                elements.push_back(e + vertices.size());
+            }
+
+            vertices.insert(vertices.end(), mesh.vertices.begin(), mesh.vertices.end());
+        }
+
+        // Update VAO/VBO/EBO
+        if (vao == 0)
+            glGenVertexArrays(1, &vao);
+        if (vbo == 0)
+            glGenBuffers(1, &vbo);
+        if (ebo == 0)
+            glGenBuffers(1, &ebo);
+
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned), elements.data(), GL_STATIC_DRAW);
+
+        // Vertex positions
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), static_cast<void *>(nullptr));
+
+        // Vertex normals
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              reinterpret_cast<void *>(offsetof(Vertex, normal)));
+
+        // Vertex colors
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              reinterpret_cast<void *>(offsetof(Vertex, color)));
+
+
+        // Vertex texture coordinates
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              reinterpret_cast<void *>(offsetof(Vertex, texcoords)));
+
+        glBindVertexArray(0);
     }
 
     std::vector<Rc<Material>> Model::load_materials(const aiScene *scene) {
@@ -119,6 +203,20 @@ namespace wrld::rsc {
     const std::shared_ptr<MeshGraphNode> &Model::get_root_mesh() const { return root_mesh; }
 
     const std::vector<Rc<Material>> &Model::get_materials() const { return loaded_materials; }
+
+    const std::vector<unsigned int> &Model::get_material_meshes(const std::string &mat_name) const {
+        return material_meshes.at(mat_name);
+    }
+
+    const std::vector<size_t> &Model::get_meshes_start() const { return meshes_start; }
+
+    const std::vector<size_t> &Model::get_meshes_size() const { return meshes_size; }
+
+    const std::vector<Vertex> &Model::get_vertices() const { return vertices; }
+
+    const std::vector<VertexID> &Model::get_elements() const { return elements; }
+
+    GLuint Model::get_vao() const { return vao; }
 
     const std::vector<Rc<Mesh>> &Model::get_meshes() const { return meshes; }
 
