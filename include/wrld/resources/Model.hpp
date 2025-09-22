@@ -5,15 +5,14 @@
 #ifndef MODEL_HPP
 #define MODEL_HPP
 
-#include <wrld/resources/Mesh.hpp>
-
-#include <vector>
-
-#include <wrld/resources/Texture.hpp>
 #include "assimp/scene.h"
+
+#include <wrld/resources/Mesh.hpp>
+#include <wrld/resources/Texture.hpp>
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 // todo: it may be easier to have subclasses "FileModel" (loaded from 3D file)
 // and "MeshModel" (loaded from a mesh in memory)
@@ -58,6 +57,13 @@ namespace wrld::rsc {
         std::shared_ptr<MeshGraphNode> root_mesh;
         std::vector<Rc<Mesh>> meshes;
         size_t mesh_count;
+
+        // todo: aggregate mesh data in one
+        // question: are Meshes as resource even pertinent?
+        // GLuint vao, vbo, ebo;
+        // std::vector<size_t> meshes_start; // Start position of the meshes in the EBO
+        // std::vector<size_t> meshes_size;  // in vertices
+        // std::vector<Rc<Material>> meshes_materials; // Material of each mesh
 
         ////// BELOW : Data & functions when model is loaded from file
 

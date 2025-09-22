@@ -26,7 +26,7 @@ namespace wrld::rsc {
 
     class Mesh : public Resource {
     public:
-        explicit Mesh(std::string name, World &world /*, Rc<Resource> *rc*/);
+        explicit Mesh(std::string name, World &world);
 
         Mesh(Mesh &other) = delete;
         Mesh(Mesh &&other) = delete;
@@ -67,9 +67,6 @@ namespace wrld::rsc {
 
         std::vector<Vertex> vertices;
         std::vector<VertexID> indices;
-        // std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
-
-        // std::shared_ptr<const Material> current_material;
 
         GLenum gl_primitive_type = GL_TRIANGLES;
         GLenum gl_usage = GL_STATIC_DRAW;
