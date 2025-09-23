@@ -2,6 +2,10 @@
 // Created by leo on 8/16/25.
 //
 
+#include "wrld/logs.hpp"
+
+
+#include <iostream>
 #include <wrld/shaders/vertex/default_shader.hpp>
 #include <wrld/shaders/fragment/deferred_pass1_shader.hpp>
 #include <wrld/shaders/deferred_pass2_shader.hpp>
@@ -110,12 +114,6 @@ namespace wrld {
             pass2_program.get_mut()->set_uniform(std::format("point_lights[{}].color", i), pl.color);
             pass2_program.get_mut()->set_uniform(std::format("point_lights[{}].intensity", i), pl.intensity);
         }
-
-        // pass2_program->set_uniform("point_light_nb", 1);
-        // pass2_program->set_uniform(std::format("point_lights[0].position"), glm::vec3(0, 0, 0));
-        // pass2_program->set_uniform(std::format("point_lights[0].color"), glm::vec3(1, 1, 1));
-        // pass2_program->set_uniform(std::format("point_lights[0].intensity"), 10.0f);
-
 
         // Directional light dependent uniforms
         pass2_program.get_mut()->set_uniform("directional_lights_nb", static_cast<unsigned>(directional_lights.size()));

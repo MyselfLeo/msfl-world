@@ -28,8 +28,6 @@ public:
     ~ProIma() override = default;
 
     void init(World &world) override {
-        Main::set_renderer_type(FORWARD_RENDERER);
-
         // Load a material to be shared by every mesh.
         // In rungholt.obj, each mesh represent a block type, and each has a specific material
         // If we let the Model importer do its job, we'll have too much materials (not worth it for now).
@@ -44,10 +42,10 @@ public:
         material.get_mut()->set_shininess(64);
 
         city_model = world.create_resource<rsc::Model>("city_model");
-        // city_model->from_file("data/models/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false,
-        //                       material);
-        city_model.get_mut()->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
+        city_model.get_mut()->from_file("data/models/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
                                         false, material);
+        // city_model.get_mut()->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
+        //                                 false, material);
 
         const EntityID city_entity = world.create_entity("City");
         world.attach_component<cpt::StaticModel>(city_entity, city_model);
@@ -137,6 +135,7 @@ private:
 
 int main() {
     ProIma app{};
+    Main::set_renderer_type(DEFERRED_RENDERER);
     Main::run(app, 1280, 900);
     return 0;
 }

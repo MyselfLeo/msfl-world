@@ -9,6 +9,7 @@
 
 #include <wrld/resources/Mesh.hpp>
 #include <wrld/resources/Texture.hpp>
+#include <wrld/tools/ModelTool.hpp>
 
 #include <memory>
 #include <unordered_map>
@@ -18,6 +19,12 @@
 // and "MeshModel" (loaded from a mesh in memory)
 
 namespace wrld::rsc {
+
+    /// Axis-aligned box (in a particular space).
+    struct BoundingBox {
+        glm::vec3 lower;
+        glm::vec3 upper;
+    };
 
     class MeshGraphNode {
     public:
@@ -32,7 +39,7 @@ namespace wrld::rsc {
     /// Stores multiple meshes in a tree representation
     class Model final : public Resource {
     public:
-        explicit Model(std::string name, World &world /*, Rc<Resource> *rc*/);
+        explicit Model(std::string name, World &world);
 
         /// Loads model from file
         Model &from_file(const std::string &model_path, unsigned ai_flags = 0, bool flip_textures = false,
@@ -54,19 +61,15 @@ namespace wrld::rsc {
         const std::vector<size_t> &get_meshes_size() const;
         const std::vector<Vertex> &get_vertices() const;
         const std::vector<VertexID> &get_elements() const;
-        // const std::vector<GLenum> &get_primitive_types() const;
+
+        /// Return the bounding box of this model in local space.
+        const BoundingBox &get_local_bb() const;
 
         GLuint get_vao() const;
 
     private:
         friend class RendererSystem;
-
-        // const std::vector<unsigned> &get_material_meshes(const std::string &mat_name) const;
-        // const std::vector<size_t> &get_meshes_start() const;
-        // const std::vector<size_t> &get_meshes_size() const;
-        // const std::vector<Vertex> &get_vertices() const;
-        // const std::vector<VertexID> &get_elements() const;
-
+        friend class ModelTool;
 
         // todo: we store mesh references twice (in MeshGraphNode and in meshes)
         std::shared_ptr<MeshGraphNode> root_mesh;
@@ -80,10 +83,12 @@ namespace wrld::rsc {
         std::vector<VertexID> elements;
         std::vector<size_t> meshes_start; // Start position of the meshes in the EBO
         std::vector<size_t> meshes_size; // in vertices
-        // std::vector<GLenum> primitive_types;
 
         // For each material, list the ids of the meshes using it.
         std::unordered_map<std::string, std::vector<unsigned>> material_meshes;
+
+        // Bounding box of the model in local space. Updated by Model::aggregate
+        BoundingBox local_bb;
 
         // std::vector<Rc<Material>> meshes_materials; // Material of each mesh
 
@@ -107,7 +112,11 @@ namespace wrld::rsc {
 
         void reload_from_file();
 
+        /// Query all meshes, build VAOs and bounding boxes
         void aggregate();
+
+        /// Compute local bounding box of this mesh.
+        BoundingBox compute_local_bb() const;
 
         std::vector<Rc<Material>> load_materials(const aiScene *scene);
 

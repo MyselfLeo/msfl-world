@@ -34,7 +34,6 @@ namespace wrld {
         wrldInfo("Initialising systems");
         // RendererSystem renderer{world, window};
         std::unique_ptr<RendererSystem> renderer = get_renderer();
-        // DeferredRendererSystem renderer{world, window};
 
         should_close = false;
         wrldInfo("Initializing app");

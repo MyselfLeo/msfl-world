@@ -169,8 +169,32 @@ namespace wrld::rsc {
         glEnableVertexAttribArray(3);
         glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<void *>(offsetof(Vertex, texcoords)));
-
         glBindVertexArray(0);
+
+        // Update bounding box
+        this->local_bb = compute_local_bb();
+    }
+
+    BoundingBox Model::compute_local_bb() const {
+        BoundingBox res = {glm::vec3(0), glm::vec3(0)};
+
+        for (const auto &v: vertices) {
+            if (v.position.x < res.lower.x)
+                res.lower.x = v.position.x;
+            if (v.position.y < res.lower.y)
+                res.lower.y = v.position.y;
+            if (v.position.z < res.lower.z)
+                res.lower.z = v.position.z;
+
+            if (v.position.x > res.upper.x)
+                res.upper.x = v.position.x;
+            if (v.position.y > res.upper.y)
+                res.upper.y = v.position.y;
+            if (v.position.z > res.upper.z)
+                res.upper.z = v.position.z;
+        }
+
+        return res;
     }
 
     std::vector<Rc<Material>> Model::load_materials(const aiScene *scene) {
@@ -216,6 +240,8 @@ namespace wrld::rsc {
     const std::vector<Vertex> &Model::get_vertices() const { return vertices; }
 
     const std::vector<VertexID> &Model::get_elements() const { return elements; }
+
+    const BoundingBox &Model::get_local_bb() const { return local_bb; }
 
     // const std::vector<GLenum> &Model::get_primitive_types() const { return primitive_types; }
 

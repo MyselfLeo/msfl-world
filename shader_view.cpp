@@ -37,7 +37,7 @@ public:
         shader.get_mut()->from_source(shader::DEFAULT_VERTEX, shader::DEFAULT_FRAGMENT);
 
         model = world.create_resource<rsc::Model>("user_model");
-        model.get_mut()->from_file(model_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+        model.get_mut()->from_file(model_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals, false);
 
         const EntityID model_entity = world.create_entity("Model");
         world.attach_component<cpt::StaticModel>(model_entity, model);
@@ -47,8 +47,7 @@ public:
         builtins::create_axis(world);
 
         const EntityID camera_entity = world.create_entity("Camera");
-        camera = world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(),
-                                                     shader);
+        camera = world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(), shader);
         world.attach_component<cpt::Transform>(camera_entity);
         orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 2);
         orbiter->set_offset({0, 0, 0});
