@@ -95,13 +95,13 @@ namespace wrld::rsc {
         elements.clear();
         meshes_start.clear();
         meshes_size.clear();
-        // meshes_materials.clear();
+        // primitive_types.clear();
         material_meshes.clear();
 
         // Pre-allocate vectors
         meshes_start.reserve(meshes.size());
         meshes_size.reserve(meshes.size());
-        // meshes_materials.reserve(meshes.size());
+        // primitive_types.reserve(meshes.size());
 
         size_t total_vertex_size = 0;
         size_t total_element_size = 0;
@@ -126,6 +126,7 @@ namespace wrld::rsc {
 
             meshes_start.push_back(elements.size());
             meshes_size.push_back(mesh.indices.size());
+            // primitive_types.push_back(mesh.get_gl_primitive_type());
 
             for (const auto &e: mesh.indices) {
                 elements.push_back(e + vertices.size());
@@ -216,6 +217,8 @@ namespace wrld::rsc {
 
     const std::vector<VertexID> &Model::get_elements() const { return elements; }
 
+    // const std::vector<GLenum> &Model::get_primitive_types() const { return primitive_types; }
+
     GLuint Model::get_vao() const { return vao; }
 
     const std::vector<Rc<Mesh>> &Model::get_meshes() const { return meshes; }
@@ -275,7 +278,7 @@ namespace wrld::rsc {
 
         mesh_count += 1;
 
-        new_mesh.get_mut()->update();
+        // new_mesh.get_mut()->update();
         return new_mesh;
     }
 

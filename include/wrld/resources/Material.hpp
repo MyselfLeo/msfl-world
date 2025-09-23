@@ -81,6 +81,11 @@ namespace wrld::rsc {
         // Config
         bool _use_mesh_color = true;
         bool _do_lighting = true;
+        GLenum primitive_type = GL_TRIANGLES;
+
+    public:
+        [[nodiscard]] GLenum get_primitive_type() const;
+        void set_primitive_type(const GLenum primitive_type);
     };
 } // namespace wrld::rsc
 

@@ -85,8 +85,6 @@ namespace wrld {
         void draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const;
 
         static void draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix, const rsc::Program &program);
-
-        static void draw_mesh(const rsc::Mesh &mesh);
     };
 } // namespace wrld
 

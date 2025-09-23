@@ -45,8 +45,8 @@ namespace wrld::rsc {
         ElementID add_element(VertexID vertex_id);
         VertexID &get_element(ElementID element_id);
 
-        Mesh &set_gl_primitive_type(GLenum type);
-        [[nodiscard]] GLenum get_gl_primitive_type() const;
+        // Mesh &set_gl_primitive_type(GLenum type);
+        // [[nodiscard]] GLenum get_gl_primitive_type() const;
 
         Mesh &set_gl_usage(GLenum usage);
         [[nodiscard]] GLenum get_gl_usage() const;
@@ -54,7 +54,7 @@ namespace wrld::rsc {
         [[nodiscard]] Rc<Material> get_material() const;
 
         /// Sends/Updates mesh data on the GPU, setup vao/vbo/ebo is required
-        void update();
+        // void update();
 
         [[nodiscard]] GLuint get_vao() const;
 
@@ -69,10 +69,10 @@ namespace wrld::rsc {
         std::vector<Vertex> vertices;
         std::vector<VertexID> indices;
 
-        GLenum gl_primitive_type = GL_TRIANGLES;
+        // GLenum gl_primitive_type = GL_TRIANGLES;
         GLenum gl_usage = GL_STATIC_DRAW;
 
-        GLuint vao = 0, vbo = 0, ebo = 0;
+        // GLuint vao = 0, vbo = 0, ebo = 0;
     };
 
 } // namespace wrld::rsc

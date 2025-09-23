@@ -54,4 +54,8 @@ namespace wrld::rsc {
     bool Material::is_using_mesh_color() const { return this->_use_mesh_color; }
 
     bool Material::is_doing_lighting() const { return this->_do_lighting; }
+
+    GLenum Material::get_primitive_type() const { return primitive_type; }
+
+    void Material::set_primitive_type(const GLenum primitive_type) { this->primitive_type = primitive_type; }
 } // namespace wrld::rsc

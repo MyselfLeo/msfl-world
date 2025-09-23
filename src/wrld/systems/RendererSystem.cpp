@@ -236,7 +236,6 @@ namespace wrld {
         const auto &starts = model.get_meshes_start();
         const auto &sizes = model.get_meshes_size();
 
-        // todo: switch to multi draw call
         // Draw meshes material by material
         for (const auto &mat: model.get_materials()) {
             program.set_uniform("material", mat.get_ref());
@@ -253,27 +252,9 @@ namespace wrld {
 
             glActiveTexture(GL_TEXTURE0);
             glBindVertexArray(model.get_vao());
-            glMultiDrawElements(GL_TRIANGLES, mat_sizes.data(), GL_UNSIGNED_INT,
+            glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(), GL_UNSIGNED_INT,
                                 reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
             glBindVertexArray(0);
-
-            // meshes of this model with the given material
-            // const auto &meshes = mat.get_common_users(model.get_meshes());
-            //
-            // for (auto [i, mesh_name]: meshes | std::views::enumerate) {
-            //     const auto &mesh = world.get_resource<rsc::Mesh>(mesh_name).get_ref();
-            //     draw_mesh(mesh);
-            // }
         }
     } // namespace wrld
-
-    void RendererSystem::draw_mesh(const rsc::Mesh &mesh) {
-        glActiveTexture(GL_TEXTURE0);
-
-        glBindVertexArray(mesh.get_vao());
-
-        glDrawElements(mesh.get_gl_primitive_type(), mesh.get_element_count(), GL_UNSIGNED_INT, nullptr);
-
-        glBindVertexArray(0);
-    }
 } // namespace wrld

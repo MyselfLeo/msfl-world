@@ -54,6 +54,7 @@ namespace wrld::rsc {
         const std::vector<size_t> &get_meshes_size() const;
         const std::vector<Vertex> &get_vertices() const;
         const std::vector<VertexID> &get_elements() const;
+        // const std::vector<GLenum> &get_primitive_types() const;
 
         GLuint get_vao() const;
 
@@ -79,6 +80,7 @@ namespace wrld::rsc {
         std::vector<VertexID> elements;
         std::vector<size_t> meshes_start; // Start position of the meshes in the EBO
         std::vector<size_t> meshes_size; // in vertices
+        // std::vector<GLenum> primitive_types;
 
         // For each material, list the ids of the meshes using it.
         std::unordered_map<std::string, std::vector<unsigned>> material_meshes;
@@ -99,6 +101,9 @@ namespace wrld::rsc {
         unsigned ai_flags;
         bool flip_textures;
         std::optional<Rc<Material>> custom_material;
+
+        GLenum gl_primitive_type = GL_TRIANGLES;
+        GLenum gl_usage = GL_STATIC_DRAW;
 
         void reload_from_file();
 

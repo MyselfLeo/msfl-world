@@ -10,12 +10,13 @@
 #include <wrld/resources/Model.hpp>
 
 namespace wrld::builtins {
-    Rc<rsc::Material> unlit_material(World &world) {
+    Rc<rsc::Material> grid_material(World &world) {
         static bool set = false;
         static Rc<rsc::Material> ptr;
 
         if (!set) {
-            ptr = world.create_resource<rsc::Material>("unlit");
+            ptr = world.create_resource<rsc::Material>("grid_material");
+            ptr.get_mut()->set_primitive_type(GL_LINES);
             ptr.get_mut()->do_lighting(false);
             set = true;
         }
@@ -62,9 +63,8 @@ namespace wrld::builtins {
         //       This will prevent having too much resources.
 
         const auto mesh = world.create_resource<rsc::Mesh>("grid_mesh");
-        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
-                unlit_material(world));
-        mesh.get_mut()->update();
+        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_material(grid_material(world));
+        // mesh.get_mut()->update();
 
         // Create model
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("grid_model");
@@ -103,9 +103,8 @@ namespace wrld::builtins {
         }
 
         const auto mesh = world.create_resource<rsc::Mesh>("axis_mesh");
-        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_gl_primitive_type(GL_LINES).set_material(
-                unlit_material(world));
-        mesh.get_mut()->update();
+        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_material(grid_material(world));
+        // mesh.get_mut()->update();
 
         // Create model
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("axis_model");
