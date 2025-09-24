@@ -24,19 +24,27 @@ namespace wrld {
     /// ResourceCounter
     template<ResourceConcept R>
     class Rc {
-        typedef std::unordered_map<std::type_index, std::unordered_set<EntityID>> UserComponentPool;
-        typedef std::unordered_map<std::type_index, std::unordered_set<std::string>> UserResourcePool;
+        typedef std::unordered_map<std::type_index, std::unordered_set<EntityID> > UserComponentPool;
+        typedef std::unordered_map<std::type_index, std::unordered_set<std::string> > UserResourcePool;
 
     public:
         Rc();
+
         Rc(std::string name, World &world);
 
         Rc(std::shared_ptr<R> ptr, std::shared_ptr<UserComponentPool> comp_users,
            std::shared_ptr<UserResourcePool> res_users);
 
+        const R *operator->() const;
+
+        R *operator->();
+
         const R *get() const;
+
         R *get_mut() const;
+
         std::shared_ptr<R> get_ptr() const;
+
         R &get_ref() const;
 
         template<ComponentConcept T>
@@ -66,10 +74,10 @@ namespace wrld {
         const std::unordered_set<std::string> &get_users() const;
 
         template<ComponentConcept T>
-        std::vector<EntityID> get_common_users(const std::vector<std::shared_ptr<const T>> &list) const;
+        std::vector<EntityID> get_common_users(const std::vector<std::shared_ptr<const T> > &list) const;
 
         template<ResourceConcept T>
-        std::vector<std::string> get_common_users(const std::vector<Rc<T>> &list) const;
+        std::vector<std::string> get_common_users(const std::vector<Rc<T> > &list) const;
 
         template<ResourceConcept T>
         Rc<T> as() const;
@@ -82,7 +90,6 @@ namespace wrld {
         std::shared_ptr<UserComponentPool> component_users;
         std::shared_ptr<UserResourcePool> resource_users;
     };
-
 } // namespace wrld
 
 #include <wrld/resources/Rc.tpp>
