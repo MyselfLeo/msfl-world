@@ -2,8 +2,7 @@
 // Created by leo on 8/15/25.
 //
 
-#ifndef MODEL_HPP
-#define MODEL_HPP
+#pragma once
 
 #include "assimp/scene.h"
 
@@ -131,5 +130,3 @@ namespace wrld::rsc {
     };
 
 } // namespace wrld::rsc
-
-#endif // MODEL_HPP

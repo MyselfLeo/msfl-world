@@ -2,8 +2,7 @@
 // Created by leo on 9/4/25.
 //
 
-#ifndef WINDOWVIEWPORT_HPP
-#define WINDOWVIEWPORT_HPP
+#pragma once
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
@@ -29,5 +28,3 @@ namespace wrld::rsc {
     };
 
 } // namespace wrld::rsc
-
-#endif // WINDOWVIEWPORT_HPP

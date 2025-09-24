@@ -1,9 +1,8 @@
 //
 // Created by leo on 9/18/25.
 //
+#pragma once
 
-#ifndef CONCEPTS_HPP
-#define CONCEPTS_HPP
 #include <type_traits>
 
 namespace wrld {
@@ -19,5 +18,3 @@ namespace wrld {
     concept ComponentConcept = std::is_base_of_v<Component, T>;
 
 } // namespace wrld
-
-#endif // CONCEPTS_HPP

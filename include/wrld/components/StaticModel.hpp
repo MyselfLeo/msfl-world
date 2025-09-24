@@ -2,8 +2,8 @@
 // Created by leo on 8/13/25.
 //
 
-#ifndef MODELCOMPONENT_HPP
-#define MODELCOMPONENT_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 #include <wrld/resources/Model.hpp>
 
@@ -23,5 +23,3 @@ namespace wrld::cpt {
         // std::shared_ptr<const rsc::Model> model;
     };
 } // namespace wrld::cpt
-
-#endif // MODELCOMPONENT_HPP

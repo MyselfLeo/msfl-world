@@ -2,8 +2,7 @@
 // Component.hpp
 //
 
-#ifndef COMPONENT_HPP
-#define COMPONENT_HPP
+#pragma once
 
 #include <format>
 #include <memory>
@@ -51,5 +50,3 @@ namespace wrld {
 } // namespace wrld
 
 #include <wrld/components/Component.tpp>
-
-#endif // COMPONENT_HPP

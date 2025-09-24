@@ -2,8 +2,8 @@
 // Created by leo on 9/6/25.
 //
 
-#ifndef MESH_HPP
-#define MESH_HPP
+#pragma once
+
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 
@@ -76,5 +76,3 @@ namespace wrld::rsc {
     };
 
 } // namespace wrld::rsc
-
-#endif // MESH_HPP

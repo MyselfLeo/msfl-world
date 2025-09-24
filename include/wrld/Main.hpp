@@ -2,8 +2,8 @@
 // Created by leo on 9/11/25.
 //
 
-#ifndef MAIN_HPP
-#define MAIN_HPP
+#pragma once
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -52,5 +52,3 @@ namespace wrld {
     };
 
 } // namespace wrld
-
-#endif // MAIN_HPP

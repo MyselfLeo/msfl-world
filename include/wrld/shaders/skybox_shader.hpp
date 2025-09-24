@@ -2,8 +2,8 @@
 // Created by leo on 9/21/25.
 //
 
-#ifndef SKYBOX_SHADER_HPP
-#define SKYBOX_SHADER_HPP
+#pragma once
+
 #include <string>
 
 namespace wrld::shader {
@@ -44,5 +44,3 @@ void main()
 )";
 
 }
-
-#endif // SKYBOX_SHADER_HPP

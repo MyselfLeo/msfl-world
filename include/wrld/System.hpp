@@ -2,8 +2,8 @@
 // Created by leo on 8/16/25.
 //
 
-#ifndef SYSTEM_HPP
-#define SYSTEM_HPP
+#pragma once
+
 #include <wrld/World.hpp>
 
 namespace wrld {
@@ -22,5 +22,3 @@ namespace wrld {
     };
 
 } // namespace wrld
-
-#endif // SYSTEM_HPP

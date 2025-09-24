@@ -2,8 +2,8 @@
 // Created by leo on 8/16/25.
 //
 
-#ifndef RENDERERSYSTEM_HPP
-#define RENDERERSYSTEM_HPP
+#pragma once
+
 #include <wrld/System.hpp>
 #include "GLFW/glfw3.h"
 #include <wrld/components/Camera.hpp>
@@ -87,5 +87,3 @@ namespace wrld {
         static void draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix, const rsc::Program &program);
     };
 } // namespace wrld
-
-#endif // RENDERERSYSTEM_HPP

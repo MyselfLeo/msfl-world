@@ -2,8 +2,8 @@
 // Created by leo on 9/23/25.
 //
 
-#ifndef MODELTOOL_HPP
-#define MODELTOOL_HPP
+#pragma once
+
 #include <wrld/resources/Rc.hpp>
 #include <wrld/resources/Model.hpp>
 
@@ -22,5 +22,3 @@ namespace wrld::tools {
     // };
 
 } // namespace wrld::tools
-
-#endif // MODELTOOL_HPP

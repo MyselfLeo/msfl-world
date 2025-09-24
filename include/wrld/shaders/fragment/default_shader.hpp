@@ -2,8 +2,8 @@
 // Created by leo on 9/21/25.
 //
 
-#ifndef DEFAULT_FRAGMENT_SHADER_HPP
-#define DEFAULT_FRAGMENT_SHADER_HPP
+#pragma once
+
 #include <string>
 
 namespace wrld::shader {
@@ -172,5 +172,3 @@ void main() {
 )";
 
 }
-
-#endif // DEFAULT_FRAGMENT_SHADER_HPP

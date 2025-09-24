@@ -2,8 +2,8 @@
 // Created by leo on 9/8/25.
 //
 
-#ifndef COMPONENTS_HPP
-#define COMPONENTS_HPP
+#pragma once
+
 #include <wrld/World.hpp>
 #include <wrld/components/Camera.hpp>
 #include <wrld/components/DirectionalLight.hpp>
@@ -199,5 +199,3 @@ namespace wrld::gui {
     void render_component_window(World &world, bool *p_open = nullptr);
 
 } // namespace wrld::gui
-
-#endif // COMPONENTS_HPP

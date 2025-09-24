@@ -2,8 +2,8 @@
 // Created by leo on 8/8/25.
 //
 
-#ifndef TEXTURE_HPP
-#define TEXTURE_HPP
+#pragma once
+
 #include <wrld/resources/Resource.hpp>
 #include "assimp/material.h"
 
@@ -41,5 +41,3 @@ namespace wrld::rsc {
         aiTextureType type = aiTextureType_DIFFUSE;
     };
 } // namespace wrld::rsc
-
-#endif // TEXTURE_HPP

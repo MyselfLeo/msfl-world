@@ -2,8 +2,8 @@
 // Created by leo on 9/21/25.
 //
 
-#ifndef DEFERRED_PASS2_SHADER_HPP
-#define DEFERRED_PASS2_SHADER_HPP
+#pragma once
+
 #include <string>
 
 namespace wrld::shader {
@@ -161,5 +161,3 @@ void main()
 )";
 
 }
-
-#endif // DEFERRED_PASS2_SHADER_HPP

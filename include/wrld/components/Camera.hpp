@@ -2,8 +2,8 @@
 // Created by leo on 8/13/25.
 //
 
-#ifndef CAMERACOMPONENT_HPP
-#define CAMERACOMPONENT_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 #include <wrld/resources/Program.hpp>
 #include <wrld/resources/WindowFramebuffer.hpp>
@@ -46,5 +46,3 @@ namespace wrld::cpt {
     };
 
 } // namespace wrld::cpt
-
-#endif // CAMERACOMPONENT_HPP

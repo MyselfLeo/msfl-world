@@ -2,10 +2,9 @@
 // Created by leo on 8/11/25.
 //
 
-#ifndef TRANSFORMCOMPONENT_HPP
-#define TRANSFORMCOMPONENT_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
-#include "glm/vec3.hpp"
 #include "glm/gtc/quaternion.hpp"
 
 namespace wrld::cpt {
@@ -49,5 +48,3 @@ namespace wrld::cpt {
     };
 
 } // namespace wrld::cpt
-
-#endif // TRANSFORMCOMPONENT_HPP

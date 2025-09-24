@@ -2,8 +2,8 @@
 // Created by leo on 9/11/25.
 //
 
-#ifndef APP_HPP
-#define APP_HPP
+#pragma once
+
 #include <wrld/World.hpp>
 
 namespace wrld {
@@ -18,5 +18,3 @@ namespace wrld {
     };
 
 } // namespace wrld
-
-#endif // APP_HPP

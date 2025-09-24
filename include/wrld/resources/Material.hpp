@@ -2,8 +2,8 @@
 // Created by leo on 9/2/25.
 //
 
-#ifndef MATERIAL_HPP
-#define MATERIAL_HPP
+#pragma once
+
 #include <wrld/resources/Resource.hpp>
 #include <wrld/resources/Texture.hpp>
 
@@ -88,5 +88,3 @@ namespace wrld::rsc {
         void set_primitive_type(const GLenum primitive_type);
     };
 } // namespace wrld::rsc
-
-#endif // MATERIAL_HPP

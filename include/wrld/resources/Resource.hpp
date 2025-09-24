@@ -2,8 +2,7 @@
 // Created by leo on 9/6/25.
 //
 
-#ifndef RESOURCE_HPP
-#define RESOURCE_HPP
+#pragma once
 
 #include <memory>
 #include <string>
@@ -55,7 +54,4 @@ namespace wrld {
     };
 } // namespace wrld
 
-// 👇 Implementation
 #include <wrld/resources/Resource.tpp>
-
-#endif // RESOURCE_HPP

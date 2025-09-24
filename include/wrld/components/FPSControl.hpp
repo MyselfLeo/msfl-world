@@ -2,8 +2,8 @@
 // Created by leo on 8/20/25.
 //
 
-#ifndef DEBUGMOVE_HPP
-#define DEBUGMOVE_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 #include "GLFW/glfw3.h"
 
@@ -40,5 +40,3 @@ namespace wrld::cpt {
     };
 
 } // namespace wrld::cpt
-
-#endif // DEBUGMOVE_HPP

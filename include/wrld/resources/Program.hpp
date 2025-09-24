@@ -2,8 +2,8 @@
 // Created by leo on 8/8/25.
 //
 
-#ifndef PROGRAM_HPP
-#define PROGRAM_HPP
+#pragma once
+
 #include <wrld/resources/Material.hpp>
 
 #include <string>
@@ -89,5 +89,3 @@ namespace wrld::rsc {
         static void compile_shader(GLuint gl_shader, const std::string &shader_src, ShaderType type);
     };
 } // namespace wrld::rsc
-
-#endif // PROGRAM_HPP

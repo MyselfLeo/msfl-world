@@ -2,8 +2,8 @@
 // Created by leo on 9/21/25.
 //
 
-#ifndef DEFAULT_VERTEX_SHADER_HPP
-#define DEFAULT_VERTEX_SHADER_HPP
+#pragma once
+
 #include <string>
 
 namespace wrld::shader {
@@ -37,5 +37,3 @@ void main()
 )";
 
 }
-
-#endif // DEFAULT_VERTEX_SHADER_HPP

@@ -2,8 +2,8 @@
 // Created by leo on 8/22/25.
 //
 
-#ifndef CUBEMAPTEXTURE_HPP
-#define CUBEMAPTEXTURE_HPP
+#pragma once
+
 #include <wrld/resources/Resource.hpp>
 #include "glad/glad.h"
 
@@ -35,5 +35,3 @@ namespace wrld::rsc {
     };
 
 } // namespace wrld::rsc
-
-#endif // CUBEMAPTEXTURE_HPP

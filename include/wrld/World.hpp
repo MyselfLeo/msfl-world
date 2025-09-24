@@ -2,8 +2,8 @@
 // Created by leo on 8/11/25.
 //
 
-#ifndef WORLD_HPP
-#define WORLD_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 #include <wrld/resources/Resource.hpp>
 #include <wrld/resources/Rc.hpp>
@@ -176,5 +176,3 @@ namespace wrld {
         bool entity_exists(EntityID id) const;
     };
 } // namespace wrld
-
-#endif // WORLD_HPP

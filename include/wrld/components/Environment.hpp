@@ -2,8 +2,8 @@
 // Created by leo on 8/22/25.
 //
 
-#ifndef ENVIRONMENT_HPP
-#define ENVIRONMENT_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 #include "glm/vec3.hpp"
 #include "glm/vec4.hpp"
@@ -56,5 +56,3 @@ namespace wrld::cpt {
     };
 
 } // namespace wrld::cpt
-
-#endif // ENVIRONMENT_HPP

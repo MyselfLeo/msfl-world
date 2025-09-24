@@ -2,8 +2,8 @@
 // Created by leo on 8/23/25.
 //
 
-#ifndef DIRECTIONALLIGHT_HPP
-#define DIRECTIONALLIGHT_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 #include <glm/vec3.hpp>
 
@@ -30,5 +30,3 @@ namespace wrld::cpt {
     };
 
 } // namespace wrld::cpt
-
-#endif // DIRECTIONALLIGHT_HPP

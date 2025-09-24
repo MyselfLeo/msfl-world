@@ -2,8 +2,8 @@
 // Created by leo on 9/12/25.
 //
 
-#ifndef VIEWPORT_HPP
-#define VIEWPORT_HPP
+#pragma once
+
 #include <wrld/resources/Resource.hpp>
 #include "glad/glad.h"
 
@@ -49,5 +49,3 @@ namespace wrld::rsc {
     };
 
 } // namespace wrld::rsc
-
-#endif // VIEWPORT_HPP

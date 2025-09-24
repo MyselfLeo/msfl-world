@@ -2,8 +2,8 @@
 // Created by leo on 8/19/25.
 //
 
-#ifndef POINTLIGHTCOMPONENT_HPP
-#define POINTLIGHTCOMPONENT_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 
 #include <glm/vec3.hpp>
@@ -28,5 +28,3 @@ namespace wrld::cpt {
     };
 
 } // namespace wrld::cpt
-
-#endif // POINTLIGHTCOMPONENT_HPP

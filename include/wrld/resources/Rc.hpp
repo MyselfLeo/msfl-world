@@ -2,8 +2,7 @@
 // Created by leo on 9/19/25.
 //
 
-#ifndef RC_HPP
-#define RC_HPP
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -24,8 +23,8 @@ namespace wrld {
     /// ResourceCounter
     template<ResourceConcept R>
     class Rc {
-        typedef std::unordered_map<std::type_index, std::unordered_set<EntityID> > UserComponentPool;
-        typedef std::unordered_map<std::type_index, std::unordered_set<std::string> > UserResourcePool;
+        typedef std::unordered_map<std::type_index, std::unordered_set<EntityID>> UserComponentPool;
+        typedef std::unordered_map<std::type_index, std::unordered_set<std::string>> UserResourcePool;
 
     public:
         Rc();
@@ -74,10 +73,10 @@ namespace wrld {
         const std::unordered_set<std::string> &get_users() const;
 
         template<ComponentConcept T>
-        std::vector<EntityID> get_common_users(const std::vector<std::shared_ptr<const T> > &list) const;
+        std::vector<EntityID> get_common_users(const std::vector<std::shared_ptr<const T>> &list) const;
 
         template<ResourceConcept T>
-        std::vector<std::string> get_common_users(const std::vector<Rc<T> > &list) const;
+        std::vector<std::string> get_common_users(const std::vector<Rc<T>> &list) const;
 
         template<ResourceConcept T>
         Rc<T> as() const;
@@ -93,5 +92,3 @@ namespace wrld {
 } // namespace wrld
 
 #include <wrld/resources/Rc.tpp>
-
-#endif // RC_HPP

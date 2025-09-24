@@ -2,8 +2,8 @@
 // Created by leo on 9/4/25.
 //
 
-#ifndef ORBITERCONTROL_HPP
-#define ORBITERCONTROL_HPP
+#pragma once
+
 #include <wrld/components/Component.hpp>
 
 #include <glm/vec3.hpp>
@@ -62,5 +62,3 @@ namespace wrld::cpt {
     };
 
 } // namespace wrld::cpt
-
-#endif // ORBITERCONTROL_HPP

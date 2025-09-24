@@ -2,8 +2,8 @@
 // Created by leo on 8/16/25.
 //
 
-#ifndef DEFFEREDRENDERERSYSTEM_HPP
-#define DEFFEREDRENDERERSYSTEM_HPP
+#pragma once
+
 #include <wrld/components/Camera.hpp>
 #include <wrld/systems/RendererSystem.hpp>
 #include <wrld/resources/DeferredFramebuffer.hpp>
@@ -69,5 +69,3 @@ namespace wrld {
         // static void draw_mesh(const rsc::Mesh &mesh, const rsc::Program &program);
     };
 } // namespace wrld
-
-#endif // DEFFEREDRENDERERSYSTEM_HPP
