@@ -38,8 +38,6 @@ namespace wrld::cpt {
 
         std::string get_type() override { return "Camera"; }
 
-        // void load_default_resources() override;
-
     private:
         static const glm::vec3 UP_VECTOR;
         float fov;
