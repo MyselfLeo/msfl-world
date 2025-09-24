@@ -25,17 +25,51 @@ include_directories(lib/imgui-1.92.2b/backends)
 
 include_directories(lib/glad/include lib/stb_image src/wrld)
 
-add_library(msfl_world STATIC
-        # Libraries that are not compiled beforehand
-        lib/glad/src/glad.c
-        lib/stb_image/stb_image.cpp
+set(HEADERS
+        include/wrld/World.hpp
+        include/wrld/System.hpp
+        include/wrld/builtins.hpp
+        include/wrld/Main.hpp
 
-        # Source code
+        include/wrld/components/Component.hpp
+        include/wrld/components/Component.tpp
+        include/wrld/components/Transform.hpp
+        include/wrld/components/StaticModel.hpp
+        include/wrld/components/Camera.hpp
+        include/wrld/components/PointLight.hpp
+        include/wrld/components/DirectionalLight.hpp
+        include/wrld/components/FPSControl.hpp
+        include/wrld/components/Environment.hpp
+        include/wrld/components/Orbiter.hpp
+
+        include/wrld/resources/Program.hpp
+        include/wrld/resources/Texture.hpp
+        include/wrld/resources/Model.hpp
+        include/wrld/resources/CubemapTexture.hpp
+        include/wrld/resources/Material.hpp
+        include/wrld/resources/WindowFramebuffer.hpp
+        include/wrld/resources/Resource.hpp
+        include/wrld/resources/Resource.tpp
+        include/wrld/resources/Mesh.hpp
+        include/wrld/resources/Framebuffer.hpp
+        include/wrld/resources/DeferredFramebuffer.hpp
+        include/wrld/resources/Rc.hpp
+        include/wrld/resources/Rc.tpp
+
+        include/wrld/systems/RendererSystem.hpp
+        include/wrld/systems/DeferredRendererSystem.hpp
+
+        include/wrld/tools/ModelTool.hpp
+
+        include/wrld-gui/components.hpp
+        include/wrld-gui/resources.hpp
+)
+
+set(SOURCE
         src/wrld/World.cpp
         src/wrld/System.cpp
         src/wrld/builtins.cpp
         src/wrld/Main.cpp
-
 
         src/wrld/components/Component.cpp
         src/wrld/components/Transform.cpp
@@ -46,7 +80,6 @@ add_library(msfl_world STATIC
         src/wrld/components/FPSControl.cpp
         src/wrld/components/Environment.cpp
         src/wrld/components/Orbiter.cpp
-
 
         src/wrld/resources/Program.cpp
         src/wrld/resources/Texture.cpp
@@ -60,13 +93,21 @@ add_library(msfl_world STATIC
         src/wrld/resources/DeferredFramebuffer.cpp
         src/wrld/resources/Rc.cpp
 
-
         src/wrld/systems/RendererSystem.cpp
         src/wrld/systems/DeferredRendererSystem.cpp
 
-
         src/wrld-gui/components.cpp
         src/wrld-gui/resources.cpp
+
+        src/wrld/tools/ModelTool.cpp
+)
+
+add_library(msfl_world STATIC
+        # Libraries that are not compiled beforehand
+        lib/glad/src/glad.c
+        lib/stb_image/stb_image.cpp
+        ${HEADERS}
+        ${SOURCE}
 )
 
 target_include_directories(msfl_world PUBLIC
