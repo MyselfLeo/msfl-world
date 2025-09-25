@@ -34,9 +34,7 @@ namespace wrld {
         Rc(std::shared_ptr<R> ptr, std::shared_ptr<UserComponentPool> comp_users,
            std::shared_ptr<UserResourcePool> res_users);
 
-        const R *operator->() const;
-
-        R *operator->();
+        R *operator->() const;
 
         const R *get() const;
 

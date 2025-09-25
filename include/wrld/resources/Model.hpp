@@ -18,7 +18,6 @@
 // and "MeshModel" (loaded from a mesh in memory)
 
 namespace wrld::rsc {
-
     /// Axis-aligned box (in a particular space).
     struct BoundingBox {
         glm::vec3 lower;
@@ -28,7 +27,9 @@ namespace wrld::rsc {
     class MeshGraphNode {
     public:
         MeshGraphNode() = default;
+
         MeshGraphNode(MeshGraphNode &&other) noexcept;
+
         MeshGraphNode &operator=(MeshGraphNode &&other) noexcept;
 
         std::vector<Rc<Mesh>> meshes;
@@ -48,18 +49,27 @@ namespace wrld::rsc {
         Model &from_mesh(const Rc<Mesh> &mesh);
 
         [[nodiscard]] size_t get_mesh_count() const;
+
         [[nodiscard]] const std::shared_ptr<MeshGraphNode> &get_root_mesh() const;
 
         std::string get_type() const override { return "Model"; }
 
         const std::vector<Rc<Material>> &get_materials() const;
+
         const std::vector<Rc<Mesh>> &get_meshes() const;
 
         const std::vector<unsigned> &get_material_meshes(const std::string &mat_name) const;
+
         const std::vector<size_t> &get_meshes_start() const;
+
         const std::vector<size_t> &get_meshes_size() const;
+
         const std::vector<Vertex> &get_vertices() const;
+
         const std::vector<VertexID> &get_elements() const;
+
+        /// Query all meshes, build VAOs and bounding boxes
+        void aggregate();
 
         /// Return the bounding box of this model in local space.
         const BoundingBox &get_local_bb() const;
@@ -111,9 +121,6 @@ namespace wrld::rsc {
 
         void reload_from_file();
 
-        /// Query all meshes, build VAOs and bounding boxes
-        void aggregate();
-
         /// Compute local bounding box of this mesh.
         BoundingBox compute_local_bb() const;
 
@@ -128,5 +135,4 @@ namespace wrld::rsc {
         std::vector<Rc<Texture>> load_textures(const aiMaterial *material, aiTextureType type, const aiScene *scene,
                                                bool flip_textures, unsigned max = 1);
     };
-
 } // namespace wrld::rsc

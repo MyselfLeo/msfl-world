@@ -28,14 +28,14 @@ namespace wrld {
     }
 
     template<ResourceConcept R>
-    const R *Rc<R>::operator->() const {
+    R *Rc<R>::operator->() const {
         return resource.get();
     }
 
-    template<ResourceConcept R>
-    R *Rc<R>::operator->() {
-        return resource.get();
-    }
+    // template<ResourceConcept R>
+    // R *Rc<R>::operator->() {
+    //     return resource.get();
+    // }
 
     template<ResourceConcept R>
     const R *Rc<R>::get() const {
