@@ -8,7 +8,7 @@ namespace wrld::gui {
     void render_component_window(World &world, bool *p_open) {
         ImGui::Begin("Scene", p_open);
         for (const auto &[ent_id, ent_name]: world.get_entities()) {
-            if (ImGui::TreeNode(ent_name.c_str())) {
+            if (ImGui::TreeNode(std::format("{}##{}", ent_name, ent_id).c_str())) {
                 ImGui::Text("%s", std::format("Entity ID: {}", ent_id).c_str());
 
                 auto component_types = world.get_components_of_entity(ent_id);
@@ -21,6 +21,7 @@ namespace wrld::gui {
                 ImGui::TreePop();
             }
         }
+
         ImGui::End();
     }
 

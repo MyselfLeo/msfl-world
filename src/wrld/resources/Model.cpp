@@ -15,6 +15,31 @@
 #include <utility>
 
 namespace wrld::rsc {
+    std::vector<glm::vec3> BoundingBox::vertices() const {
+        /*   6           upper
+         *      +---------+
+         *     /|        /|
+         * 4  / |     5 / |
+         *   +---------+  |              y
+         *   |  +----- | -+              |  z
+         *   | / 2     | /  3            | /
+         *   |/        |/                |/
+         *   +---------+                 +--- x
+         * lower        1
+         */
+        std::vector<glm::vec3> res(8);
+        res[0] = lower;
+        res[1] = {upper.x, lower.y, lower.z};
+        res[2] = {lower.x, lower.y, upper.z};
+        res[3] = {upper.x, lower.y, upper.z};
+        res[4] = {lower.x, upper.y, lower.z};
+        res[5] = {upper.x, upper.y, lower.z};
+        res[6] = {lower.x, upper.y, upper.z};
+        res[7] = upper;
+
+        return res;
+    }
+
     MeshGraphNode::MeshGraphNode(MeshGraphNode &&other) noexcept : meshes(std::move(other.meshes)) {
         children.reserve(other.children.size());
         for (auto &child: other.children) {

@@ -17,6 +17,7 @@
 #include <format>
 #include <iostream>
 #include <wrld/logs.hpp>
+#include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
 
@@ -53,6 +54,8 @@ namespace wrld {
 
     GLFWwindow *RendererSystem::get_window() const { return window; }
 
+    unsigned RendererSystem::get_visible_models() const { return visible_models; }
+
     glm::mat4x4 RendererSystem::get_entity_transform(const EntityID id) const {
         if (const auto transform_cmpnt = world.get_component_opt<cpt::Transform>(id))
             return transform_cmpnt.value()->model_matrix();
@@ -78,7 +81,7 @@ namespace wrld {
         return shdr.value()->get_program();
     }*/
 
-    void RendererSystem::render_camera(const cpt::Camera &camera) const {
+    void RendererSystem::render_camera(const cpt::Camera &camera) {
         const rsc::Program &program = camera.get_program().get_ref();
 
         // Todo: In the future, a camera should be attached to a viewport
@@ -127,11 +130,17 @@ namespace wrld {
         }
 
         // Find each entity with a model, get its transform, and render it.
+        visible_models = 0;
         for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
              const auto entity: model_entities) {
-            const auto model_cmpnt = world.get_component_opt<cpt::StaticModel>(entity).value();
-            const auto &model = model_cmpnt->get_model();
+            // Skip unseen models
+            if (!tools::Geometry::is_visible(world, entity, camera.get_entity()))
+                continue;
 
+            visible_models += 1;
+
+            const auto model_cmpnt = world.get_component<cpt::StaticModel>(entity);
+            const auto &model = model_cmpnt->get_model();
             glm::mat4x4 model_matrix = get_entity_transform(entity);
 
             // Actual draw call

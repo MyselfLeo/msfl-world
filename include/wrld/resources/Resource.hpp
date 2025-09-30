@@ -7,9 +7,11 @@
 #include <memory>
 #include <string>
 #include <format>
+#include <iostream>
 #include <unordered_map>
 
 #include <wrld/concepts.hpp>
+#include <wrld/logs.hpp>
 
 namespace wrld {
     class Component;
@@ -20,7 +22,8 @@ namespace wrld {
 
     class Resource : public std::enable_shared_from_this<Resource> {
     public:
-        virtual ~Resource() = default;
+        virtual ~Resource() { wrldInfo(std::format("Resource '{}' got freed", get_name())); }
+
         explicit Resource(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         // todo: move to a higher class common with component

@@ -9,9 +9,8 @@
 #include <utility>
 
 namespace wrld::rsc {
-    Mesh::Mesh(std::string name, World &world /*, Rc<Resource> *rc*/) : Resource(std::move(name), world /*, rc*/) {
+    Mesh::Mesh(std::string name, World &world) : Resource(std::move(name), world) {
         attach_resource("current_material", world.get_default<Material>());
-        // update();
     }
 
     // Mesh::Mesh(std::string name, World &world, const std::shared_ptr<Material> &default_material,

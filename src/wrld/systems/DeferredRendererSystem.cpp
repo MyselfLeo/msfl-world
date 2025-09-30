@@ -18,6 +18,7 @@
 #include <wrld/components/StaticModel.hpp>
 
 #include <GLFW/glfw3.h>
+#include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
     DeferredRendererSystem::DeferredRendererSystem(World &world, GLFWwindow *window) :
@@ -42,7 +43,7 @@ namespace wrld {
 
     DeferredRendererSystem::~DeferredRendererSystem() { glDeleteVertexArrays(1, &vao); }
 
-    void DeferredRendererSystem::render_camera(const cpt::Camera &camera) const {
+    void DeferredRendererSystem::render_camera(const cpt::Camera &camera) {
         // wrldInfo("Rendering");
         //  FIRST PASS
 
@@ -58,8 +59,14 @@ namespace wrld {
         pass1_program.get_mut()->set_uniform("projection", projection_matrix);
 
         // Find each entity with a model, get its transform, and render it.
+        visible_models = 0;
         for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
              const auto entity: model_entities) {
+            // Skip unseen models
+            if (!tools::Geometry::is_visible(world, entity, camera.get_entity()))
+                continue;
+
+            visible_models += 1;
             const auto model_cmpnt = world.get_component_opt<cpt::StaticModel>(entity).value();
             const auto &model = model_cmpnt->get_model();
 
@@ -68,7 +75,6 @@ namespace wrld {
             // Actual draw call
             draw_model(model.get_ref(), model_matrix, pass1_program.get_ref());
         }
-
 
         // SECOND PASS
         const auto &window_fb = Main::get_window_viewport();

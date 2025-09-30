@@ -18,6 +18,8 @@
 #include "assimp/postprocess.h"
 
 #include <iostream>
+#include <wrld/logs.hpp>
+#include <wrld/tools/ModelTool.hpp>
 
 using namespace wrld;
 
@@ -41,15 +43,25 @@ public:
         material.get_mut()->set_specular_intensity(0.9);
         material.get_mut()->set_shininess(64);
 
-        city_model = world.create_resource<rsc::Model>("city_model");
+        auto city_model = world.create_resource<rsc::Model>("city_model");
         city_model.get_mut()->from_file("data/models/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
                                         false, material);
+
+        wrldInfo("Splitting model");
+        const auto &split_models = tools::ModelTool::split_in_grid(world, city_model, 30);
+        world.destroy_resource<rsc::Model>(city_model);
+
+        // Create an entity for each split models
+        for (const auto &s: split_models) {
+            const EntityID city_crumb = world.create_entity("city_crumb");
+            world.attach_component<cpt::StaticModel>(city_crumb, s);
+        }
+
+
         // city_model.get_mut()->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
         //                                 false, material);
 
-        const EntityID city_entity = world.create_entity("City");
-        world.attach_component<cpt::StaticModel>(city_entity, city_model);
-        world.attach_component<cpt::Transform>(city_entity);
+        // const EntityID city_entity = world.create_entity("City");
 
         const EntityID camera_entity = world.create_entity("Camera");
         world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(),
@@ -120,9 +132,10 @@ public:
     void exit(World &world) override {}
 
 private:
-    static constexpr int LIGHT_COUNT = 100;
+    // static constexpr int LIGHT_COUNT = 100;
+    static constexpr int LIGHT_COUNT = 1;
 
-    Rc<rsc::Model> city_model;
+    // Rc<rsc::Model> city_model;
     std::shared_ptr<cpt::FPSControl> control;
 
     std::array<std::shared_ptr<cpt::Transform>, LIGHT_COUNT> light_transforms;

@@ -60,6 +60,7 @@ set(HEADERS
         include/wrld/systems/DeferredRendererSystem.hpp
 
         include/wrld/tools/ModelTool.hpp
+        include/wrld/tools/Geometry.hpp
 
         include/wrld-gui/components.hpp
         include/wrld-gui/resources.hpp
@@ -96,10 +97,11 @@ set(SOURCE
         src/wrld/systems/RendererSystem.cpp
         src/wrld/systems/DeferredRendererSystem.cpp
 
+        src/wrld/tools/ModelTool.cpp
+        src/wrld/tools/Geometry.cpp
+
         src/wrld-gui/components.cpp
         src/wrld-gui/resources.cpp
-
-        src/wrld/tools/ModelTool.cpp
 )
 
 add_library(msfl_world STATIC

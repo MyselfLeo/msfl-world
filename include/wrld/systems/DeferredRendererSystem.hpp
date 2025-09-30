@@ -47,7 +47,7 @@ namespace wrld {
         // /// It's either the one defined using a cpt::Shader or the default one.
         // [[nodiscard]] Program get_entity_program(EntityID id) const;*/
 
-        void render_camera(const cpt::Camera &camera) const override;
+        void render_camera(const cpt::Camera &camera) override;
 
         // /// Return the environment attached to the camera, or a default one if not provided.
         // [[nodiscard]] EnvironmentData get_environment(const cpt::Camera &camera) const;

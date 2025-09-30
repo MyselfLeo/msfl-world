@@ -69,6 +69,9 @@ namespace wrld::rsc {
         std::vector<Vertex> vertices;
         std::vector<VertexID> indices;
 
+        // todo: compute BoundingBox here
+        // add each add_vertex we can update the BB
+
         // GLenum gl_primitive_type = GL_TRIANGLES;
         GLenum gl_usage = GL_STATIC_DRAW;
 

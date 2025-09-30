@@ -82,6 +82,10 @@ namespace wrld {
         template<ResourceConcept T>
         Rc<T> *as_ptr();
 
+        /// Delete this Rc's shared ptrs.
+        /// It must not be used after this call.
+        void invalidate();
+
     private:
         std::shared_ptr<R> resource;
         std::shared_ptr<UserComponentPool> component_users;

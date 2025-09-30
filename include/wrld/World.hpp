@@ -139,6 +139,15 @@ namespace wrld {
             return resources.at(std::type_index(typeid(R)))[name].as<R>();
         }
 
+        /// Destroy the resource. It may still live until every Rc<R> is destroyed.
+        /// Invalidate the given rc.
+        template<ResourceConcept R>
+        void destroy_resource(Rc<R> &rc) {
+            const std::string name = rc->get_name();
+            rc.invalidate();
+            resources.at(std::type_index(typeid(R))).erase(name);
+        }
+
         template<ResourceConcept R>
         Rc<R> get_default() {
             if (!default_resources.contains(std::type_index(typeid(R)))) {

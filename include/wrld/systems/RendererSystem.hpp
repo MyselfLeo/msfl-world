@@ -47,10 +47,16 @@ namespace wrld {
         void exec() override;
         [[nodiscard]] GLFWwindow *get_window() const;
 
+        /// Return the amount of models visible by the active camera.
+        [[nodiscard]] unsigned get_visible_models() const;
+
     protected:
         GLFWwindow *window;
 
         Rc<rsc::Program> skybox_program;
+
+        /// Amount of visible models on the active camera.
+        unsigned visible_models = 0;
 
         /// Return the entity's transform or a default one if not provided.
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;
@@ -63,11 +69,7 @@ namespace wrld {
         /// component.
         [[nodiscard]] Rc<rsc::Model> get_entity_model(EntityID id) const;
 
-        /*/// Return the program (shader) which shall be used to render an entity.
-        /// It's either the one defined using a cpt::Shader or the default one.
-        [[nodiscard]] Program get_entity_program(EntityID id) const;*/
-
-        virtual void render_camera(const cpt::Camera &camera) const;
+        virtual void render_camera(const cpt::Camera &camera);
 
         /// Return the environment attached to the camera, or a default one if not provided.
         [[nodiscard]] EnvironmentData get_environment(const cpt::Camera &camera) const;

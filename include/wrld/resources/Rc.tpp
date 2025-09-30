@@ -9,8 +9,7 @@
 
 namespace wrld {
     template<ResourceConcept R>
-    Rc<R>::Rc() : component_users({}), resource_users({}) {
-    }
+    Rc<R>::Rc() : component_users({}), resource_users({}) {}
 
     template<ResourceConcept R>
     Rc<R>::Rc(std::string name, World &world) {
@@ -22,10 +21,8 @@ namespace wrld {
 
     template<ResourceConcept R>
     Rc<R>::Rc(std::shared_ptr<R> ptr, std::shared_ptr<UserComponentPool> comp_users,
-              std::shared_ptr<UserResourcePool> res_users) : resource(std::move(ptr)),
-                                                             component_users(std::move(comp_users)),
-                                                             resource_users(std::move(res_users)) {
-    }
+              std::shared_ptr<UserResourcePool> res_users) :
+        resource(std::move(ptr)), component_users(std::move(comp_users)), resource_users(std::move(res_users)) {}
 
     template<ResourceConcept R>
     R *Rc<R>::operator->() const {
@@ -137,7 +134,7 @@ namespace wrld {
 
     template<ResourceConcept R>
     template<ComponentConcept T>
-    std::vector<EntityID> Rc<R>::get_common_users(const std::vector<std::shared_ptr<const T> > &list) const {
+    std::vector<EntityID> Rc<R>::get_common_users(const std::vector<std::shared_ptr<const T>> &list) const {
         const auto &type_index = std::type_index(typeid(T));
         if (!component_users->contains(type_index))
             return {};
@@ -156,7 +153,7 @@ namespace wrld {
 
     template<ResourceConcept R>
     template<ResourceConcept T>
-    std::vector<std::string> Rc<R>::get_common_users(const std::vector<Rc<T> > &list) const {
+    std::vector<std::string> Rc<R>::get_common_users(const std::vector<Rc<T>> &list) const {
         const auto &type_index = std::type_index(typeid(T));
         if (!resource_users->contains(type_index))
             return {};
@@ -188,6 +185,13 @@ namespace wrld {
     template<ResourceConcept T>
     Rc<T> *Rc<R>::as_ptr() {
         return reinterpret_cast<Rc<T> *>(this);
+    }
+
+    template<ResourceConcept R>
+    void Rc<R>::invalidate() {
+        resource.reset();
+        component_users.reset();
+        resource_users.reset();
     }
 
     // template<ResourceConcept R>

@@ -8,11 +8,11 @@
 
 #include <wrld/resources/Mesh.hpp>
 #include <wrld/resources/Texture.hpp>
-#include <wrld/tools/ModelTool.hpp>
 
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <glm/mat4x4.hpp>
 
 // todo: it may be easier to have subclasses "FileModel" (loaded from 3D file)
 // and "MeshModel" (loaded from a mesh in memory)
@@ -22,6 +22,12 @@ namespace wrld::rsc {
     struct BoundingBox {
         glm::vec3 lower;
         glm::vec3 upper;
+
+        /// Return the size of the bounding box.
+        [[nodiscard]] glm::vec3 size() const { return upper - lower; }
+
+        /// Return each vertices of the bounding box.
+        [[nodiscard]] std::vector<glm::vec3> vertices() const;
     };
 
     class MeshGraphNode {
@@ -85,11 +91,12 @@ namespace wrld::rsc {
         std::vector<Rc<Mesh>> meshes;
         size_t mesh_count;
 
-        // todo: aggregate mesh data in one
         // question: are Meshes as resource even pertinent?
         GLuint vao, vbo, ebo;
         std::vector<Vertex> vertices;
         std::vector<VertexID> elements;
+
+        // todo: this will be obsolete once rsc::Mesh is removed and rsc::Model is set to 1 material
         std::vector<size_t> meshes_start; // Start position of the meshes in the EBO
         std::vector<size_t> meshes_size; // in vertices
 
