@@ -11,7 +11,13 @@ imgui*.ini
 ## CMake build directory
 /cmake-build-*
 
+## Misc output files
+*.out
+*.out.*
 
-
+## Misc.
 docs/
 examples/
+
+## Data for proima
+data/models/rungholt*
