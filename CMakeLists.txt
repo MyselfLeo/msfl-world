@@ -3,6 +3,9 @@ project(msfl_world)
 
 set(CMAKE_CXX_STANDARD 26)
 
+set(GLFW_BUILD_DOCS 0)
+set(GLFW_BUILD_EXAMPLES 0)
+set(GLFW_BUILD_TESTS 0)
 add_subdirectory(lib/glfw-3.4)
 include_directories(lib/glfw-3.4/include)
 
