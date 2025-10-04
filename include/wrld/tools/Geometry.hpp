@@ -4,7 +4,7 @@
 
 #pragma once
 #include <wrld/World.hpp>
-#include <wrld/components/Camera.hpp>
+#include <wrld/components/Camera3D.hpp>
 #include <wrld/components/Component.hpp>
 #include <wrld/components/StaticModel.hpp>
 #include <wrld/components/Transform.hpp>

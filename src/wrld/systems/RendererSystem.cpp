@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include <wrld/systems/RendererSystem.hpp>
-#include <wrld/components/Camera.hpp>
+#include <wrld/components/Camera3D.hpp>
 #include <wrld/components/DirectionalLight.hpp>
 #include <wrld/components/StaticModel.hpp>
 #include <wrld/components/Transform.hpp>
@@ -20,7 +20,6 @@
 #include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
-
     PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color, const float intensity) :
         position(position), color(color), intensity(intensity) {}
 
@@ -46,8 +45,8 @@ namespace wrld {
         // todo: in the future, each camera will be attached to a Viewport.
         // We'll have to render each camera to its attached viewport.
 
-        if (const auto cameras = world.get_entities_with_component<cpt::Camera>(); !cameras.empty()) {
-            const auto camera = world.get_component<cpt::Camera>(cameras[0]);
+        if (const auto cameras = world.get_entities_with_component<cpt::Camera3D>(); !cameras.empty()) {
+            const auto camera = world.get_component<cpt::Camera3D>(cameras[0]);
             render_camera(*camera);
         }
     }
@@ -62,10 +61,10 @@ namespace wrld {
         return glm::mat4x4(1.0);
     }
 
-    std::optional<std::shared_ptr<const cpt::Camera>> RendererSystem::get_camera() const {
-        if (const std::vector camera_entities = world.get_entities_with_component<cpt::Camera>();
+    std::optional<std::shared_ptr<const cpt::Camera3D>> RendererSystem::get_camera() const {
+        if (const std::vector camera_entities = world.get_entities_with_component<cpt::Camera3D>();
             !camera_entities.empty())
-            return world.get_component_opt<cpt::Camera>(camera_entities[0]);
+            return world.get_component_opt<cpt::Camera3D>(camera_entities[0]);
         return std::nullopt;
     }
 
@@ -81,7 +80,7 @@ namespace wrld {
         return shdr.value()->get_program();
     }*/
 
-    void RendererSystem::render_camera(const cpt::Camera &camera) {
+    void RendererSystem::render_camera(const cpt::Camera3D &camera) {
         const rsc::Program &program = camera.get_program().get_ref();
 
         // Todo: In the future, a camera should be attached to a viewport
@@ -131,10 +130,11 @@ namespace wrld {
 
         // Find each entity with a model, get its transform, and render it.
         visible_models = 0;
+        const bool do_culling = camera.is_culling();
         for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
              const auto entity: model_entities) {
-            // Skip unseen models
-            if (!tools::Geometry::is_visible(world, entity, camera.get_entity()))
+            // Skip unseen models if culling
+            if (!tools::Geometry::is_visible(world, entity, camera.get_entity()) && do_culling)
                 continue;
 
             visible_models += 1;
@@ -148,7 +148,7 @@ namespace wrld {
         }
     }
 
-    EnvironmentData RendererSystem::get_environment(const cpt::Camera &camera) const {
+    EnvironmentData RendererSystem::get_environment(const cpt::Camera3D &camera) const {
         const EntityID camera_entity = camera.get_entity();
 
         if (const auto env_cpnt_opt = world.get_component_opt<cpt::Environment>(camera_entity)) {
@@ -208,7 +208,7 @@ namespace wrld {
         return res;
     }
 
-    void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const {
+    void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera, GLuint vao) const {
         const auto &skybox_prgm = skybox_program.get_ref();
         skybox_prgm.use();
 
@@ -265,5 +265,5 @@ namespace wrld {
                                 reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
             glBindVertexArray(0);
         }
-    } // namespace wrld
+    }
 } // namespace wrld

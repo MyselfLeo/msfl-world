@@ -14,15 +14,15 @@
 #include <wrld/Main.hpp>
 #include <wrld/systems/DeferredRendererSystem.hpp>
 #include <wrld/systems/RendererSystem.hpp>
-#include <wrld/components/Camera.hpp>
+#include <wrld/components/Camera3D.hpp>
 #include <wrld/components/StaticModel.hpp>
 
 #include <GLFW/glfw3.h>
 #include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
-    DeferredRendererSystem::DeferredRendererSystem(World &world, GLFWwindow *window) :
-        RendererSystem(world, window), vao(0) {
+    DeferredRendererSystem::DeferredRendererSystem(World &world, GLFWwindow *window) : RendererSystem(world, window),
+        vao(0) {
         glGenVertexArrays(1, &vao);
 
         const auto pass1 = world.create_resource<rsc::Program>("pass1_program");
@@ -41,9 +41,11 @@ namespace wrld {
         framebuffer.get_mut()->recreate();
     }
 
-    DeferredRendererSystem::~DeferredRendererSystem() { glDeleteVertexArrays(1, &vao); }
+    DeferredRendererSystem::~DeferredRendererSystem() {
+        glDeleteVertexArrays(1, &vao);
+    }
 
-    void DeferredRendererSystem::render_camera(const cpt::Camera &camera) {
+    void DeferredRendererSystem::render_camera(const cpt::Camera3D &camera) {
         // wrldInfo("Rendering");
         //  FIRST PASS
 
@@ -60,10 +62,11 @@ namespace wrld {
 
         // Find each entity with a model, get its transform, and render it.
         visible_models = 0;
+        const bool do_culling = camera.is_culling();
         for (const std::vector model_entities = world.get_entities_with_component<cpt::StaticModel>();
              const auto entity: model_entities) {
-            // Skip unseen models
-            if (!tools::Geometry::is_visible(world, entity, camera.get_entity()))
+            // Skip unseen models if culling
+            if (!tools::Geometry::is_visible(world, entity, camera.get_entity()) && do_culling)
                 continue;
 
             visible_models += 1;

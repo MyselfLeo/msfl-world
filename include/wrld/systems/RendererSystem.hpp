@@ -6,7 +6,7 @@
 
 #include <wrld/System.hpp>
 #include "GLFW/glfw3.h"
-#include <wrld/components/Camera.hpp>
+#include <wrld/components/Camera3D.hpp>
 #include <wrld/components/Environment.hpp>
 #include <wrld/resources/CubemapTexture.hpp>
 #include <wrld/resources/Model.hpp>
@@ -30,12 +30,12 @@ namespace wrld {
     };
 
     struct EnvironmentData {
-        EnvironmentData(cpt::AmbiantLight ambiant_light, const std::optional<Rc<rsc::CubemapTexture>> &skybox,
+        EnvironmentData(cpt::AmbiantLight ambiant_light, const std::optional<Rc<rsc::CubemapTexture> > &skybox,
                         GLuint vao);
 
         GLuint vao;
         cpt::AmbiantLight ambiant_light;
-        std::optional<Rc<rsc::CubemapTexture>> skybox;
+        std::optional<Rc<rsc::CubemapTexture> > skybox;
     };
 
     class RendererSystem : public System {
@@ -43,8 +43,11 @@ namespace wrld {
         static constexpr unsigned MAX_LIGHTS = 100;
 
         RendererSystem(World &world, GLFWwindow *window);
+
         ~RendererSystem() override;
+
         void exec() override;
+
         [[nodiscard]] GLFWwindow *get_window() const;
 
         /// Return the amount of models visible by the active camera.
@@ -63,16 +66,16 @@ namespace wrld {
 
         /// Return the active camera component (for now, the first CameraComponent found).
         /// Returns std::nullopt if there is none.
-        [[nodiscard]] std::optional<std::shared_ptr<const cpt::Camera>> get_camera() const;
+        [[nodiscard]] std::optional<std::shared_ptr<const cpt::Camera3D> > get_camera() const;
 
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.
         [[nodiscard]] Rc<rsc::Model> get_entity_model(EntityID id) const;
 
-        virtual void render_camera(const cpt::Camera &camera);
+        virtual void render_camera(const cpt::Camera3D &camera);
 
         /// Return the environment attached to the camera, or a default one if not provided.
-        [[nodiscard]] EnvironmentData get_environment(const cpt::Camera &camera) const;
+        [[nodiscard]] EnvironmentData get_environment(const cpt::Camera3D &camera) const;
 
         /// Return data of all PointLights in the world.
         /// Won't return more than MAX_LIGHTS. The vector is resized before
@@ -84,7 +87,7 @@ namespace wrld {
         /// being returned.
         [[nodiscard]] std::vector<DirectionalLightData> get_directional_lights() const;
 
-        void draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera &camera, GLuint vao) const;
+        void draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera, GLuint vao) const;
 
         static void draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix, const rsc::Program &program);
     };

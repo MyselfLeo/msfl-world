@@ -5,7 +5,7 @@
 #pragma once
 
 #include <wrld/World.hpp>
-#include <wrld/components/Camera.hpp>
+#include <wrld/components/Camera3D.hpp>
 #include <wrld/components/DirectionalLight.hpp>
 #include <wrld/components/Environment.hpp>
 #include <wrld/components/FPSControl.hpp>
@@ -31,8 +31,8 @@ namespace wrld::gui {
     }
 
     template<>
-    inline void component_menu<cpt::Camera>(World &world, const EntityID &entity) {
-        const auto &cpt = world.get_component<cpt::Camera>(entity);
+    inline void component_menu<cpt::Camera3D>(World &world, const EntityID &entity) {
+        const auto &cpt = world.get_component<cpt::Camera3D>(entity);
         if (ImGui::TreeNode(cpt->get_type().c_str())) {
             float fov = cpt->get_fov();
 
@@ -186,7 +186,7 @@ namespace wrld::gui {
 
     // Map to associate type indices with their corresponding menu functions
     static const std::map<std::type_index, ComponentMenuFunction> COMPONENT_FUNCTIONS = {
-            {typeid(cpt::Camera), &component_menu<cpt::Camera>},
+            {typeid(cpt::Camera3D), &component_menu<cpt::Camera3D>},
             {typeid(cpt::DirectionalLight), &component_menu<cpt::DirectionalLight>},
             {typeid(cpt::Environment), &component_menu<cpt::Environment>},
             {typeid(cpt::FPSControl), &component_menu<cpt::FPSControl>},

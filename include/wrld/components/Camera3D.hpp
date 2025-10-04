@@ -11,24 +11,31 @@
 #include <glm/mat4x4.hpp>
 
 namespace wrld::cpt {
-
     /// Attach a camera to the Entity.
-    class Camera final : public Component {
+    class Camera3D final : public Component {
     public:
-        explicit Camera(EntityID entity_id, World &world, float fov, std::shared_ptr<rsc::WindowFramebuffer> viewport,
-                        Rc<rsc::Program> program);
+        explicit Camera3D(EntityID entity_id, World &world, float fov, bool do_culling,
+                          std::shared_ptr<rsc::WindowFramebuffer> viewport, const Rc<rsc::Program> &program);
 
         [[nodiscard]] float get_fov() const;
+
         void set_fov(float fov);
 
         [[nodiscard]] Rc<rsc::Program> get_program() const;
+
         void set_program(const Rc<rsc::Program> &program);
 
         /// Either returns the Transform attached to the Entity,
         /// or the identity transform.
         [[nodiscard]] glm::mat4x4 get_view_matrix() const;
+
         [[nodiscard]] glm::mat4x4 get_projection_matrix() const;
+
         [[nodiscard]] glm::mat4x4 get_viewport_matrix() const;
+
+        [[nodiscard]] bool is_culling() const;
+
+        void set_culling(bool do_culling);
 
         /// Return the camera position in world space.
         /// This is directly related to the attached Transform component (if any).
@@ -36,13 +43,12 @@ namespace wrld::cpt {
 
         // todo: add ortographic mode
 
-        std::string get_type() override { return "Camera"; }
+        std::string get_type() override { return "Camera3D"; }
 
     private:
         static const glm::vec3 UP_VECTOR;
         float fov;
-        // std::shared_ptr<const rsc::Program> program;
+        bool do_culling;
         std::shared_ptr<const rsc::WindowFramebuffer> viewport;
     };
-
 } // namespace wrld::cpt

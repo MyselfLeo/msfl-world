@@ -22,7 +22,7 @@ namespace wrld {
 
     class Resource : public std::enable_shared_from_this<Resource> {
     public:
-        virtual ~Resource() { wrldInfo(std::format("Resource '{}' got freed", get_name())); }
+        virtual ~Resource() { /*wrldInfo(std::format("Resource '{}' got freed", get_name()));*/ }
 
         explicit Resource(std::string name, World &world /*, Rc<Resource> *rc*/);
 

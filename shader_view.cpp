@@ -6,7 +6,7 @@
 #include <wrld/Main.hpp>
 #include <wrld/builtins.hpp>
 #include <wrld/logs.hpp>
-#include <wrld/components/Camera.hpp>
+#include <wrld/components/Camera3D.hpp>
 #include <wrld/components/DirectionalLight.hpp>
 #include <wrld/components/Orbiter.hpp>
 #include <wrld/components/StaticModel.hpp>
@@ -47,7 +47,7 @@ public:
         builtins::create_axis(world);
 
         const EntityID camera_entity = world.create_entity("Camera");
-        camera = world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(), shader);
+        camera = world.attach_component<cpt::Camera3D>(camera_entity, 45, Main::get_window_viewport(), shader);
         world.attach_component<cpt::Transform>(camera_entity);
         orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 2);
         orbiter->set_offset({0, 0, 0});
@@ -141,7 +141,7 @@ private:
     Rc<rsc::Program> shader;
 
     std::shared_ptr<cpt::Transform> model_transform;
-    std::shared_ptr<cpt::Camera> camera;
+    std::shared_ptr<cpt::Camera3D> camera;
     std::shared_ptr<cpt::Orbiter> orbiter;
 
     // Runtime variables

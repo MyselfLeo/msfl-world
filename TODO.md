@@ -5,6 +5,8 @@ Resources & Components:
   > If so, maybe create ModelTool::load_from_file ?
 - Add a way to delete unused resources.
 
+- Components: have default values for -almost- everything
+
 Camera:
 
 - switch between projection & orthographic mode

@@ -35,7 +35,7 @@ set(HEADERS
         include/wrld/components/Component.tpp
         include/wrld/components/Transform.hpp
         include/wrld/components/StaticModel.hpp
-        include/wrld/components/Camera.hpp
+        include/wrld/components/Camera3D.hpp
         include/wrld/components/PointLight.hpp
         include/wrld/components/DirectionalLight.hpp
         include/wrld/components/FPSControl.hpp
@@ -75,7 +75,7 @@ set(SOURCE
         src/wrld/components/Component.cpp
         src/wrld/components/Transform.cpp
         src/wrld/components/StaticModel.cpp
-        src/wrld/components/Camera.cpp
+        src/wrld/components/Camera3D.cpp
         src/wrld/components/PointLight.cpp
         src/wrld/components/DirectionalLight.cpp
         src/wrld/components/FPSControl.cpp

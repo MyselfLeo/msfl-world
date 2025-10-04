@@ -5,7 +5,7 @@
 #include <wrld/App.hpp>
 #include <wrld/Main.hpp>
 
-#include <wrld/components/Camera.hpp>
+#include <wrld/components/Camera3D.hpp>
 #include <wrld/components/DirectionalLight.hpp>
 #include <wrld/components/FPSControl.hpp>
 #include <wrld/components/StaticModel.hpp>
@@ -64,7 +64,7 @@ public:
         // const EntityID city_entity = world.create_entity("City");
 
         const EntityID camera_entity = world.create_entity("Camera");
-        world.attach_component<cpt::Camera>(camera_entity, 45, Main::get_window_viewport(),
+        world.attach_component<cpt::Camera3D>(camera_entity, 45, true, Main::get_window_viewport(),
                                             world.get_default<rsc::Program>());
 
         world.attach_component<cpt::Transform>(camera_entity);
@@ -80,10 +80,10 @@ public:
         for (int i = 0; i < LIGHT_COUNT; i++) {
             const EntityID light = world.create_entity(std::format("Light_{}", i));
             world.attach_component<cpt::PointLight>(
-                    light, glm::vec3{(rand() % 255) / 255.0, (rand() % 255) / 255.0, (rand() % 255) / 255.0}, 10.0);
+                light, glm::vec3{(rand() % 255) / 255.0, (rand() % 255) / 255.0, (rand() % 255) / 255.0}, 10.0);
             const auto &transform = world.attach_component<cpt::Transform>(light);
             transform->set_position(
-                    glm::vec3{300.0 - float(rand() % 600), float(rand() % 50), 300.0 - float(rand() % 600)});
+                glm::vec3{300.0 - float(rand() % 600), float(rand() % 50), 300.0 - float(rand() % 600)});
             light_transforms[i] = transform;
         }
 
@@ -129,7 +129,8 @@ public:
         ImGui::End();
     }
 
-    void exit(World &world) override {}
+    void exit(World &world) override {
+    }
 
 private:
     // static constexpr int LIGHT_COUNT = 100;

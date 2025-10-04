@@ -10,7 +10,7 @@ namespace wrld::tools {
         const auto &model_opt = world.get_component_opt<cpt::Transform>(entity);
         const auto model = model_opt.has_value() ? model_opt.value()->model_matrix() : glm::mat4x4(1.0);
         const auto &entity_model = world.get_component<cpt::StaticModel>(entity);
-        const auto &camera_cpt = world.get_component<cpt::Camera>(camera);
+        const auto &camera_cpt = world.get_component<cpt::Camera3D>(camera);
 
         // Local-space axis-aligned bounding box of the model
         const auto &local_bb = entity_model->get_model()->get_local_bb();
