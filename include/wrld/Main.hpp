@@ -37,6 +37,8 @@ namespace wrld {
 
         static void set_renderer_type(RendererType _renderer_type);
 
+        static void set_clear_color(const glm::vec3 &color);
+
     private:
         static World world;
         static GLFWwindow *window;
@@ -48,6 +50,9 @@ namespace wrld {
 
         // Deltatime computing
         static double last_frame;
+
+        // todo: move to Camera3D
+        static glm::vec3 clear_color;
 
         static std::unique_ptr<RendererSystem> get_renderer();
 

@@ -2,11 +2,14 @@
 // Created by leo on 9/6/25.
 //
 
+#include <complex>
 #include <wrld/resources/Mesh.hpp>
 
 #include <wrld/World.hpp>
 
 #include <utility>
+
+#include "glm/detail/func_geometric.hpp"
 
 namespace wrld::rsc {
     Mesh::Mesh(std::string name, World &world) : Resource(std::move(name), world) {
@@ -74,46 +77,31 @@ namespace wrld::rsc {
 
     Rc<Material> Mesh::get_material() const { return get_resource<Material>("current_material"); }
 
-    // void Mesh::update() {
-    //     if (!buffers_created) {
-    //         glGenVertexArrays(1, &vao);
-    //         glGenBuffers(1, &vbo);
-    //         glGenBuffers(1, &ebo);
-    //     }
-    //     buffers_created = true;
-    //
-    //
-    //     glBindVertexArray(vao);
-    //     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    //     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    //
-    //     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-    //     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), indices.data(), GL_STATIC_DRAW);
-    //
-    //     // Vertex positions
-    //     glEnableVertexAttribArray(0);
-    //     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), static_cast<void *>(nullptr));
-    //
-    //     // Vertex normals
-    //     glEnableVertexAttribArray(1);
-    //     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-    //                           reinterpret_cast<void *>(offsetof(Vertex, normal)));
-    //
-    //     // Vertex colors
-    //     glEnableVertexAttribArray(2);
-    //     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-    //                           reinterpret_cast<void *>(offsetof(Vertex, color)));
-    //
-    //
-    //     // Vertex texture coordinates
-    //     glEnableVertexAttribArray(3);
-    //     glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-    //                           reinterpret_cast<void *>(offsetof(Vertex, texcoords)));
-    //
-    //     glBindVertexArray(0);
-    // }
-    //
-    // GLuint Mesh::get_vao() const { return vao; }
+    void Mesh::recompute_normals() {
+        if (indices.size() % 3 != 0) {
+            throw std::runtime_error("Mesh doesn't look triangle");
+        }
+
+        std::vector normals(vertices.size(), glm::vec3{0, 0, 0});
+
+        for (int i = 0; i < indices.size(); i += 3) {
+            // Compute triangle normal
+            const auto &a = vertices[indices[i + 0]].position;
+            const auto &b = vertices[indices[i + 1]].position;
+            const auto &c = vertices[indices[i + 2]].position;
+            const auto ab = b - a;
+            const auto ac = c - a;
+            const auto normal = glm::cross(ab, ac);
+
+            normals[indices[i + 0]] += normal;
+            normals[indices[i + 1]] += normal;
+            normals[indices[i + 2]] += normal;
+        }
+
+        for (int i = 0; i < vertices.size(); i++) {
+            vertices[i].normal = glm::normalize(normals[i]);
+        }
+    }
 
     unsigned Mesh::get_element_count() const { return indices.size(); }
 } // namespace wrld::rsc

@@ -21,6 +21,7 @@ namespace wrld {
     std::shared_ptr<rsc::WindowFramebuffer> Main::window_viewport = nullptr;
     bool Main::should_close = false;
     double Main::last_frame = 0;
+    glm::vec3 Main::clear_color = {0.08, 0.08, 0.08};
     RendererType Main::renderer_type = FORWARD_RENDERER;
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
@@ -42,7 +43,7 @@ namespace wrld {
         wrldInfo("Starting main loop");
         while (!should_close) {
             // todo: move this to the camera
-            glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+            glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -93,6 +94,10 @@ namespace wrld {
     }
 
     void Main::set_renderer_type(const RendererType _renderer_type) { renderer_type = _renderer_type; }
+
+    void Main::set_clear_color(const glm::vec3 &color) {
+        clear_color = color;
+    }
 
     std::unique_ptr<RendererSystem> Main::get_renderer() {
         switch (renderer_type) {
