@@ -273,6 +273,7 @@ namespace wrld {
                                     reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
                 glBindVertexArray(0);
 
+                glDepthMask(GL_FALSE);
                 glDepthFunc(GL_LEQUAL);
             }
 
@@ -287,6 +288,7 @@ namespace wrld {
                                     reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
                 glBindVertexArray(0);
 
+                glDepthMask(GL_FALSE);
                 glDepthFunc(GL_LEQUAL);
             }
 
@@ -301,6 +303,9 @@ namespace wrld {
                                     reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
                 glBindVertexArray(0);
             }
+
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
         }
     }
 } // namespace wrld
