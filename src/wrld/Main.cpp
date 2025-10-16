@@ -88,6 +88,10 @@ namespace wrld {
 
     std::shared_ptr<rsc::WindowFramebuffer> Main::get_window_viewport() { return window_viewport; }
 
+    double Main::get_time() {
+        return glfwGetTime();
+    }
+
     void Main::set_renderer_type(const RendererType _renderer_type) { renderer_type = _renderer_type; }
 
     std::unique_ptr<RendererSystem> Main::get_renderer() {
@@ -120,7 +124,7 @@ namespace wrld {
             const char *error = nullptr;
             int code = glfwGetError(&error);
             throw std::runtime_error(
-                    std::format("Failed to create GLFW window with error code {:0X}: {}", code, error));
+                std::format("Failed to create GLFW window with error code {:0X}: {}", code, error));
         }
 
         glfwMakeContextCurrent(window);
@@ -134,7 +138,7 @@ namespace wrld {
         ImGuiIO &io = ImGui::GetIO();
         (void) io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -144,9 +148,9 @@ namespace wrld {
         // Setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
         style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a solution for dynamic style
-                                         // scaling, changing this requires resetting Style + calling this again)
+        // scaling, changing this requires resetting Style + calling this again)
         style.FontScaleDpi = main_scale; // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this
-                                         // unnecessary. We leave both here for documentation purpose)
+        // unnecessary. We leave both here for documentation purpose)
 
         ImGui_ImplOpenGL3_Init();
         ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -205,5 +209,4 @@ namespace wrld {
 
         std::cout << message << std::endl;
     }
-
 } // namespace wrld

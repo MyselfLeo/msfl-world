@@ -5,8 +5,9 @@
 #include <wrld/resources/Material.hpp>
 
 namespace wrld::rsc {
-    Material::Material(std::string name, World &world /*, Rc<Resource> *rc*/) :
-        Resource(std::move(name), world /*, rc*/) {}
+    Material::Material(std::string name, World &world /*, Rc<Resource> *rc*/) : Resource(
+        std::move(name), world /*, rc*/) {
+    }
 
     Material &Material::set_diffuse_map(const Rc<Texture> &diffuse_map) {
         this->diffuse_map = diffuse_map;
@@ -22,9 +23,9 @@ namespace wrld::rsc {
 
     void Material::remove_specular_map() { this->specular_map = std::nullopt; }
 
-    std::optional<Rc<Texture>> Material::get_diffuse_map() const { return this->diffuse_map; }
+    std::optional<Rc<Texture> > Material::get_diffuse_map() const { return this->diffuse_map; }
 
-    std::optional<Rc<Texture>> Material::get_specular_map() const { return this->specular_map; }
+    std::optional<Rc<Texture> > Material::get_specular_map() const { return this->specular_map; }
 
     Material &Material::set_diffuse_color(const glm::vec4 &color) {
         this->diffuse_color = color;
@@ -58,4 +59,20 @@ namespace wrld::rsc {
     GLenum Material::get_primitive_type() const { return primitive_type; }
 
     void Material::set_primitive_type(const GLenum primitive_type) { this->primitive_type = primitive_type; }
+
+    GLenum Material::get_polygon_mode() const {
+        return polygon_mode;
+    }
+
+    void Material::set_polygon_mode(const GLenum polygon_mode) {
+        this->polygon_mode = polygon_mode;
+    }
+
+    float Material::get_line_width() const {
+        return line_width;
+    }
+
+    void Material::set_line_width(float line_width) {
+        this->line_width = line_width;
+    }
 } // namespace wrld::rsc

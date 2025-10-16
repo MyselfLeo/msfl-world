@@ -20,16 +20,19 @@
 #include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
-    PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color, const float intensity) :
-        position(position), color(color), intensity(intensity) {}
+    PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color,
+                                   const float intensity) : position(position), color(color), intensity(intensity) {
+    }
 
     DirectionalLightData::DirectionalLightData(const glm::vec3 direction, const glm::vec3 color,
-                                               const float intensity) :
-        direction(direction), color(color), intensity(intensity) {}
+                                               const float intensity) : direction(direction), color(color),
+                                                                        intensity(intensity) {
+    }
 
     EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
-                                     const std::optional<Rc<rsc::CubemapTexture>> &skybox, const GLuint vao) :
-        vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
+                                     const std::optional<Rc<rsc::CubemapTexture> > &skybox,
+                                     const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {
+    }
 
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) : System(world), window(window) {
         const auto program = world.create_resource<rsc::Program>("skybox_program");
@@ -61,7 +64,7 @@ namespace wrld {
         return glm::mat4x4(1.0);
     }
 
-    std::optional<std::shared_ptr<const cpt::Camera3D>> RendererSystem::get_camera() const {
+    std::optional<std::shared_ptr<const cpt::Camera3D> > RendererSystem::get_camera() const {
         if (const std::vector camera_entities = world.get_entities_with_component<cpt::Camera3D>();
             !camera_entities.empty())
             return world.get_component_opt<cpt::Camera3D>(camera_entities[0]);
@@ -208,7 +211,8 @@ namespace wrld {
         return res;
     }
 
-    void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera, GLuint vao) const {
+    void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera,
+                                     GLuint vao) const {
         const auto &skybox_prgm = skybox_program.get_ref();
         skybox_prgm.use();
 
@@ -259,6 +263,8 @@ namespace wrld {
                 mat_sizes.push_back(sizes[i]);
             }
 
+            glPolygonMode(GL_FRONT_AND_BACK, mat->get_polygon_mode());
+            glLineWidth(mat->get_line_width());
             glActiveTexture(GL_TEXTURE0);
             glBindVertexArray(model.get_vao());
             glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(), GL_UNSIGNED_INT,

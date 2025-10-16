@@ -12,29 +12,36 @@
 #include <optional>
 
 namespace wrld::rsc {
-
     class Material final : public Resource {
     public:
         Material(std::string name, World &world /*, Rc<Resource> *rc*/);
 
         Material(Material &other) = delete;
+
         Material(Material &&other) = delete;
+
         Material &operator=(Material &other) = delete;
+
         Material &operator=(Material &&other) = delete;
 
         Material &set_diffuse_map(const Rc<Texture> &diffuse_map);
+
         Material &set_specular_map(const Rc<Texture> &specular_map);
 
         void remove_diffuse_map();
+
         void remove_specular_map();
 
-        [[nodiscard]] std::optional<Rc<Texture>> get_diffuse_map() const;
-        [[nodiscard]] std::optional<Rc<Texture>> get_specular_map() const;
+        [[nodiscard]] std::optional<Rc<Texture> > get_diffuse_map() const;
+
+        [[nodiscard]] std::optional<Rc<Texture> > get_specular_map() const;
 
         Material &set_diffuse_color(const glm::vec4 &color);
+
         Material &set_specular_intensity(float intensity);
 
         [[nodiscard]] glm::vec4 get_diffuse_color() const;
+
         [[nodiscard]] float get_specular_intensity() const;
 
         Material &set_shininess(float shininess);
@@ -51,7 +58,20 @@ namespace wrld::rsc {
         void do_lighting(bool do_lighting);
 
         [[nodiscard]] bool is_using_mesh_color() const;
+
         [[nodiscard]] bool is_doing_lighting() const;
+
+        [[nodiscard]] GLenum get_primitive_type() const;
+
+        void set_primitive_type(GLenum primitive_type);
+
+        [[nodiscard]] GLenum get_polygon_mode() const;
+
+        void set_polygon_mode(GLenum polygon_mode);
+
+        [[nodiscard]] float get_line_width() const;
+
+        void set_line_width(float line_width);
 
         std::string get_type() const override { return "Material"; }
 
@@ -61,8 +81,8 @@ namespace wrld::rsc {
         float specular_intensity = 0.5;
 
         // Maps
-        std::optional<Rc<Texture>> diffuse_map; // Diffuse color
-        std::optional<Rc<Texture>> specular_map; // Specular intensity
+        std::optional<Rc<Texture> > diffuse_map;  // Diffuse color
+        std::optional<Rc<Texture> > specular_map; // Specular intensity
 
         // todo: parameters that should be in the material
         // - depth mask (enable/disable)
@@ -82,9 +102,8 @@ namespace wrld::rsc {
         bool _use_mesh_color = true;
         bool _do_lighting = true;
         GLenum primitive_type = GL_TRIANGLES;
+        GLenum polygon_mode = GL_FILL;
 
-    public:
-        [[nodiscard]] GLenum get_primitive_type() const;
-        void set_primitive_type(const GLenum primitive_type);
+        float line_width = 1.0;
     };
 } // namespace wrld::rsc

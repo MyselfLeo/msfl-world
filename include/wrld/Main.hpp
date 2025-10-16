@@ -15,7 +15,6 @@
 #include <wrld/systems/RendererSystem.hpp>
 
 namespace wrld {
-
     enum RendererType {
         FORWARD_RENDERER,
         DEFERRED_RENDERER,
@@ -24,10 +23,17 @@ namespace wrld {
     class Main {
     public:
         static void run(App &app, unsigned width, unsigned height);
+
         static void exit();
 
+        /// Return the window
         static GLFWwindow *get_window();
+
+        /// Return the window frame-buffer
         static std::shared_ptr<rsc::WindowFramebuffer> get_window_viewport();
+
+        /// Return the time elapsed since the start of the program
+        static double get_time();
 
         static void set_renderer_type(RendererType _renderer_type);
 
@@ -46,9 +52,10 @@ namespace wrld {
         static std::unique_ptr<RendererSystem> get_renderer();
 
         static GLFWwindow *init_gl(int width, int height);
+
         static void window_resize_callback(GLFWwindow *window, int width, int height);
+
         static void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
                                            const char *message, const void *userParam);
     };
-
 } // namespace wrld
