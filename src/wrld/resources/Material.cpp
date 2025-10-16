@@ -60,11 +60,11 @@ namespace wrld::rsc {
 
     void Material::set_primitive_type(const GLenum primitive_type) { this->primitive_type = primitive_type; }
 
-    GLenum Material::get_polygon_mode() const {
+    PolygonMode Material::get_polygon_mode() const {
         return polygon_mode;
     }
 
-    void Material::set_polygon_mode(const GLenum polygon_mode) {
+    void Material::set_polygon_mode(const PolygonMode polygon_mode) {
         this->polygon_mode = polygon_mode;
     }
 
@@ -72,7 +72,15 @@ namespace wrld::rsc {
         return line_width;
     }
 
-    void Material::set_line_width(float line_width) {
+    void Material::set_line_width(const float line_width) {
         this->line_width = line_width;
+    }
+
+    float Material::get_point_size() const {
+        return point_size;
+    }
+
+    void Material::set_point_size(const float point_size) {
+        this->point_size = point_size;
     }
 } // namespace wrld::rsc

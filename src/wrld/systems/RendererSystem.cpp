@@ -263,13 +263,44 @@ namespace wrld {
                 mat_sizes.push_back(sizes[i]);
             }
 
-            glPolygonMode(GL_FRONT_AND_BACK, mat->get_polygon_mode());
-            glLineWidth(mat->get_line_width());
-            glActiveTexture(GL_TEXTURE0);
-            glBindVertexArray(model.get_vao());
-            glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(), GL_UNSIGNED_INT,
-                                reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
-            glBindVertexArray(0);
+            if (mat->get_polygon_mode() & rsc::WrldPolyFill) {
+                program.set_uniform("polygon_mode", 0);
+
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                // glActiveTexture(GL_TEXTURE0);
+                glBindVertexArray(model.get_vao());
+                glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(), GL_UNSIGNED_INT,
+                                    reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
+                glBindVertexArray(0);
+
+                glDepthFunc(GL_LEQUAL);
+            }
+
+            if (mat->get_polygon_mode() & rsc::WrldPolyLine) {
+                program.set_uniform("polygon_mode", 1);
+
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                glLineWidth(mat->get_line_width());
+                // glActiveTexture(GL_TEXTURE0);
+                glBindVertexArray(model.get_vao());
+                glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(), GL_UNSIGNED_INT,
+                                    reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
+                glBindVertexArray(0);
+
+                glDepthFunc(GL_LEQUAL);
+            }
+
+            if (mat->get_polygon_mode() & rsc::WrldPolyPoint) {
+                program.set_uniform("polygon_mode", 2);
+
+                glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+                glPointSize(mat->get_point_size());
+                // glActiveTexture(GL_TEXTURE0);
+                glBindVertexArray(model.get_vao());
+                glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(), GL_UNSIGNED_INT,
+                                    reinterpret_cast<const void **>(mat_starts.data()), meshes.size());
+                glBindVertexArray(0);
+            }
         }
     }
 } // namespace wrld

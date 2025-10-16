@@ -12,6 +12,16 @@
 #include <optional>
 
 namespace wrld::rsc {
+    enum PolygonMode {
+        WrldPolyFill  = 1 << 0,
+        WrldPolyLine  = 1 << 1,
+        WrldPolyPoint = 1 << 2,
+    };
+
+    constexpr PolygonMode operator|(const PolygonMode a, const PolygonMode b) {
+        return static_cast<PolygonMode>(static_cast<int>(a) | static_cast<int>(b));
+    }
+
     class Material final : public Resource {
     public:
         Material(std::string name, World &world /*, Rc<Resource> *rc*/);
@@ -65,13 +75,17 @@ namespace wrld::rsc {
 
         void set_primitive_type(GLenum primitive_type);
 
-        [[nodiscard]] GLenum get_polygon_mode() const;
+        [[nodiscard]] PolygonMode get_polygon_mode() const;
 
-        void set_polygon_mode(GLenum polygon_mode);
+        void set_polygon_mode(PolygonMode polygon_mode);
 
         [[nodiscard]] float get_line_width() const;
 
         void set_line_width(float line_width);
+
+        [[nodiscard]] float get_point_size() const;
+
+        void set_point_size(float point_size);
 
         std::string get_type() const override { return "Material"; }
 
@@ -102,8 +116,9 @@ namespace wrld::rsc {
         bool _use_mesh_color = true;
         bool _do_lighting = true;
         GLenum primitive_type = GL_TRIANGLES;
-        GLenum polygon_mode = GL_FILL;
+        PolygonMode polygon_mode = WrldPolyFill;
 
         float line_width = 1.0;
+        float point_size = 1.0;
     };
 } // namespace wrld::rsc
