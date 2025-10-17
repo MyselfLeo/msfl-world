@@ -12,9 +12,9 @@ namespace wrld::cpt {
     const glm::vec3 Camera3D::UP_VECTOR = glm::vec3(0, 1, 0);
 
     Camera3D::Camera3D(const EntityID entity_id, World &world, const float fov, const bool do_culling,
-                   std::shared_ptr<rsc::WindowFramebuffer> viewport,
-                   const Rc<rsc::Program> &program) : Component(entity_id, world), fov(fov), do_culling(do_culling),
-                                                      viewport(std::move(viewport)) {
+                       std::shared_ptr<rsc::WindowFramebuffer> viewport,
+                       const Rc<rsc::Program> &program) : Component(entity_id, world), fov(fov), do_culling(do_culling),
+                                                          viewport(std::move(viewport)) {
         attach_resource("program", program);
     }
 
@@ -35,7 +35,7 @@ namespace wrld::cpt {
 
     glm::mat4x4 Camera3D::get_projection_matrix() const {
         const float ratio = static_cast<float>(viewport->get_width()) / static_cast<float>(viewport->get_height());
-        return glm::perspective(glm::radians(this->fov), ratio, 0.1f, 1000.0f);
+        return glm::perspective(glm::radians(this->fov), ratio, 0.1f, 5000.0f);
     }
 
     glm::mat4x4 Camera3D::get_viewport_matrix() const {
