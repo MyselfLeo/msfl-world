@@ -65,7 +65,7 @@ set(HEADERS
         include/wrld/tools/ModelTool.hpp
         include/wrld/tools/Geometry.hpp
 
-        include/wrld/macros.h
+        include/wrld/macros.hpp
 
         include/wrld-gui/components.hpp
         include/wrld-gui/resources.hpp

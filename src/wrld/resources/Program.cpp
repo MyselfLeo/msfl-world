@@ -8,6 +8,7 @@
 
 #include <wrld/resources/Rc.hpp>
 #include <wrld/logs.hpp>
+#include <wrld/macros.hpp>
 
 #include <format>
 #include <fstream>
