@@ -12,7 +12,7 @@ namespace wrld {
         virtual ~App() = default;
 
         virtual void init(World &world) = 0;
-        virtual void update(World &world, double deltatime) = 0;
+        virtual void update(World &world, double delta_time) = 0;
         virtual void ui(World &world) = 0;
         virtual void exit(World &world) = 0;
     };

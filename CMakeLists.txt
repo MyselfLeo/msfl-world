@@ -67,6 +67,7 @@ set(HEADERS
 
         include/wrld-gui/components.hpp
         include/wrld-gui/resources.hpp
+        include/wrld/macros.h
 )
 
 set(SOURCE

@@ -13,7 +13,7 @@ namespace wrld::cpt {
     public:
         FPSControl(EntityID entity_id, World &world);
 
-        void update(GLFWwindow *window);
+        void update(GLFWwindow *window, float delta_time);
 
         [[nodiscard]] float get_translation_speed() const;
         [[nodiscard]] double get_camera_sensitivity() const;
@@ -33,7 +33,7 @@ namespace wrld::cpt {
         double yaw = -90.0;
         double pitch = 0.0;
 
-        float translation_speed = 0.2;
+        float translation_speed = 10;
         double camera_sensitivity = 0.1;
 
         bool lock = false;

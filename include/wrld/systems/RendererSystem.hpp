@@ -30,12 +30,12 @@ namespace wrld {
     };
 
     struct EnvironmentData {
-        EnvironmentData(cpt::AmbiantLight ambiant_light, const std::optional<Rc<rsc::CubemapTexture> > &skybox,
+        EnvironmentData(cpt::AmbiantLight ambiant_light, const std::optional<Rc<rsc::CubemapTexture>> &skybox,
                         GLuint vao);
 
         GLuint vao;
         cpt::AmbiantLight ambiant_light;
-        std::optional<Rc<rsc::CubemapTexture> > skybox;
+        std::optional<Rc<rsc::CubemapTexture>> skybox;
     };
 
     class RendererSystem : public System {
@@ -46,7 +46,7 @@ namespace wrld {
 
         ~RendererSystem() override;
 
-        void exec() override;
+        void exec(double delta_time) override;
 
         [[nodiscard]] GLFWwindow *get_window() const;
 
@@ -66,7 +66,7 @@ namespace wrld {
 
         /// Return the active camera component (for now, the first CameraComponent found).
         /// Returns std::nullopt if there is none.
-        [[nodiscard]] std::optional<std::shared_ptr<const cpt::Camera3D> > get_camera() const;
+        [[nodiscard]] std::optional<std::shared_ptr<const cpt::Camera3D>> get_camera() const;
 
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.

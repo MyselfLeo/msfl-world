@@ -15,7 +15,7 @@ namespace wrld {
         virtual ~System() = default;
 
         /// Called by the event-loop on each frame.
-        virtual void exec() = 0;
+        virtual void exec(double delta_time) = 0;
 
     protected:
         World &world;

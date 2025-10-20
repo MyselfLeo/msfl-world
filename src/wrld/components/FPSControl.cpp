@@ -13,7 +13,7 @@
 namespace wrld::cpt {
     FPSControl::FPSControl(const EntityID entity_id, World &world) : Component(entity_id, world) {}
 
-    void FPSControl::update(GLFWwindow *window) {
+    void FPSControl::update(GLFWwindow *window, float delta_time) {
         if (lock)
             return;
 
@@ -25,9 +25,9 @@ namespace wrld::cpt {
         const auto transform = transform_opt.value();
         auto translation = glm::vec3{0.0};
 
-        constexpr auto up = glm::vec3{0, 1, 0};
+        const auto up = glm::vec3{0, 1, 0};
 
-        auto speed = translation_speed;
+        float speed = (translation_speed * delta_time);
 
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
             speed *= 6;
@@ -76,7 +76,7 @@ namespace wrld::cpt {
         direction = glm::normalize(direction);
 
         const glm::vec3 curr_position = transform->get_position();
-        transform->set_position(curr_position + translation);
+        transform->set_position(curr_position + (translation));
 
         transform->look_towards(direction, up);
     }

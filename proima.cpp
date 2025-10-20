@@ -44,7 +44,7 @@ public:
         material.get_mut()->set_shininess(64);
 
         auto city_model = world.create_resource<rsc::Model>("city_model");
-        city_model.get_mut()->from_file("data/models/rungholt/rungholt.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
+        city_model.get_mut()->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
                                         false, material);
 
         wrldInfo("Splitting model");
@@ -65,7 +65,7 @@ public:
 
         const EntityID camera_entity = world.create_entity("Camera");
         world.attach_component<cpt::Camera3D>(camera_entity, 45, true, Main::get_window_viewport(),
-                                            world.get_default<rsc::Program>());
+                                              world.get_default<rsc::Program>());
 
         world.attach_component<cpt::Transform>(camera_entity);
         control = world.attach_component<cpt::FPSControl>(camera_entity);
@@ -80,18 +80,18 @@ public:
         for (int i = 0; i < LIGHT_COUNT; i++) {
             const EntityID light = world.create_entity(std::format("Light_{}", i));
             world.attach_component<cpt::PointLight>(
-                light, glm::vec3{(rand() % 255) / 255.0, (rand() % 255) / 255.0, (rand() % 255) / 255.0}, 10.0);
+                    light, glm::vec3{(rand() % 255) / 255.0, (rand() % 255) / 255.0, (rand() % 255) / 255.0}, 10.0);
             const auto &transform = world.attach_component<cpt::Transform>(light);
             transform->set_position(
-                glm::vec3{300.0 - float(rand() % 600), float(rand() % 50), 300.0 - float(rand() % 600)});
+                    glm::vec3{300.0 - float(rand() % 600), float(rand() % 50), 300.0 - float(rand() % 600)});
             light_transforms[i] = transform;
         }
 
         glfwSetInputMode(Main::get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
-    void update(World &world, const double deltatime) override {
-        this->deltatime = deltatime;
+    void update(World &world, const double delta_time) override {
+        this->deltatime = delta_time;
 
         if (glfwGetKey(Main::get_window(), GLFW_KEY_L) == GLFW_PRESS && !l_key_pressed) {
             l_key_pressed = true;
@@ -108,7 +108,7 @@ public:
             l_key_pressed = false;
         }
 
-        control->update(Main::get_window());
+        control->update(Main::get_window(), delta_time);
 
         // Move lights
         for (auto &trfm: light_transforms) {
@@ -129,8 +129,7 @@ public:
         ImGui::End();
     }
 
-    void exit(World &world) override {
-    }
+    void exit(World &world) override {}
 
 private:
     // static constexpr int LIGHT_COUNT = 100;

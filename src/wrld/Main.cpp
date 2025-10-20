@@ -56,7 +56,7 @@ namespace wrld {
             app.update(world, deltatime);
 
             // Execute systems
-            renderer->exec();
+            renderer->exec(deltatime);
 
             // Render UI using ImGUI
             {
@@ -89,15 +89,11 @@ namespace wrld {
 
     std::shared_ptr<rsc::WindowFramebuffer> Main::get_window_viewport() { return window_viewport; }
 
-    double Main::get_time() {
-        return glfwGetTime();
-    }
+    double Main::get_time() { return glfwGetTime(); }
 
     void Main::set_renderer_type(const RendererType _renderer_type) { renderer_type = _renderer_type; }
 
-    void Main::set_clear_color(const glm::vec3 &color) {
-        clear_color = color;
-    }
+    void Main::set_clear_color(const glm::vec3 &color) { clear_color = color; }
 
     std::unique_ptr<RendererSystem> Main::get_renderer() {
         switch (renderer_type) {
@@ -129,7 +125,7 @@ namespace wrld {
             const char *error = nullptr;
             int code = glfwGetError(&error);
             throw std::runtime_error(
-                std::format("Failed to create GLFW window with error code {:0X}: {}", code, error));
+                    std::format("Failed to create GLFW window with error code {:0X}: {}", code, error));
         }
 
         glfwMakeContextCurrent(window);
@@ -143,7 +139,7 @@ namespace wrld {
         ImGuiIO &io = ImGui::GetIO();
         (void) io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();

@@ -26,11 +26,11 @@
 
 using namespace wrld;
 
-class BlobApp final : public App {
+class ShaderApp final : public App {
 public:
-    explicit BlobApp(const std::string &model_path) : model_path(model_path) {}
+    explicit ShaderApp(const std::string &model_path) : model_path(model_path) {}
 
-    ~BlobApp() override {}
+    ~ShaderApp() override {}
 
     void init(World &world) override {
         shader = world.create_resource<rsc::Program>("shader");
@@ -47,7 +47,7 @@ public:
         builtins::create_axis(world);
 
         const EntityID camera_entity = world.create_entity("Camera");
-        camera = world.attach_component<cpt::Camera3D>(camera_entity, 45, Main::get_window_viewport(), shader);
+        camera = world.attach_component<cpt::Camera3D>(camera_entity, 45, false, Main::get_window_viewport(), shader);
         world.attach_component<cpt::Transform>(camera_entity);
         orbiter = world.attach_component<cpt::Orbiter>(camera_entity, model_entity, 2);
         orbiter->set_offset({0, 0, 0});
@@ -62,8 +62,8 @@ public:
         shade_reloading = false;
     }
 
-    void update(World &world, const double deltatime) override {
-        current_deltatime = deltatime;
+    void update(World &world, const double delta_time) override {
+        current_deltatime = delta_time;
 
         // Shader reloading
         {
@@ -78,7 +78,7 @@ public:
 
         // Rotate the model
         {
-            const auto rotation = glm::quat(glm::vec3{0, glm::radians(rotation_rate) * deltatime, 0});
+            const auto rotation = glm::quat(glm::vec3{0, glm::radians(rotation_rate) * delta_time, 0});
             const auto curr_rotation = model_transform->get_rotation();
             model_transform->set_rotation(rotation * curr_rotation);
         }
@@ -86,22 +86,22 @@ public:
         // Orbiter control
         {
             if (glfwGetKey(Main::get_window(), GLFW_KEY_UP) == GLFW_PRESS) {
-                orbiter->set_vert_angle(orbiter->get_vert_angle() + camera_speed);
+                orbiter->set_vert_angle(orbiter->get_vert_angle() + camera_speed * current_deltatime);
             }
             if (glfwGetKey(Main::get_window(), GLFW_KEY_DOWN) == GLFW_PRESS) {
-                orbiter->set_vert_angle(orbiter->get_vert_angle() - camera_speed);
+                orbiter->set_vert_angle(orbiter->get_vert_angle() - camera_speed * current_deltatime);
             }
             if (glfwGetKey(Main::get_window(), GLFW_KEY_LEFT) == GLFW_PRESS) {
-                orbiter->set_hor_angle(orbiter->get_hor_angle() + camera_speed);
+                orbiter->set_hor_angle(orbiter->get_hor_angle() + camera_speed * current_deltatime);
             }
             if (glfwGetKey(Main::get_window(), GLFW_KEY_RIGHT) == GLFW_PRESS) {
-                orbiter->set_hor_angle(orbiter->get_hor_angle() - camera_speed);
+                orbiter->set_hor_angle(orbiter->get_hor_angle() - camera_speed * current_deltatime);
             }
             if (glfwGetKey(Main::get_window(), GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
-                orbiter->set_distance(orbiter->get_distance() * 0.95);
+                orbiter->set_distance(orbiter->get_distance() * (1.0 - zoom_coeff * current_deltatime));
             }
             if (glfwGetKey(Main::get_window(), GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) {
-                orbiter->set_distance(orbiter->get_distance() / 0.95);
+                orbiter->set_distance(orbiter->get_distance() / (1.0 - zoom_coeff * current_deltatime));
             }
             orbiter->update();
         }
@@ -148,11 +148,12 @@ private:
     bool shade_reloading = false;
     double current_deltatime = 0;
     float rotation_rate = 30.0; // Angle per second
-    float camera_speed = 1.5;
+    float camera_speed = 75.0;
+    float zoom_coeff = 2.0;
 };
 
 int main() {
-    BlobApp app("data/models/queen/queen.off");
+    ShaderApp app("data/models/queen/queen.off");
 
     wrldInfo("Start");
     Main::run(app, 1280, 900);
