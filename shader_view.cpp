@@ -23,6 +23,7 @@
 #include "assimp/postprocess.h"
 
 #include <iostream>
+#include <wrld-gui/misc.hpp>
 
 using namespace wrld;
 
@@ -111,8 +112,9 @@ public:
         static bool show_demo = false;
         static bool show_components = false;
         static bool show_resources = false;
+        static bool show_info = false;
 
-        ImGui::Begin("Info");
+        ImGui::Begin("Control");
         ImGui::Text("%s", std::format("DT: {}ms", rotation_rate).c_str());
         if (ImGui::Button("Show/Hide demo"))
             show_demo = !show_demo;
@@ -120,6 +122,8 @@ public:
             show_components = !show_components;
         if (ImGui::Button("Show/Hide resources"))
             show_resources = !show_resources;
+        if (ImGui::Button("Show/Hide infos"))
+            show_info = !show_info;
         ImGui::End();
 
         if (show_demo)
@@ -128,6 +132,8 @@ public:
             gui::render_component_window(world, &show_components);
         if (show_resources)
             gui::render_resources_window(world, &show_resources);
+        if (show_info)
+            gui::render_info_window(world);
     }
 
     void exit(World &world) override { std::cout << "Goodbye!" << std::endl; }

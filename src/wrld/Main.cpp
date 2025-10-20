@@ -21,6 +21,7 @@ namespace wrld {
     std::shared_ptr<rsc::WindowFramebuffer> Main::window_viewport = nullptr;
     bool Main::should_close = false;
     double Main::last_frame = 0;
+    double Main::delta_time = 0;
     glm::vec3 Main::clear_color = {0.08, 0.08, 0.08};
     RendererType Main::renderer_type = FORWARD_RENDERER;
 
@@ -49,14 +50,14 @@ namespace wrld {
 
             // Compute deltatime
             const double current_frame = glfwGetTime();
-            const double deltatime = current_frame - last_frame; // in seconds
+            delta_time = current_frame - last_frame; // in seconds
             last_frame = current_frame;
 
             // Update user application
-            app.update(world, deltatime);
+            app.update(world, delta_time);
 
             // Execute systems
-            renderer->exec(deltatime);
+            renderer->exec(delta_time);
 
             // Render UI using ImGUI
             {
@@ -90,6 +91,8 @@ namespace wrld {
     std::shared_ptr<rsc::WindowFramebuffer> Main::get_window_viewport() { return window_viewport; }
 
     double Main::get_time() { return glfwGetTime(); }
+
+    double Main::get_delta_time() { return delta_time; }
 
     void Main::set_renderer_type(const RendererType _renderer_type) { renderer_type = _renderer_type; }
 

@@ -65,9 +65,11 @@ set(HEADERS
         include/wrld/tools/ModelTool.hpp
         include/wrld/tools/Geometry.hpp
 
+        include/wrld/macros.h
+
         include/wrld-gui/components.hpp
         include/wrld-gui/resources.hpp
-        include/wrld/macros.h
+        include/wrld-gui/misc.hpp
 )
 
 set(SOURCE
@@ -106,6 +108,7 @@ set(SOURCE
 
         src/wrld-gui/components.cpp
         src/wrld-gui/resources.cpp
+        src/wrld-gui/misc.cpp
 )
 
 add_library(msfl_world STATIC

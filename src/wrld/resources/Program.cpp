@@ -289,9 +289,9 @@ namespace wrld::rsc {
     std::string Program::preprocess_source(const std::string &shader_source, const ShaderType shader_type) {
 // We need to find the #version line. We'll remove it but re-add it later4
 #ifdef MSFL_WRLD_COMPILER_MSVC
-        const std::regex re(R"(^#version.*$)", std::regex_constants::multiline);
-#else
         const std::regex re(R"(^#version.*$)");
+#else
+        const std::regex re(R"(^#version.*$)", std::regex_constants::multiline);
 #endif
 
 

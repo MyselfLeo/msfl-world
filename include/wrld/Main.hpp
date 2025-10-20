@@ -35,6 +35,9 @@ namespace wrld {
         /// Return the time elapsed since the start of the program
         static double get_time();
 
+        /// Return the current delta_time
+        static double get_delta_time();
+
         static void set_renderer_type(RendererType _renderer_type);
 
         static void set_clear_color(const glm::vec3 &color);
@@ -50,6 +53,7 @@ namespace wrld {
 
         // Deltatime computing
         static double last_frame;
+        static double delta_time;
 
         // todo: move to Camera3D
         static glm::vec3 clear_color;

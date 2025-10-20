@@ -14,6 +14,7 @@
 
 #include <wrld-gui/components.hpp>
 #include <wrld-gui/resources.hpp>
+#include <wrld-gui/misc.hpp>
 
 #include "assimp/postprocess.h"
 
@@ -122,11 +123,7 @@ public:
         static bool show = true;
         gui::render_component_window(world, &show);
         gui::render_resources_window(world, &show);
-
-        ImGui::Begin("Info");
-        ImGui::Text("Deltatime: %.2f", deltatime);
-        ImGui::Text("FPS: %d", static_cast<int>(1.0 / deltatime));
-        ImGui::End();
+        gui::render_info_window(world);
     }
 
     void exit(World &world) override {}
