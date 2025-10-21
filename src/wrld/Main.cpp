@@ -23,7 +23,7 @@ namespace wrld {
     double Main::last_frame = 0;
     double Main::delta_time = 0;
     glm::vec3 Main::clear_color = {0.08, 0.08, 0.08};
-    RendererType Main::renderer_type = FORWARD_RENDERER;
+    RendererType Main::renderer_type = RendererType::ForwardRenderer;
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
         window = init_gl(width, height);
@@ -35,7 +35,7 @@ namespace wrld {
         // Create systems
         wrldInfo("Initialising systems");
         // RendererSystem renderer{world, window};
-        std::unique_ptr<RendererSystem> renderer = get_renderer();
+        const std::unique_ptr<RendererSystem> renderer = get_renderer();
 
         should_close = false;
         wrldInfo("Initializing app");
@@ -100,10 +100,10 @@ namespace wrld {
 
     std::unique_ptr<RendererSystem> Main::get_renderer() {
         switch (renderer_type) {
-            case FORWARD_RENDERER:
+            case RendererType::ForwardRenderer:
                 wrldInfo("Using forward renderer");
                 return std::make_unique<RendererSystem>(world, window);
-            case DEFERRED_RENDERER:
+            case RendererType::DeferredRenderer:
                 wrldInfo("Using deferred renderer");
                 return std::make_unique<DeferredRendererSystem>(world, window);
             default:
