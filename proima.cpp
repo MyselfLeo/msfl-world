@@ -145,7 +145,7 @@ private:
 
 int main() {
     ProIma app{};
-    Main::set_renderer_type(DEFERRED_RENDERER);
+    Main::set_renderer_type(RendererType::DeferredRenderer);
     Main::run(app, 1280, 900);
     return 0;
 }

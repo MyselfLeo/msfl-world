@@ -15,9 +15,15 @@
 #include <wrld/systems/RendererSystem.hpp>
 
 namespace wrld {
-    enum RendererType {
-        FORWARD_RENDERER,
-        DEFERRED_RENDERER,
+    enum class RendererType {
+        ForwardRenderer,
+        DeferredRenderer,
+    };
+
+    enum class Platform {
+        MSVC,
+        GCC,
+        Clang,
     };
 
     class Main {
@@ -41,6 +47,18 @@ namespace wrld {
         static void set_renderer_type(RendererType _renderer_type);
 
         static void set_clear_color(const glm::vec3 &color);
+
+        /// Return the platform used to compile the program.
+        /// Can be used at compile-time (constexpr).
+        static constexpr Platform get_platform() {
+#if defined(__clang__)
+            return Platform::Clang;
+#elif defined(__GNUC__) || defined(__GNUG__)
+            return Platform::GCC;
+#elif defined(_MSC_VER)
+            return Platform::MSVC;
+#endif
+        }
 
     private:
         static World world;

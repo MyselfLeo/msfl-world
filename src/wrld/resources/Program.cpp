@@ -18,6 +18,7 @@
 #include "glm/gtc/type_ptr.inl"
 
 #include <sstream>
+#include <wrld/Main.hpp>
 
 namespace wrld::rsc {
     std::string get_type_name(const ShaderType type) {
@@ -288,13 +289,13 @@ namespace wrld::rsc {
     }
 
     std::string Program::preprocess_source(const std::string &shader_source, const ShaderType shader_type) {
-// We need to find the #version line. We'll remove it but re-add it later4
-#ifdef MSFL_WRLD_COMPILER_MSVC
-        const std::regex re(R"(^#version.*$)");
-#else
-        const std::regex re(R"(^#version.*$)", std::regex_constants::multiline);
-#endif
-
+        // We need to find the #version line. We'll remove it but re-add it later
+        std::regex re;
+        if constexpr (Main::get_platform() == Platform::MSVC) {
+            re = std::regex(R"(^#version.*$)");
+        } else {
+            re = std::regex(R"(^#version.*$)", std::regex_constants::multiline);
+        }
 
         // Query the #version line
         std::smatch match;
