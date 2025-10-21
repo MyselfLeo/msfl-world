@@ -48,6 +48,8 @@ namespace wrld {
 
         static void set_clear_color(const glm::vec3 &color);
 
+        static void set_window_title(const std::string &title);
+
         /// Return the platform used to compile the program.
         /// Can be used at compile-time (constexpr).
         static constexpr Platform get_platform() {
@@ -76,7 +78,11 @@ namespace wrld {
         // todo: move to Camera3D
         static glm::vec3 clear_color;
 
+        static std::string window_title;
+
         static std::unique_ptr<RendererSystem> get_renderer();
+
+        static void update_window_title();
 
         static GLFWwindow *init_gl(int width, int height);
 

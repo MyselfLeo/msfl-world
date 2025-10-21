@@ -25,7 +25,7 @@ namespace wrld::tools {
         for (const auto &v: local_bb.vertices()) {
             const glm::vec4 proj_vw = trsfm * glm::vec4(v, 1.0);
             const glm::vec3 proj_v = proj_vw / proj_vw.w;
-            if (proj_v.x > -1 && proj_v.x < 1 && proj_v.y > -1 && proj_v.y < 1 && proj_v.z > -1 && proj_v.z < 1)
+            if (proj_v.x >= -1 && proj_v.x <= 1 && proj_v.y >= -1 && proj_v.y <= 1 && proj_v.z >= -1 && proj_v.z <= 1)
                 return true;
         }
 

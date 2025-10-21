@@ -159,9 +159,9 @@ private:
 };
 
 int main() {
-    ShaderApp app("data/models/queen/queen.off");
-
-    wrldInfo("Start");
+    constexpr auto path = "data/models/queen/queen.off";
+    ShaderApp app(path);
+    Main::set_window_title(std::format("Shaderview ({})", path));
     Main::run(app, 1280, 900);
     return 0;
 }

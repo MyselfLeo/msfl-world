@@ -22,11 +22,12 @@ namespace wrld {
     bool Main::should_close = false;
     double Main::last_frame = 0;
     double Main::delta_time = 0;
+    std::string Main::window_title = "Unnamed";
     glm::vec3 Main::clear_color = {0.08, 0.08, 0.08};
     RendererType Main::renderer_type = RendererType::ForwardRenderer;
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
-        window = init_gl(width, height);
+        init_gl(width, height);
         window_viewport = std::make_shared<rsc::WindowFramebuffer>(window);
         glfwSetWindowSizeCallback(window, window_resize_callback);
 
@@ -98,6 +99,12 @@ namespace wrld {
 
     void Main::set_clear_color(const glm::vec3 &color) { clear_color = color; }
 
+    void Main::set_window_title(const std::string &title) {
+        window_title = title;
+        if (window != nullptr)
+            update_window_title();
+    }
+
     std::unique_ptr<RendererSystem> Main::get_renderer() {
         switch (renderer_type) {
             case RendererType::ForwardRenderer:
@@ -111,6 +118,10 @@ namespace wrld {
         }
     }
 
+    void Main::update_window_title() {
+        glfwSetWindowTitle(window, std::format("{} :: msfl-world", window_title).c_str());
+    }
+
     GLFWwindow *Main::init_gl(const int width, const int height) {
         wrldInfo("Initialising OpenGL context");
         glfwInit();
@@ -122,7 +133,8 @@ namespace wrld {
         const float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
 
         wrldInfo("Creating window");
-        GLFWwindow *window = glfwCreateWindow(width, height, "msflWorld Engine", nullptr, nullptr);
+        window = glfwCreateWindow(width, height, std::format("{} :: msfl-world", window_title).c_str(), nullptr,
+                                  nullptr);
 
         if (window == nullptr) {
             const char *error = nullptr;
