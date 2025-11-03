@@ -27,6 +27,20 @@ namespace wrld {
     RendererType Main::renderer_type = RendererType::ForwardRenderer;
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
+        wrldInfo("msfl-world");
+
+        switch (get_platform()) {
+            case Platform::Clang: {
+                wrldInfo("Platform: CLANG");
+            } break;
+            case Platform::GCC: {
+                wrldInfo("Platform: GCC");
+            } break;
+            case Platform::MSVC: {
+                wrldInfo("Platform: MSVC");
+            } break;
+        }
+
         init_gl(width, height);
         window_viewport = std::make_shared<rsc::WindowFramebuffer>(window);
         glfwSetWindowSizeCallback(window, window_resize_callback);
