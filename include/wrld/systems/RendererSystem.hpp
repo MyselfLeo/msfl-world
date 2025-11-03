@@ -30,8 +30,8 @@ namespace wrld {
     };
 
     struct EnvironmentData {
-        EnvironmentData(cpt::AmbiantLight ambiant_light, const std::optional<Rc<rsc::CubemapTexture>> &skybox,
-                        GLuint vao);
+        EnvironmentData(cpt::AmbiantLight ambiant_light,
+                        const std::optional<Rc<rsc::CubemapTexture>> &skybox, GLuint vao);
 
         GLuint vao;
         cpt::AmbiantLight ambiant_light;
@@ -66,7 +66,8 @@ namespace wrld {
 
         /// Return the active camera component (for now, the first CameraComponent found).
         /// Returns std::nullopt if there is none.
-        [[nodiscard]] std::optional<std::shared_ptr<const cpt::Camera3D>> get_camera() const;
+        [[nodiscard]] std::optional<std::shared_ptr<const cpt::Camera3D>>
+        get_camera() const;
 
         /// Return the model of an entity. Fails if the entity has no StaticModel
         /// component.
@@ -74,7 +75,8 @@ namespace wrld {
 
         virtual void render_camera(const cpt::Camera3D &camera);
 
-        /// Return the environment attached to the camera, or a default one if not provided.
+        /// Return the environment attached to the camera, or a default one if not
+        /// provided.
         [[nodiscard]] EnvironmentData get_environment(const cpt::Camera3D &camera) const;
 
         /// Return data of all PointLights in the world.
@@ -87,8 +89,13 @@ namespace wrld {
         /// being returned.
         [[nodiscard]] std::vector<DirectionalLightData> get_directional_lights() const;
 
-        void draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera, GLuint vao) const;
+        void draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera,
+                         GLuint vao) const;
 
-        static void draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix, const rsc::Program &program);
+        static void draw_model(const rsc::Model &model, const glm::mat4x4 &model_matrix,
+                               const rsc::Program &program);
+
+        // /// Draw a box. Considers its coordinates to be world-space.
+        // static void draw_box(const obj::Box &world_bb, const rsc::Program &program);
     };
 } // namespace wrld

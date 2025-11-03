@@ -6,7 +6,7 @@
 
 #include <wrld/components/StaticModel.hpp>
 #include <wrld/components/Transform.hpp>
-#include <wrld/resources/Mesh.hpp>
+#include <../../include/wrld/objects/geometry/Mesh.hpp>
 #include <wrld/resources/Model.hpp>
 
 namespace wrld::builtins {

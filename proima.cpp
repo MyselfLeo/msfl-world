@@ -32,12 +32,14 @@ public:
 
     void init(World &world) override {
         // Load a material to be shared by every mesh.
-        // In rungholt.obj, each mesh represent a block type, and each has a specific material
-        // If we let the Model importer do its job, we'll have too much materials (not worth it for now).
-        // We create a custom basic material with the texture attached to it, it will work just fine but
-        // we'll have only 1 material meaning 1 draw call needed
+        // In rungholt.obj, each mesh represent a block type, and each has a specific
+        // material If we let the Model importer do its job, we'll have too much materials
+        // (not worth it for now). We create a custom basic material with the texture
+        // attached to it, it will work just fine but we'll have only 1 material meaning 1
+        // draw call needed
         const auto texture = world.create_resource<rsc::Texture>("minecraft_texture");
-        texture.get_mut()->set_texture("data/models/rungholt/house-RGBA.png", aiTextureType_DIFFUSE, false);
+        texture.get_mut()->set_texture("data/models/rungholt/house-RGBA.png",
+                                       aiTextureType_DIFFUSE, false);
 
         const auto material = world.create_resource<rsc::Material>("city_material");
         material.get_mut()->set_diffuse_map(texture);
@@ -45,9 +47,11 @@ public:
         material.get_mut()->set_shininess(64);
 
         auto city_model = world.create_resource<rsc::Model>("city_model");
-        city_model.get_mut()->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
-                                        false, material);
+        city_model.get_mut()->from_file("data/models/rungholt/house.obj",
+                                        aiProcess_Triangulate | aiProcess_FlipUVs, false,
+                                        material);
 
+#if 0
         wrldInfo("Splitting model");
         const auto &split_models = tools::ModelTool::split_in_grid(world, city_model, 30);
         world.destroy_resource<rsc::Model>(city_model);
@@ -57,15 +61,21 @@ public:
             const EntityID city_crumb = world.create_entity("city_crumb");
             world.attach_component<cpt::StaticModel>(city_crumb, s);
         }
+#else
+        const EntityID city = world.create_entity("city");
+        world.attach_component<cpt::StaticModel>(city, city_model);
+#endif
 
 
-        // city_model.get_mut()->from_file("data/models/rungholt/house.obj", aiProcess_Triangulate | aiProcess_FlipUVs,
+        // city_model.get_mut()->from_file("data/models/rungholt/house.obj",
+        // aiProcess_Triangulate | aiProcess_FlipUVs,
         //                                 false, material);
 
         // const EntityID city_entity = world.create_entity("City");
 
         const EntityID camera_entity = world.create_entity("Camera");
-        world.attach_component<cpt::Camera3D>(camera_entity, 45, true, Main::get_window_viewport(),
+        world.attach_component<cpt::Camera3D>(camera_entity, 45, true,
+                                              Main::get_window_viewport(),
                                               world.get_default<rsc::Program>());
 
         world.attach_component<cpt::Transform>(camera_entity);
@@ -80,11 +90,15 @@ public:
 
         for (int i = 0; i < LIGHT_COUNT; i++) {
             const EntityID light = world.create_entity(std::format("Light_{}", i));
-            world.attach_component<cpt::PointLight>(
-                    light, glm::vec3{(rand() % 255) / 255.0, (rand() % 255) / 255.0, (rand() % 255) / 255.0}, 10.0);
+            world.attach_component<cpt::PointLight>(light,
+                                                    glm::vec3{(rand() % 255) / 255.0,
+                                                              (rand() % 255) / 255.0,
+                                                              (rand() % 255) / 255.0},
+                                                    10.0);
             const auto &transform = world.attach_component<cpt::Transform>(light);
-            transform->set_position(
-                    glm::vec3{300.0 - float(rand() % 600), float(rand() % 50), 300.0 - float(rand() % 600)});
+            transform->set_position(glm::vec3{300.0 - float(rand() % 600),
+                                              float(rand() % 50),
+                                              300.0 - float(rand() % 600)});
             light_transforms[i] = transform;
         }
 

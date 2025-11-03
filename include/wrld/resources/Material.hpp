@@ -13,8 +13,8 @@
 
 namespace wrld::rsc {
     enum PolygonMode {
-        WrldPolyFill  = 1 << 0,
-        WrldPolyLine  = 1 << 1,
+        WrldPolyFill = 1 << 0,
+        WrldPolyLine = 1 << 1,
         WrldPolyPoint = 1 << 2,
     };
 
@@ -42,9 +42,9 @@ namespace wrld::rsc {
 
         void remove_specular_map();
 
-        [[nodiscard]] std::optional<Rc<Texture> > get_diffuse_map() const;
+        [[nodiscard]] std::optional<Rc<Texture>> get_diffuse_map() const;
 
-        [[nodiscard]] std::optional<Rc<Texture> > get_specular_map() const;
+        [[nodiscard]] std::optional<Rc<Texture>> get_specular_map() const;
 
         Material &set_diffuse_color(const glm::vec4 &color);
 
@@ -71,13 +71,13 @@ namespace wrld::rsc {
 
         [[nodiscard]] bool is_doing_lighting() const;
 
-        [[nodiscard]] GLenum get_primitive_type() const;
-
-        void set_primitive_type(GLenum primitive_type);
-
         [[nodiscard]] PolygonMode get_polygon_mode() const;
 
         void set_polygon_mode(PolygonMode polygon_mode);
+
+        [[nodiscard]] GLenum get_primitive_type() const;
+
+        void set_primitive_type(GLenum primitive_type);
 
         [[nodiscard]] float get_line_width() const;
 
@@ -95,14 +95,15 @@ namespace wrld::rsc {
         float specular_intensity = 0.5;
 
         // Maps
-        std::optional<Rc<Texture> > diffuse_map;  // Diffuse color
-        std::optional<Rc<Texture> > specular_map; // Specular intensity
+        std::optional<Rc<Texture>> diffuse_map; // Diffuse color
+        std::optional<Rc<Texture>> specular_map; // Specular intensity
 
         // todo: parameters that should be in the material
         // - depth mask (enable/disable)
         // - depth func
         // - enable/disable each type of light (ambiant, diffuse, specular)
-        // - keep do_lighting. If the three are disabled, the object would be black otherwise
+        // - keep do_lighting. If the three are disabled, the object would be black
+        // otherwise
         // - cull mode
         // - do depth test. If disable the object will be drawn on top of every others
         // - do projected shadows

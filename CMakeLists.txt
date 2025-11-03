@@ -53,11 +53,14 @@ set(HEADERS
         include/wrld/resources/WindowFramebuffer.hpp
         include/wrld/resources/Resource.hpp
         include/wrld/resources/Resource.tpp
-        include/wrld/resources/Mesh.hpp
         include/wrld/resources/Framebuffer.hpp
         include/wrld/resources/DeferredFramebuffer.hpp
         include/wrld/resources/Rc.hpp
         include/wrld/resources/Rc.tpp
+
+        include/wrld/objects/geometry/Mesh.hpp
+        include/wrld/objects/geometry/MeshGroup.hpp
+        include/wrld/objects/geometry/Box.hpp
 
         include/wrld/systems/RendererSystem.hpp
         include/wrld/systems/DeferredRendererSystem.hpp
@@ -95,10 +98,13 @@ set(SOURCE
         src/wrld/resources/Material.cpp
         src/wrld/resources/WindowFramebuffer.cpp
         src/wrld/resources/Resource.cpp
-        src/wrld/resources/Mesh.cpp
         src/wrld/resources/Framebuffer.cpp
         src/wrld/resources/DeferredFramebuffer.cpp
         src/wrld/resources/Rc.cpp
+
+        src/wrld/geometry/Mesh.cpp
+        src/wrld/geometry/MeshGroup.cpp
+        src/wrld/geometry/Box.cpp
 
         src/wrld/systems/RendererSystem.cpp
         src/wrld/systems/DeferredRendererSystem.cpp

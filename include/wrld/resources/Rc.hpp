@@ -24,8 +24,10 @@ namespace wrld {
     /// ResourceCounter
     template<ResourceConcept R>
     class Rc {
-        typedef std::unordered_map<std::type_index, std::unordered_set<EntityID>> UserComponentPool;
-        typedef std::unordered_map<std::type_index, std::unordered_set<std::string>> UserResourcePool;
+        typedef std::unordered_map<std::type_index, std::unordered_set<EntityID>>
+                UserComponentPool;
+        typedef std::unordered_map<std::type_index, std::unordered_set<std::string>>
+                UserResourcePool;
 
     public:
         Rc();
@@ -58,12 +60,14 @@ namespace wrld {
         template<ResourceConcept T>
         void attach_resource_user(const std::string &name) const;
 
-        void attach_resource_user(const std::type_index &ti, const std::string &name) const;
+        void attach_resource_user(const std::type_index &ti,
+                                  const std::string &name) const;
 
         template<ResourceConcept T>
         void detach_resource_user(const std::string &name) const;
 
-        void detach_resource_user(const std::type_index &ti, const std::string &name) const;
+        void detach_resource_user(const std::type_index &ti,
+                                  const std::string &name) const;
 
         template<ComponentConcept T>
         const std::unordered_set<EntityID> &get_users() const;
@@ -72,7 +76,8 @@ namespace wrld {
         const std::unordered_set<std::string> &get_users() const;
 
         template<ComponentConcept T>
-        std::vector<EntityID> get_common_users(const std::vector<std::shared_ptr<const T>> &list) const;
+        std::vector<EntityID>
+        get_common_users(const std::vector<std::shared_ptr<const T>> &list) const;
 
         template<ResourceConcept T>
         std::vector<std::string> get_common_users(const std::vector<Rc<T>> &list) const;
@@ -86,6 +91,8 @@ namespace wrld {
         /// Delete this Rc's shared ptrs.
         /// It must not be used after this call.
         void invalidate();
+
+        bool operator==(const Rc &rc) const = default;
 
     private:
         std::shared_ptr<R> resource;
