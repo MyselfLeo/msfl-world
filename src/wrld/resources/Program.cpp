@@ -290,12 +290,15 @@ namespace wrld::rsc {
 
     std::string Program::preprocess_source(const std::string &shader_source, const ShaderType shader_type) {
         // We need to find the #version line. We'll remove it but re-add it later
+
+        // Sadly we can't use the constexpr Main::get_platform() because it will still try
+        // to parse std::regex_constants::multiline under MSVC
         std::regex re;
-        if constexpr (Main::get_platform() == Platform::MSVC) {
-            re = std::regex(R"(^#version.*$)");
-        } else {
-            re = std::regex(R"(^#version.*$)", std::regex_constants::multiline);
-        }
+#if defined(_MSC_VER) && !defined(__clang__)
+        re = std::regex(R"(^#version.*$)");
+#else
+        re = std::regex(R"(^#version.*$)", std::regex_constants::multiline);
+#endif
 
         // Query the #version line
         std::smatch match;
