@@ -52,9 +52,7 @@ namespace wrld::rsc {
 
     Model &Model::from_mesh_group(const obj::MeshGroup &meshgroup,
                                   const Rc<Material> &material) {
-        materials.clear();
-        groups.clear();
-        material_of_group.clear();
+        clear();
 
         int material_index;
         if (const int existing = get_material_index(material); existing != -1) {
@@ -73,7 +71,22 @@ namespace wrld::rsc {
 
     Model &Model::from_file(const std::string &model_path, unsigned ai_flags,
                             bool flip_textures,
-                            const std::optional<Rc<Material>> &custom_material) {}
+                            const std::optional<Rc<Material>> &custom_material) {
+        wrldInfo(std::format("Loading model from {}", model_path).c_str());
+
+        clear();
+
+        // Load Assimp scene from file
+        Assimp::Importer import;
+        const aiScene *scene = import.ReadFile(model_path, ai_flags);
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+            throw std::runtime_error(std::format("Unable to load model `{}`: {}",
+                                                 model_path, import.GetErrorString()));
+        }
+        if (scene->mNumMeshes == 0) {
+            return *this;
+        }
+    }
 
     size_t Model::get_mesh_count() const {
         size_t count = 0;
@@ -384,4 +397,141 @@ namespace wrld::rsc {
         }
         return s;
     }
+
+    void Model::load_materials(const aiScene *scene, const std::string &directory,
+                               const bool flip_textures) {
+        materials.clear();
+        materials.reserve(scene->mNumMaterials);
+
+        for (int i = 0; i < scene->mNumMaterials; i++) {
+            // todo: load more data from the material, including :
+            // - all the textures (not limited to 1 texture per type)
+            // - PBR data
+
+            // Create the material
+            const aiMaterial *ai_material = scene->mMaterials[i];
+            const auto material =
+                    world.create_resource<Material>(ai_material->GetName().C_Str());
+
+            // Load the textures
+            if (ai_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+                aiString str;
+                ai_material->GetTexture(aiTextureType_DIFFUSE, 0, &str);
+
+                const auto texture =
+                        load_texture(directory, std::string(str.C_Str()), scene,
+                                     aiTextureType_DIFFUSE, flip_textures);
+
+                material->set_diffuse_map(texture);
+            }
+            if (ai_material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+                aiString str;
+                ai_material->GetTexture(aiTextureType_SPECULAR, 0, &str);
+
+                const auto texture =
+                        load_texture(directory, std::string(str.C_Str()), scene,
+                                     aiTextureType_SPECULAR, flip_textures);
+
+                material->set_specular_map(texture);
+            }
+
+            materials.push_back(material);
+        }
+    }
+
+    // void Model::load_textures(const std::string &model_directory,
+    //                           const aiMaterial *material, const aiTextureType type,
+    //                           const aiScene *scene, const bool flip_textures,
+    //                           const unsigned max) {
+    //     const unsigned count = std::min(material->GetTextureCount(type), max);
+    //
+    //     std::vector<Rc<Texture>> res;
+    //     res.reserve(count);
+    //
+    //     for (unsigned i = 0; i < count; i++) {
+    //         aiString str;
+    //         material->GetTexture(type, i, &str);
+    //
+    //         load_texture(model_directory, std::string(str.C_Str()), scene, type,
+    //                      flip_textures);
+    //
+    //         // Case of an embedded file
+    //         if (scene->GetEmbeddedTexture(str.C_Str())) {
+    //             throw std::runtime_error("Embedded textures are not supported yet");
+    //         }
+    //     }
+    // }
+
+    Rc<Texture> Model::load_texture(const std::string &directory, const std::string &str,
+                                    const aiScene *scene, const aiTextureType &type,
+                                    const bool flip_texture) {
+        // Texture already loaded
+        if (textures.contains(str))
+            return textures.at(str);
+
+        // Case of an embedded file
+        if (scene->GetEmbeddedTexture(str.c_str())) {
+            throw std::runtime_error("Embedded textures are not supported yet");
+        }
+
+        // Case of an external file
+        const std::string texture_path = std::format("{}/{}", directory, str);
+
+        // Load the texture
+        auto texture = world.create_resource<Texture>(str);
+        texture.get_mut()->set_texture(texture_path, type, flip_texture);
+        textures.insert_or_assign(str, texture);
+
+        return texture;
+    }
+
+    void Model::clear() {
+        textures.clear();
+        materials.clear();
+        groups.clear();
+        material_of_group.clear();
+    }
+
+    // std::vector<Rc<Texture>> Model::load_textures(const aiMaterial *material,
+    //                                               const aiTextureType type,
+    //                                               const aiScene *scene,
+    //                                               const bool flip_textures,
+    //                                               const unsigned max) {
+    //     const unsigned count = std::min(material->GetTextureCount(type), max);
+    //
+    //     std::vector<Rc<Texture>> res;
+    //     res.reserve(count);
+    //
+    //     for (unsigned i = 0; i < count; i++) {
+    //         // str can either be an embedded texture OR an external texture that will
+    //         // be loaded from filesystem
+    //         aiString str;
+    //         material->GetTexture(type, i, &str);
+    //
+    //         // Case of an embedded file
+    //         if (scene->GetEmbeddedTexture(str.C_Str())) {
+    //             throw std::runtime_error("Embedded textures are not supported yet");
+    //         }
+    //
+    //         // Case of an external file
+    //         const std::string texture_path =
+    //                 std::format("{}/{}", model_directory, str.C_Str());
+    //
+    //         // If it was already loaded, just return the cached structure
+    //         if (loaded_textures.contains(texture_path)) {
+    //             res.push_back(loaded_textures.at(texture_path));
+    //             continue;
+    //         }
+    //
+    //         // If not, load the texture to GPU, add it to cache and return
+    //         auto texture = world.create_resource<Texture>(str.C_Str());
+    //         texture.get_mut()->set_texture(texture_path, type, flip_textures);
+    //         loaded_textures.insert_or_assign(texture_path, texture);
+    //         res.push_back(texture);
+    //     }
+    //
+    //     return res;
+    // }
+
+
 } // namespace wrld::rsc

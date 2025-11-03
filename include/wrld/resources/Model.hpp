@@ -120,10 +120,30 @@ namespace wrld::rsc {
         /// Return the number of element indices.
         [[nodiscard]] unsigned get_element_count() const;
 
+        /// Load materials from the aiScene.
+        void load_materials(const aiScene *scene, const std::string &directory,
+                            bool flip_textures);
+
+        // /// Load textures of the given type from aiMaterial.
+        // /// Will only load a maximum of max textures.
+        // void load_textures(const std::string &model_directory, const aiMaterial
+        // *material,
+        //                    aiTextureType type, const aiScene *scene, bool
+        //                    flip_textures, unsigned max = 1);
+
+        /// Load a specific texture based on its string.
+        Rc<Texture> load_texture(const std::string &directory, const std::string &str,
+                                 const aiScene *scene, const aiTextureType &type,
+                                 bool flip_texture);
+
+        /// Clear internal data of the Model.
+        void clear();
+
         /// See wrld::obj::GeometryUsage.
         /// Might or might not be used by the driver.
         GeometryUsage usage = GeometryUsage::Static;
 
+        std::unordered_map<std::string, Rc<Texture>> textures;
         std::vector<Rc<Material>> materials;
         std::vector<obj::MeshGroup> groups;
 
