@@ -74,13 +74,13 @@ namespace wrld::tools {
 
         // First test: in the projective-space
         if (!bb_collide(proj_frustum, proj_bb)) {
-            wrldInfo("No collide in projective space");
+            // wrldInfo("No collide in projective space");
             return false;
         }
 
         // Second test: in the local-space
         if (!bb_collide(local_bb, local_frustum)) {
-            wrldInfo("No collide in local space");
+            // wrldInfo("No collide in local space");
             return false;
         }
 

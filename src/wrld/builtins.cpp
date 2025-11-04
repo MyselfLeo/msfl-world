@@ -64,7 +64,8 @@ namespace wrld::builtins {
 
         // Create model
         obj::Mesh mesh;
-        mesh.set_vertices(vertices).set_elements(elements);
+        mesh.set_vertices(vertices).set_elements(elements).set_primitive_type(
+                obj::PrimitiveType::Lines);
 
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("grid_model");
         model->from_mesh(mesh, grid_material(world));
@@ -106,7 +107,8 @@ namespace wrld::builtins {
 
         // Create model
         obj::Mesh mesh;
-        mesh.set_vertices(vertices).set_elements(elements);
+        mesh.set_vertices(vertices).set_elements(elements).set_primitive_type(
+                obj::PrimitiveType::Lines);
 
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("axis_model");
         model->from_mesh(mesh, grid_material(world));
