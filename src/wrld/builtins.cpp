@@ -24,9 +24,10 @@ namespace wrld::builtins {
         return ptr;
     }
 
-    EntityID create_grid(World &world, const unsigned nb_lines, const float line_spacing) {
+    EntityID create_grid(World &world, const unsigned nb_lines,
+                         const float line_spacing) {
         // Create the mesh
-        auto vertex = rsc::Vertex({0, 0, 0}, {1, 0, 0}, {0, 0}, {0.7, 0.7, 0.7});
+        auto vertex = obj::Vertex({0, 0, 0}, {1, 0, 0}, {0, 0}, {0.7, 0.7, 0.7});
 
         float offset = line_spacing * (static_cast<float>(nb_lines) / 2.0f);
         if (nb_lines % 2 == 0) {
@@ -34,8 +35,8 @@ namespace wrld::builtins {
         }
 
         // Create vertices
-        std::vector<rsc::Vertex> vertices;
-        std::vector<rsc::VertexID> elements;
+        std::vector<obj::Vertex> vertices;
+        std::vector<obj::VertexID> elements;
         vertices.reserve(nb_lines * 4);
         elements.reserve(nb_lines * 4);
 
@@ -43,7 +44,8 @@ namespace wrld::builtins {
         for (int i = 0; i < nb_lines; i++) {
             vertex.position = {-offset + line_spacing * static_cast<float>(i), 0, offset};
             vertices.push_back(vertex);
-            vertex.position = {-offset + line_spacing * static_cast<float>(i), 0, -offset};
+            vertex.position = {-offset + line_spacing * static_cast<float>(i), 0,
+                               -offset};
             vertices.push_back(vertex);
         }
 
@@ -51,7 +53,8 @@ namespace wrld::builtins {
         for (int i = 0; i < nb_lines; i++) {
             vertex.position = {offset, 0, -offset + line_spacing * static_cast<float>(i)};
             vertices.push_back(vertex);
-            vertex.position = {-offset, 0, -offset + line_spacing * static_cast<float>(i)};
+            vertex.position = {-offset, 0,
+                               -offset + line_spacing * static_cast<float>(i)};
             vertices.push_back(vertex);
         }
 
@@ -59,16 +62,12 @@ namespace wrld::builtins {
             elements.push_back(i);
         }
 
-        // todo: Create default resources for each type so we can do world.get_default<rsc::Material>().
-        //       This will prevent having too much resources.
-
-        const auto mesh = world.create_resource<rsc::Mesh>("grid_mesh");
-        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_material(grid_material(world));
-        // mesh.get_mut()->update();
-
         // Create model
+        obj::Mesh mesh;
+        mesh.set_vertices(vertices).set_elements(elements);
+
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("grid_model");
-        model.get_mut()->from_mesh(mesh);
+        model->from_mesh(mesh, grid_material(world));
 
         // Create entity
         const EntityID entity = world.create_entity("Grid");
@@ -81,34 +80,36 @@ namespace wrld::builtins {
     EntityID create_axis(World &world, float axis_length) {
         // Create the mesh
 
-        std::vector<rsc::Vertex> vertices;
-        std::vector<rsc::VertexID> elements;
+        std::vector<obj::Vertex> vertices;
+        std::vector<obj::VertexID> elements;
         vertices.reserve(6); // 3 lines so 6 vertices
         elements.reserve(6);
 
         // X => R
-        vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
-        vertices.push_back(rsc::Vertex({axis_length, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
+        vertices.push_back(obj::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
+        vertices.push_back(
+                obj::Vertex({axis_length, 0, 0}, {1, 1, 1}, {0, 0}, {1, 0, 0}));
 
         // Y => G
-        vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
-        vertices.push_back(rsc::Vertex({0, axis_length, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
+        vertices.push_back(obj::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
+        vertices.push_back(
+                obj::Vertex({0, axis_length, 0}, {1, 1, 1}, {0, 0}, {0, 1, 0}));
 
         // Z => B
-        vertices.push_back(rsc::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
-        vertices.push_back(rsc::Vertex({0, 0, axis_length}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
+        vertices.push_back(obj::Vertex({0, 0, 0}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
+        vertices.push_back(
+                obj::Vertex({0, 0, axis_length}, {1, 1, 1}, {0, 0}, {0, 0, 1}));
 
         for (int i = 0; i < 6; i++) {
             elements.push_back(i);
         }
 
-        const auto mesh = world.create_resource<rsc::Mesh>("axis_mesh");
-        mesh.get_mut()->set_vertices(vertices).set_elements(elements).set_material(grid_material(world));
-        // mesh.get_mut()->update();
-
         // Create model
+        obj::Mesh mesh;
+        mesh.set_vertices(vertices).set_elements(elements);
+
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("axis_model");
-        model.get_mut()->from_mesh(mesh);
+        model->from_mesh(mesh, grid_material(world));
 
         // Create entity
         const EntityID entity = world.create_entity("Axis");

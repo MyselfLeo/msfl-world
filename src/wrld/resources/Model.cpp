@@ -11,36 +11,34 @@
 #include <format>
 #include <stdexcept>
 #include <utility>
+#include <assimp/postprocess.h>
 
 namespace wrld::rsc {
-    // MeshGraphNode::MeshGraphNode(MeshGraphNode &&other) noexcept :
-    //     meshes(std::move(other.meshes)) {
-    //     children.reserve(other.children.size());
-    //     for (auto &child: other.children) {
-    //         children.push_back(std::move(child));
-    //     }
-    //     other.children.clear();
-    // }
-
-    // MeshGraphNode &MeshGraphNode::operator=(MeshGraphNode &&other) noexcept {
-    //     if (this != &other) {
-    //         meshes = std::move(other.meshes);
-    //         children.clear();
-    //         children.reserve(other.children.size());
-    //         for (auto &child: other.children) {
-    //             children.push_back(std::move(child));
-    //         }
-    //         other.children.clear();
-    //     }
-    //     return *this;
-    // }
-
     Model::Model(std::string name, World &world) :
         Resource(std::move(name), world), vao(0), vbo(0), ebo(0) {}
 
     GeometryUsage Model::get_geometry_usage() const { return usage; }
 
     void Model::set_geometry_usage(const GeometryUsage usage) { this->usage = usage; }
+
+    unsigned Model::add_material(const Rc<Material> &material) {
+        const unsigned res = materials.size();
+        materials.push_back(material);
+        return res;
+    }
+
+    const std::vector<Rc<Material>> &Model::get_materials() const { return materials; }
+
+    std::vector<std::pair<obj::MeshGroup, int>> Model::get_mesh_groups() const {
+        std::vector<std::pair<obj::MeshGroup, int>> res;
+        res.reserve(groups.size());
+
+        for (int i = 0; i < groups.size(); i++) {
+            res.emplace_back(groups[i], material_of_group[i]);
+        }
+
+        return res;
+    }
 
     Model &Model::from_mesh(const obj::Mesh &mesh, const Rc<Material> &material) {
         // Group with 1 mesh
@@ -69,6 +67,32 @@ namespace wrld::rsc {
         return *this;
     }
 
+    Model &Model::from_mesh_groups(const std::vector<obj::MeshGroup> &meshgroups,
+                                   const std::vector<Rc<Material>> &groups_materials) {
+        if (meshgroups.size() != materials.size()) {
+            throw std::runtime_error("meshgroups.size() != materials.size()");
+        }
+
+        clear();
+
+        for (int i = 0; i < meshgroups.size(); i++) {
+            int material_index;
+            if (const int existing = get_material_index(groups_materials[i]);
+                existing != -1) {
+                material_index = existing;
+            } else {
+                material_index = materials.size();
+                materials.push_back(groups_materials[i]);
+            }
+
+            groups.push_back(meshgroups[i]);
+            material_of_group.push_back(material_index);
+        }
+
+        update();
+        return *this;
+    }
+
     Model &Model::from_file(const std::string &model_path, unsigned ai_flags,
                             bool flip_textures,
                             const std::optional<Rc<Material>> &custom_material) {
@@ -76,16 +100,91 @@ namespace wrld::rsc {
 
         clear();
 
+        const std::string model_directory =
+                model_path.substr(0, model_path.find_last_of('/'));
+
         // Load Assimp scene from file
         Assimp::Importer import;
-        const aiScene *scene = import.ReadFile(model_path, ai_flags);
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        const aiScene *scene =
+                import.ReadFile(model_path, ai_flags | aiProcess_SortByPType);
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
             throw std::runtime_error(std::format("Unable to load model `{}`: {}",
                                                  model_path, import.GetErrorString()));
         }
         if (scene->mNumMeshes == 0) {
             return *this;
         }
+
+        if (custom_material.has_value()) {
+            materials.push_back(custom_material.value());
+        } else {
+            load_materials(scene, model_directory, flip_textures);
+        }
+
+        // Create 1 meshgroup for each mesh
+        // todo: We never use more than 1 mesh per meshgroup so maybe
+        // just forget about meshgroup ??
+        for (int m = 0; m < scene->mNumMeshes; m++) {
+            const aiMesh *mesh = scene->mMeshes[m];
+
+            obj::PrimitiveType primitive_type;
+            if (mesh->mPrimitiveTypes & aiPrimitiveType_POINT)
+                primitive_type = obj::PrimitiveType::Points;
+            else if (mesh->mPrimitiveTypes & aiPrimitiveType_LINE)
+                primitive_type = obj::PrimitiveType::Lines;
+            else if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
+                primitive_type = obj::PrimitiveType::Triangles;
+            else {
+                wrldError(
+                        std::format("Primitive type unspported in mesh {}", model_path));
+                continue;
+            }
+
+
+            // Create the new mesh
+            obj::Mesh new_mesh{primitive_type};
+
+            // Process vertices
+            for (unsigned i = 0; i < mesh->mNumVertices; i++) {
+                obj::Vertex vertex;
+
+                const aiVector3D &vertex_pos = mesh->mVertices[i];
+                const aiVector3D &vertex_normal = mesh->mNormals[i];
+                const aiVector3D &vertex_texcoords = mesh->mTextureCoords[0]
+                                                             ? mesh->mTextureCoords[0][i]
+                                                             : aiVector3D{0, 0, 0};
+                const aiColor4D &vertex_color = mesh->mColors[0]
+                                                        ? mesh->mColors[0][i]
+                                                        : aiColor4D{1.0, 1.0, 1.0, 1.0};
+
+                vertex.position = {vertex_pos.x, vertex_pos.y, vertex_pos.z};
+                vertex.normal = {vertex_normal.x, vertex_normal.y, vertex_normal.z};
+                vertex.color = {vertex_color.r, vertex_color.g, vertex_color.b};
+                vertex.texcoords = {vertex_texcoords.x, vertex_texcoords.y};
+
+                new_mesh.add_vertex(vertex);
+            }
+            // Indices
+            for (unsigned i = 0; i < mesh->mNumFaces; i++) {
+                const aiFace &face = mesh->mFaces[i];
+                for (unsigned j = 0; j < face.mNumIndices; j++) {
+                    new_mesh.add_element(face.mIndices[j]);
+                }
+            }
+
+            // Create a meshgroup
+            // See previous todo
+            obj::MeshGroup new_meshgroup;
+            new_meshgroup.add_mesh(new_mesh);
+
+            // Add the meshgroup along with the material indice
+            groups.push_back(new_meshgroup);
+            material_of_group.push_back(
+                    custom_material.has_value() ? 0 : mesh->mMaterialIndex);
+        }
+
+        update();
+        return *this;
     }
 
     size_t Model::get_mesh_count() const {
@@ -491,6 +590,14 @@ namespace wrld::rsc {
         groups.clear();
         material_of_group.clear();
     }
+
+    const std::unordered_map<obj::PrimitiveType,
+                             std::unordered_map<int, std::vector<MeshEBOData>>> &
+    Model::get_mesh_ebo_data() const {
+        return mesh_ebo_data;
+    }
+
+    GLuint Model::get_vao() const { return vao; }
 
     // std::vector<Rc<Texture>> Model::load_textures(const aiMaterial *material,
     //                                               const aiTextureType type,

@@ -26,7 +26,7 @@ add_subdirectory(lib/imgui-1.92.2b)
 include_directories(lib/imgui-1.92.2b)
 include_directories(lib/imgui-1.92.2b/backends)
 
-include_directories(lib/glad/include lib/stb_image src/wrld)
+include_directories(lib/glad/include lib/stb_image)
 
 set(HEADERS
         include/wrld/World.hpp
@@ -133,7 +133,6 @@ target_include_directories(msfl_world PUBLIC
         lib/imgui-1.92.2b/backends
         lib/glad/include
         lib/stb_image
-        src/wrld
         include
 )
 

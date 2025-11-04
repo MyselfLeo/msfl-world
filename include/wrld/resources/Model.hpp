@@ -30,18 +30,6 @@ namespace wrld::rsc {
         int start; // First index in the EBO
     };
 
-    // class MeshGraphNode {
-    // public:
-    //     MeshGraphNode() = default;
-    //
-    //     MeshGraphNode(MeshGraphNode &&other) noexcept;
-    //
-    //     MeshGraphNode &operator=(MeshGraphNode &&other) noexcept;
-    //
-    //     std::vector<Rc<Mesh>> meshes;
-    //     std::vector<std::shared_ptr<MeshGraphNode>> children;
-    // };
-
     /// Stores multiple meshes in a tree representation
     class Model final : public Resource {
     public:
@@ -58,37 +46,33 @@ namespace wrld::rsc {
         /// Loads the model with a single Mesh. You must give the material of this mesh.
         Model &from_mesh(const obj::Mesh &mesh, const Rc<Material> &material);
 
-        /// Loads the model with a signel MeshGroup. You must give the material of this
+        /// Loads the model with a single MeshGroup. You must give the material of this
         /// group.
         Model &from_mesh_group(const obj::MeshGroup &meshgroup,
                                const Rc<Material> &material);
 
+        /// Loads the model with multiple MeshGroups and their associated materials.
+        Model &from_mesh_groups(const std::vector<obj::MeshGroup> &meshgroups,
+                                const std::vector<Rc<Material>> &groups_materials);
+
         /// Return the number of meshes in this model.
         [[nodiscard]] size_t get_mesh_count() const;
 
+        /// Returns the geometry usage of this model. See Model::set_geometry_usage.
         [[nodiscard]] GeometryUsage get_geometry_usage() const;
 
+        /// Defines the usage of this model. May allow for optimize memory location.
+        /// Depends on the GPU and the driver.
         void set_geometry_usage(GeometryUsage usage);
 
-        // /// Return all the materials used in this model.
-        // const std::vector<Rc<Material>> &get_materials() const;
+        /// Add a material to this model. Returns its index in the model.
+        unsigned add_material(const Rc<Material> &material);
 
-        // /// Return all the meshes in this mesh. They are grouped into MeshGroups.
-        // /// All meshes in a group share the same PrimitiveType and the same Material.
-        // const std::vector<obj::MeshGroup> &get_meshes() const;
+        /// Return all the materials used in this model.
+        const std::vector<Rc<Material>> &get_materials() const;
 
-        // [[nodiscard]] const std::shared_ptr<MeshGraphNode> &get_root_mesh() const;
-
-        // const std::vector<unsigned> &
-        // get_material_meshes(const std::string &mat_name) const;
-
-        // const std::vector<size_t> &get_meshes_start() const;
-        //
-        // const std::vector<size_t> &get_meshes_size() const;
-        //
-        // const std::vector<Vertex> &get_vertices() const;
-        //
-        // const std::vector<VertexID> &get_elements() const;
+        /// Return the mesh groups of this Model alongside the index of their material.
+        std::vector<std::pair<obj::MeshGroup, int>> get_mesh_groups() const;
 
         /// Update the model's data :
         /// - Mesh data is collected & sent to the GPU
@@ -102,7 +86,7 @@ namespace wrld::rsc {
 
         std::string get_type() const override { return "Model"; }
 
-    private:
+    protected:
         friend class RendererSystem;
         // friend class ModelTool;
 
@@ -156,6 +140,13 @@ namespace wrld::rsc {
                            std::unordered_map<int, std::vector<MeshEBOData>>>
                 mesh_ebo_data;
 
+    public:
+        [[nodiscard]] const std::unordered_map<
+                obj::PrimitiveType, std::unordered_map<int, std::vector<MeshEBOData>>> &
+        get_mesh_ebo_data() const;
+        [[nodiscard]] GLuint get_vao() const;
+
+    protected:
         GLuint vao, vbo, ebo;
 
         /// Bounding box of the model in local-space. Updated by Model::update

@@ -61,6 +61,16 @@ namespace wrld::obj {
 
     const std::array<glm::vec3, 8> &Box::vertices() const { return corners; }
 
+    bool Box::inside(const glm::vec3 &point) const {
+        if (point.x < lower().x || point.x > upper().x)
+            return false;
+        if (point.y < lower().y || point.y > upper().y)
+            return false;
+        if (point.z < lower().z || point.z > upper().z)
+            return false;
+        return true;
+    }
+
     Box Box::operator*(const glm::mat4x4 &trsfrm) const {
         Box res;
         for (int i = 0; i < 8; i++) {

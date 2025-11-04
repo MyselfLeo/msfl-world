@@ -15,6 +15,7 @@
 #include <wrld/shaders/skybox_shader.hpp>
 
 #include <format>
+#include <utility>
 #include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
@@ -265,75 +266,97 @@ namespace wrld {
                 glm::transpose(glm::inverse(model_matrix));
         program.set_uniform("model_normal", normal_model_matrix);
 
-        const auto &starts = model.get_meshes_start();
-        const auto &sizes = model.get_meshes_size();
 
-        // Draw meshes material by material
-        for (const auto &mat: model.get_materials()) {
-            program.set_uniform("material", mat.get_ref());
-            const auto &meshes = model.get_material_meshes(mat.get_ref().get_name());
-            std::vector<int64_t> mat_starts{};
-            mat_starts.reserve(meshes.size());
-            std::vector<GLsizei> mat_sizes{};
-            mat_sizes.reserve(meshes.size());
+        // Draw all meshes sharing the same primitive type & material
+        // at the same time using glMultiDrawElements
 
-            for (const auto i: meshes) {
-                mat_starts.push_back(starts[i] * sizeof(GLuint));
-                mat_sizes.push_back(sizes[i]);
+        for (const auto &[pt, r]: model.get_mesh_ebo_data()) {
+            for (const auto &[mat_idx, meshes]: r) {
+                const auto &material = model.get_materials()[mat_idx];
+                program.set_uniform("material", material.get_ref());
+
+                std::vector<int64_t> mat_starts{};
+                mat_starts.reserve(meshes.size());
+                std::vector<GLsizei> mat_sizes{};
+                mat_sizes.reserve(meshes.size());
+
+                GLenum primitive_type;
+                switch (pt) {
+                    case obj::PrimitiveType::Points: {
+                        primitive_type = GL_POINTS;
+                    } break;
+                    case obj::PrimitiveType::Lines: {
+                        primitive_type = GL_LINES;
+                    } break;
+                    case obj::PrimitiveType::Triangles: {
+                        primitive_type = GL_TRIANGLES;
+                    } break;
+                    default:
+                        std::unreachable();
+                }
+
+                for (const auto [count, start]: meshes) {
+                    mat_starts.push_back(start * sizeof(GLuint));
+                    mat_sizes.push_back(count);
+                }
+
+                {
+                    glBindVertexArray(model.get_vao());
+                    if (material->get_polygon_mode() & rsc::WrldPolyFill) {
+                        program.set_uniform("polygon_mode", 0);
+
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                        // glActiveTexture(GL_TEXTURE0);
+                        glBindVertexArray(model.get_vao());
+                        glMultiDrawElements(
+                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                                reinterpret_cast<const void **>(mat_starts.data()),
+                                meshes.size());
+                        glBindVertexArray(0);
+
+                        glDepthMask(GL_FALSE);
+                        glDepthFunc(GL_LEQUAL);
+                    }
+
+                    if (material->get_polygon_mode() & rsc::WrldPolyLine) {
+                        program.set_uniform("polygon_mode", 1);
+
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                        glLineWidth(material->get_line_width());
+                        // glActiveTexture(GL_TEXTURE0);
+                        glBindVertexArray(model.get_vao());
+                        glMultiDrawElements(
+                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                                reinterpret_cast<const void **>(mat_starts.data()),
+                                meshes.size());
+                        glBindVertexArray(0);
+
+                        glDepthMask(GL_FALSE);
+                        glDepthFunc(GL_LEQUAL);
+                    }
+
+                    if (material->get_polygon_mode() & rsc::WrldPolyPoint) {
+                        program.set_uniform("polygon_mode", 2);
+
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+                        glPointSize(material->get_point_size());
+                        // glActiveTexture(GL_TEXTURE0);
+                        glBindVertexArray(model.get_vao());
+                        glMultiDrawElements(
+                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                                reinterpret_cast<const void **>(mat_starts.data()),
+                                meshes.size());
+                        glBindVertexArray(0);
+                    }
+
+                    glDepthMask(GL_TRUE);
+                    glDepthFunc(GL_LESS);
+                    glBindVertexArray(0);
+                }
             }
-
-            if (mat->get_polygon_mode() & rsc::WrldPolyFill) {
-                program.set_uniform("polygon_mode", 0);
-
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                // glActiveTexture(GL_TEXTURE0);
-                glBindVertexArray(model.get_vao());
-                glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(),
-                                    GL_UNSIGNED_INT,
-                                    reinterpret_cast<const void **>(mat_starts.data()),
-                                    meshes.size());
-                glBindVertexArray(0);
-
-                glDepthMask(GL_FALSE);
-                glDepthFunc(GL_LEQUAL);
-            }
-
-            if (mat->get_polygon_mode() & rsc::WrldPolyLine) {
-                program.set_uniform("polygon_mode", 1);
-
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                glLineWidth(mat->get_line_width());
-                // glActiveTexture(GL_TEXTURE0);
-                glBindVertexArray(model.get_vao());
-                glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(),
-                                    GL_UNSIGNED_INT,
-                                    reinterpret_cast<const void **>(mat_starts.data()),
-                                    meshes.size());
-                glBindVertexArray(0);
-
-                glDepthMask(GL_FALSE);
-                glDepthFunc(GL_LEQUAL);
-            }
-
-            if (mat->get_polygon_mode() & rsc::WrldPolyPoint) {
-                program.set_uniform("polygon_mode", 2);
-
-                glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-                glPointSize(mat->get_point_size());
-                // glActiveTexture(GL_TEXTURE0);
-                glBindVertexArray(model.get_vao());
-                glMultiDrawElements(mat.get_ref().get_primitive_type(), mat_sizes.data(),
-                                    GL_UNSIGNED_INT,
-                                    reinterpret_cast<const void **>(mat_starts.data()),
-                                    meshes.size());
-                glBindVertexArray(0);
-            }
-
-            glDepthMask(GL_TRUE);
-            glDepthFunc(GL_LESS);
         }
     }
 
-    void RendererSystem::draw_box(const rsc::BoundingBox &world_bb,
-                                  const rsc::Program &program) {}
+    // void RendererSystem::draw_box(const obj::Box &world_bb,
+    //                               const rsc::Program &program) {}
 } // namespace wrld

@@ -12,6 +12,19 @@
 #include "glm/detail/func_geometric.hpp"
 
 namespace wrld::obj {
+    unsigned get_primitive_size(PrimitiveType type) {
+        switch (type) {
+            case PrimitiveType::Points:
+                return 1;
+            case PrimitiveType::Lines:
+                return 2;
+            case PrimitiveType::Triangles:
+                return 3;
+            default:
+                std::unreachable();
+        }
+    }
+
     Mesh::Mesh(const PrimitiveType primitive_type) : primitive_type(primitive_type) {}
 
     Mesh &Mesh::set_vertices(const std::vector<Vertex> &vertices) {

@@ -54,6 +54,10 @@ namespace wrld::obj {
         /// lower        1
         [[nodiscard]] const std::array<glm::vec3, 8> &vertices() const;
 
+        /// Returns true if the point is inside the box.
+        /// Only makes sense if the box was created as a bounding box.
+        bool inside(const glm::vec3 &point) const;
+
         /// Transform matrix application on a box.
         Box operator*(const glm::mat4x4 &trsfrm) const;
 

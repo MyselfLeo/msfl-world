@@ -1,5 +1,10 @@
 Box & all:
+
 - Change FLT_MIN to -FLT_MAX
+
+Box:
+
+- Make Box::inside work with all boxes (not only bounding boxes)
 
 Resources & Components:
 
@@ -16,23 +21,14 @@ Camera:
 
 Model:
 
-Par contre, peut-être qu'on peut se débarrasser de suffisamment de données membres (model_directory, model_path...) pour
-ne pas avoir besoin de faire de sous-classes.
-
-On pourra alors garder l'architecture Model::from_file, Model::from_mesh, Model::from_meshgroup, Model::from_box...
-
-Stockage des mesh dans Model:
-
-std::vector<Rc<Material>> materials;
-std::vector<MeshGroup> groups;
-
-std::vector<int> group_material; // Associe à chaque group un material.
+Finally MeshGroup is not useful so we'll have to remove it later
 
 World:
 
 - Add detach_component
 
 Orbiter (and possibly others):
+
 - Find a way to automatically update this kind of components. May do OrbiterSystem instead of orbiter.update ?
 
 Bugs :

@@ -18,6 +18,9 @@ namespace wrld::obj {
         Triangles,
     };
 
+    /// Return the size of a primitive (point -> 1, line -> 2, triangle -> 3...).
+    unsigned get_primitive_size(PrimitiveType type);
+
     struct Vertex {
         glm::vec3 position;
         glm::vec3 normal;

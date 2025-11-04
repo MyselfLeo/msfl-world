@@ -22,10 +22,11 @@ namespace wrld::tools {
         // indeed crossing. NB: It looks like the Separate-Axis theorem used in 2D
 
         // Local-space axis-aligned bounding box of the model
-        const auto &local_bb = entity_model->get_model()->get_local_bb();
+        const auto &local_bb = entity_model->get_model()->get_bounding_box();
 
         // Projective-space axis-aligned bounding box of the frustum
-        static const obj::Box proj_frustum{{-1, -1, 0}, {1, 1, 1}};
+        static const obj::Box proj_frustum =
+                obj::Box::bounding_box({-1, -1, 0}, {1, 1, 1});
 
         // Projective-space bounding box of the model
         const auto &view = camera_cpt->get_view_matrix();
