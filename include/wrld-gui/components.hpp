@@ -23,7 +23,8 @@ namespace wrld::gui {
 
     template<ComponentConcept C>
     void component_menu(World &world, const EntityID &entity) {
-        if (const auto &cpt = world.get_component<C>(entity); ImGui::TreeNode(cpt->get_type().c_str())) {
+        if (const auto &cpt = world.get_component<C>(entity);
+            ImGui::TreeNode(cpt->get_type().c_str())) {
             // Default behavior for any component type
             ImGui::Text("No Action");
             ImGui::TreePop();
@@ -45,7 +46,8 @@ namespace wrld::gui {
     }
 
     template<>
-    inline void component_menu<cpt::DirectionalLight>(World &world, const EntityID &entity) {
+    inline void component_menu<cpt::DirectionalLight>(World &world,
+                                                      const EntityID &entity) {
         const auto &cpt = world.get_component<cpt::DirectionalLight>(entity);
         if (ImGui::TreeNode(cpt->get_type().c_str())) {
             glm::vec3 color = cpt->get_color();
@@ -103,14 +105,17 @@ namespace wrld::gui {
                         names += name + '\0';
                     }
                     names += '\0';
-                    static int current_item_idx = std::ranges::find(entities_id, tracked_id) - entities_id.begin();
+                    static int current_item_idx =
+                            std::ranges::find(entities_id, tracked_id) -
+                            entities_id.begin();
                     ImGui::Combo("Tracked entity", &current_item_idx, names.c_str());
                     cpt->set_target(entities_id[current_item_idx]);
                 } break;
 
                 case cpt::WORLD_POINT: {
                     ImGui::Text("Current mode: WORLD POINT");
-                    ImGui::Text("Looking at: (%.2f, %.2f, %.2f)", cpt->get_target_point().x, cpt->get_target_point().y,
+                    ImGui::Text("Looking at: (%.2f, %.2f, %.2f)",
+                                cpt->get_target_point().x, cpt->get_target_point().y,
                                 cpt->get_target_point().z);
 
                     // Allow to change targeted point
@@ -129,7 +134,8 @@ namespace wrld::gui {
             ImGui::InputFloat3("Offset", &offset.x);
 
 
-            ImGui::SliderFloat("Distance", &distance, 0.0, 50.0, "%.2f", ImGuiSliderFlags_Logarithmic);
+            ImGui::SliderFloat("Distance", &distance, 0.0, 50.0, "%.2f",
+                               ImGuiSliderFlags_Logarithmic);
             cpt->set_distance(distance);
 
             ImGui::SliderFloat("Hor. Angle", &hor_angle, 0.0, 360.0, "%.2f");
@@ -169,16 +175,18 @@ namespace wrld::gui {
         const auto &cpt = world.get_component<cpt::Transform>(entity);
         if (ImGui::TreeNode(cpt->get_type().c_str())) {
             glm::vec3 position = cpt->get_position();
-            glm::quat rotation = cpt->get_rotation();
+            glm::vec3 rotation = glm::eulerAngles(cpt->get_rotation());
             glm::vec3 scale = cpt->get_scale();
 
-            ImGui::InputFloat3("Position", &position.x);
-            ImGui::InputFloat4("Rotation", &rotation.x);
-            ImGui::InputFloat3("Scale", &scale.x);
-
-            cpt->set_position(position);
-            cpt->set_rotation(rotation);
-            cpt->set_scale(scale);
+            if (ImGui::InputFloat3("Position", &position.x)) {
+                cpt->set_position(position);
+            }
+            if (ImGui::InputFloat3("Rotation", &rotation.x)) {
+                cpt->set_rotation(glm::quat{rotation});
+            }
+            if (ImGui::InputFloat3("Scale", &scale.x)) {
+                cpt->set_scale(scale);
+            }
 
             ImGui::TreePop();
         }

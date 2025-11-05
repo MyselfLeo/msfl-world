@@ -19,6 +19,7 @@
 #include "assimp/postprocess.h"
 
 #include <iostream>
+#include <wrld/builtins.hpp>
 #include <wrld/logs.hpp>
 #include <wrld/tools/ModelTool.hpp>
 
@@ -64,6 +65,14 @@ public:
 #else
         const EntityID city = world.create_entity("city");
         world.attach_component<cpt::StaticModel>(city, city_model);
+        world.attach_component<cpt::Transform>(city);
+
+        const obj::Box city_bb = city_model->get_bounding_box();
+        const EntityID city_bb_entity = world.create_entity("city_bb");
+        const auto bb = world.create_resource<rsc::Model>("city_bb");
+        bb->from_mesh(city_bb.get_mesh(), builtins::unlit_material(world));
+        world.attach_component<cpt::StaticModel>(city_bb_entity, bb);
+        world.attach_component<cpt::Transform>(city_bb_entity);
 #endif
 
 

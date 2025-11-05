@@ -36,7 +36,7 @@ namespace wrld {
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
         System(world), window(window) {
         const auto program = world.create_resource<rsc::Program>("skybox_program");
-        program.get_mut()->from_source(shader::SKYBOX);
+        program->from_source(shader::SKYBOX);
         skybox_program = program;
     }
 
@@ -273,7 +273,7 @@ namespace wrld {
         for (const auto &[pt, r]: model.get_mesh_ebo_data()) {
             for (const auto &[mat_idx, meshes]: r) {
                 const auto &material = model.get_materials()[mat_idx];
-                program.set_uniform("material", material.get_ref());
+                program.set_uniform("material", material);
 
                 std::vector<int64_t> mat_starts{};
                 mat_starts.reserve(meshes.size());
@@ -356,7 +356,4 @@ namespace wrld {
             }
         }
     }
-
-    // void RendererSystem::draw_box(const obj::Box &world_bb,
-    //                               const rsc::Program &program) {}
 } // namespace wrld

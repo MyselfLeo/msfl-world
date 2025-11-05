@@ -150,25 +150,4 @@ namespace wrld::tools {
 
         return new_groups;
     }
-
-    // Rc<rsc::Model> ModelTool::generate_bb_model(World &world,
-    //                                             const obj::Box &bounding_box) {
-    //     std::vector<rsc::Vertex> vertices{};
-    //     vertices.reserve(8);
-    //
-    //     // see BoundingBox.hpp
-    //     std::vector<rsc::VertexID> elements = {
-    //             0,
-    //             1,
-    //
-    //     };
-    //
-    //     for (const auto &p: bounding_box.vertices()) {
-    //         vertices.push_back({p, glm::vec3{0}, glm::vec3{0}, glm::vec4{1.0}});
-    //     }
-    //
-    //     const Rc<rsc::Mesh> mesh = world.create_resource<rsc::Mesh>("bounding_box");
-    //     mesh->set_primitive_type(GL_LINES);
-    // }
-
 } // namespace wrld::tools

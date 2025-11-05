@@ -75,10 +75,6 @@ namespace wrld::rsc {
 
         void set_polygon_mode(PolygonMode polygon_mode);
 
-        [[nodiscard]] GLenum get_primitive_type() const;
-
-        void set_primitive_type(GLenum primitive_type);
-
         [[nodiscard]] float get_line_width() const;
 
         void set_line_width(float line_width);
@@ -116,7 +112,6 @@ namespace wrld::rsc {
         // Config
         bool _use_mesh_color = true;
         bool _do_lighting = true;
-        GLenum primitive_type = GL_TRIANGLES;
         PolygonMode polygon_mode = WrldPolyFill;
 
         float line_width = 1.0;

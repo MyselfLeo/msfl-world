@@ -45,7 +45,8 @@ namespace wrld::rsc {
         return *this;
     }
 
-    Program &Program::from_file(const std::string &vertex_path, const std::string &fragment_path) {
+    Program &Program::from_file(const std::string &vertex_path,
+                                const std::string &fragment_path) {
         this->vertex_shader_path = vertex_path;
         this->fragment_shader_path = fragment_path;
         reload_from_file();
@@ -57,16 +58,16 @@ namespace wrld::rsc {
         return *this;
     }
 
-    Program &Program::from_source(const std::string &vertex_source, const std::string &fragment_source) {
+    Program &Program::from_source(const std::string &vertex_source,
+                                  const std::string &fragment_source) {
         reload_from_source(vertex_source, fragment_source);
         return *this;
     }
 
     // Program::Program(Program &&other) noexcept :
-    //     vertex_shader(other.vertex_shader), fragment_shader(other.fragment_shader), gl_program(other.gl_program) {
-    //     other.vertex_shader = 0;
-    //     other.fragment_shader = 0;
-    //     other.gl_program = 0;
+    //     vertex_shader(other.vertex_shader), fragment_shader(other.fragment_shader),
+    //     gl_program(other.gl_program) { other.vertex_shader = 0; other.fragment_shader =
+    //     0; other.gl_program = 0;
     // }
     //
     // Program &Program::operator=(Program &&other) noexcept {
@@ -90,7 +91,6 @@ namespace wrld::rsc {
     void Program::set_uniform(const std::string &uniform, const float value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
             return;
         }
 
@@ -100,7 +100,6 @@ namespace wrld::rsc {
     void Program::set_uniform(const std::string &uniform, const int value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
             return;
         }
 
@@ -110,7 +109,6 @@ namespace wrld::rsc {
     void Program::set_uniform(const std::string &uniform, const unsigned value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
             return;
         }
 
@@ -120,7 +118,6 @@ namespace wrld::rsc {
     void Program::set_uniform(const std::string &uniform, const glm::vec3 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
             return;
         }
 
@@ -130,31 +127,31 @@ namespace wrld::rsc {
     void Program::set_uniform(const std::string &uniform, const glm::vec4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
             return;
         }
 
         glUniform4f(uniform_loc, value[0], value[1], value[2], value[3]);
     }
 
-    void Program::set_uniform(const std::string &uniform, const glm::mat3x3 &value) const {
+    void Program::set_uniform(const std::string &uniform,
+                              const glm::mat3x3 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
             return;
         }
 
         glUniformMatrix3fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(value));
     }
 
-    void Program::set_uniform(const std::string &uniform, const Material &material) const {
+    void Program::set_uniform(const std::string &uniform,
+                              const Rc<Material> &material) const {
         // Constant colors
-        set_uniform(uniform + ".diffuse_color", material.get_diffuse_color());
-        set_uniform(uniform + ".specular_intensity", material.get_specular_intensity());
+        set_uniform(uniform + ".diffuse_color", material->get_diffuse_color());
+        set_uniform(uniform + ".specular_intensity", material->get_specular_intensity());
 
         // Diffuse map
-        if (material.get_diffuse_map().has_value()) {
-            material.get_diffuse_map().value().get()->use(0);
+        if (material->get_diffuse_map().has_value()) {
+            material->get_diffuse_map().value().get()->use(0);
 
             set_uniform(uniform + ".use_diffuse", true);
             set_uniform(uniform + ".diffuse", 0);
@@ -163,8 +160,8 @@ namespace wrld::rsc {
         }
 
         // Specular map
-        if (material.get_specular_map().has_value()) {
-            material.get_specular_map().value().get()->use(1);
+        if (material->get_specular_map().has_value()) {
+            material->get_specular_map().value().get()->use(1);
 
             set_uniform(uniform + ".use_specular", true);
             set_uniform(uniform + ".specular", 1);
@@ -172,10 +169,10 @@ namespace wrld::rsc {
             set_uniform(uniform + ".use_specular", false);
         }
 
-        set_uniform(uniform + ".shininess", material.get_shininess());
+        set_uniform(uniform + ".shininess", material->get_shininess());
 
-        set_uniform(uniform + ".use_mesh_color", material.is_using_mesh_color());
-        set_uniform(uniform + ".do_lighting", material.is_doing_lighting());
+        set_uniform(uniform + ".use_mesh_color", material->is_using_mesh_color());
+        set_uniform(uniform + ".do_lighting", material->is_doing_lighting());
     }
 
     void Program::reload() const {
@@ -189,10 +186,10 @@ namespace wrld::rsc {
         // glLinkProgram(gl_program);
     }
 
-    void Program::set_uniform(const std::string &uniform, const glm::mat4x4 &value) const {
+    void Program::set_uniform(const std::string &uniform,
+                              const glm::mat4x4 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
-            // throw std::runtime_error(std::format("Undefined uniform '{}'", uniform));
             return;
         }
 
@@ -225,7 +222,8 @@ namespace wrld::rsc {
         if (fragment_shader == 0) {
             fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
             if (fragment_shader == 0) {
-                throw std::runtime_error("Unable to create OpenGL fragment shader object");
+                throw std::runtime_error(
+                        "Unable to create OpenGL fragment shader object");
             }
         }
 
@@ -254,7 +252,8 @@ namespace wrld::rsc {
         compiled_once = true;
     }
 
-    void Program::reload_from_source(const std::string &vertex_src, const std::string &fragment_src) {
+    void Program::reload_from_source(const std::string &vertex_src,
+                                     const std::string &fragment_src) {
         if (vertex_shader == 0) {
             vertex_shader = glCreateShader(GL_VERTEX_SHADER);
             if (vertex_shader == 0) {
@@ -265,7 +264,8 @@ namespace wrld::rsc {
         if (fragment_shader == 0) {
             fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
             if (fragment_shader == 0) {
-                throw std::runtime_error("Unable to create OpenGL fragment shader object");
+                throw std::runtime_error(
+                        "Unable to create OpenGL fragment shader object");
             }
         }
 
@@ -288,7 +288,8 @@ namespace wrld::rsc {
         compiled_once = true;
     }
 
-    std::string Program::preprocess_source(const std::string &shader_source, const ShaderType shader_type) {
+    std::string Program::preprocess_source(const std::string &shader_source,
+                                           const ShaderType shader_type) {
         // We need to find the #version line. We'll remove it but re-add it later
 
         // Sadly we can't use the constexpr Main::get_platform() because it will still try
@@ -304,11 +305,13 @@ namespace wrld::rsc {
         std::smatch match;
 
         if (!std::regex_search(shader_source, match, re)) {
-            throw std::runtime_error(std::format("No #version directive found in the shader."));
+            throw std::runtime_error(
+                    std::format("No #version directive found in the shader."));
         }
 
         if (match.size() > 1)
-            throw std::runtime_error(std::format("Multiple #version directives found in the shader."));
+            throw std::runtime_error(
+                    std::format("Multiple #version directives found in the shader."));
 
         // Remove this same line from the source
         std::string stripped_source = std::regex_replace(shader_source, re, "");
@@ -322,7 +325,8 @@ namespace wrld::rsc {
         return res;
     }
 
-    void Program::compile_shader(const GLuint gl_shader, const std::string &shader_src, const ShaderType type) {
+    void Program::compile_shader(const GLuint gl_shader, const std::string &shader_src,
+                                 const ShaderType type) {
         wrldInfo(std::format("Compiling shader {}", gl_shader));
 
         // const std::string shader_src = read_file(shader_path);
@@ -340,7 +344,8 @@ namespace wrld::rsc {
         if (!success) {
             char infoLog[512];
             glGetShaderInfoLog(gl_shader, 512, nullptr, infoLog);
-            throw std::runtime_error(std::format("Failed to compile shader: {}", infoLog));
+            throw std::runtime_error(
+                    std::format("Failed to compile shader: {}", infoLog));
         }
     }
 } // namespace wrld::rsc

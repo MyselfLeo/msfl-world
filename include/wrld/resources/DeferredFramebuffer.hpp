@@ -32,6 +32,7 @@ namespace wrld::rsc {
         [[nodiscard]] GLuint get_position_texture() const;
         [[nodiscard]] GLuint get_normal_texture() const;
         [[nodiscard]] GLuint get_diffuse_texture() const;
+        [[nodiscard]] GLuint get_do_lighting_texture() const;
         [[nodiscard]] GLuint get_depth_texture() const;
 
     private:
@@ -41,9 +42,9 @@ namespace wrld::rsc {
 
         GLuint position_texture;
         GLuint normal_texture;
-        GLuint diffuse_texture;
+        GLuint diffuse_texture; // diffuse + specular
+        GLuint do_lighting_texture;
         GLuint depth_texture;
-        // GLuint specular_texture;
 
         unsigned width, height;
     };

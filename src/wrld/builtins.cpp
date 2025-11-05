@@ -10,14 +10,14 @@
 #include <wrld/resources/Model.hpp>
 
 namespace wrld::builtins {
-    Rc<rsc::Material> grid_material(World &world) {
+    Rc<rsc::Material> unlit_material(World &world) {
         static bool set = false;
         static Rc<rsc::Material> ptr;
 
         if (!set) {
-            ptr = world.create_resource<rsc::Material>("grid_material");
-            ptr.get_mut()->set_primitive_type(GL_LINES);
-            ptr.get_mut()->do_lighting(false);
+            ptr = world.create_resource<rsc::Material>("unlit_material");
+            ptr->do_lighting(false);
+            ptr->set_line_width(2);
             set = true;
         }
 
@@ -68,7 +68,7 @@ namespace wrld::builtins {
                 obj::PrimitiveType::Lines);
 
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("grid_model");
-        model->from_mesh(mesh, grid_material(world));
+        model->from_mesh(mesh, unlit_material(world));
 
         // Create entity
         const EntityID entity = world.create_entity("Grid");
@@ -111,7 +111,7 @@ namespace wrld::builtins {
                 obj::PrimitiveType::Lines);
 
         Rc<rsc::Model> model = world.create_resource<rsc::Model>("axis_model");
-        model->from_mesh(mesh, grid_material(world));
+        model->from_mesh(mesh, unlit_material(world));
 
         // Create entity
         const EntityID entity = world.create_entity("Axis");

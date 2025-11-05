@@ -74,40 +74,16 @@ namespace wrld::tools {
 
         // First test: in the projective-space
         if (!bb_collide(proj_frustum, proj_bb)) {
-            // wrldInfo("No collide in projective space");
+            wrldInfo("No collide in projective space");
             return false;
         }
 
         // Second test: in the local-space
         if (!bb_collide(local_bb, local_frustum)) {
-            // wrldInfo("No collide in local space");
+            wrldInfo("No collide in local space");
             return false;
         }
 
         return true;
-        // if (are_all_exterior(proj_bb, {-1, -1, -1}, true) ||
-        //     are_all_exterior(proj_bb, {1, 1, 1}, false)) {
-        //     return false;
-        // }
-        //
-        // // Second test: in the local-space
-        // if (are_all_exterior(local_frustum, ))
-
-
-        // In projection space, the frustum is between -1 and 1 on each axis.
-        // If any vertex of the bounding box is in the frustum, then the model is
-        // visible. for (const auto &v: local_bb.vertices()) {
-        //     const glm::vec4 proj_vw = trsfm * glm::vec4(v, 1.0);
-        //     const glm::vec3 proj_v = proj_vw / proj_vw.w;
-        //     if (proj_v.x >= -1 && proj_v.x <= 1 && proj_v.y >= -1 && proj_v.y <= 1
-        //     && proj_v.z >= -1 && proj_v.z <= 1)
-        //         return true;
-        // }
-
-        // We try to find a plane that separate the bounding box and the frustum.
-        // The frustum is a box from -1 to 1 in each axis, so we can test if all the
-        // points in the BB are "
-
-        // return false;
     }
 } // namespace wrld::tools

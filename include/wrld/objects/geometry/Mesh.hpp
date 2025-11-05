@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
-
 #include <vector>
 #include <glad/glad.h>
 #include <wrld/objects/geometry/Box.hpp>
@@ -83,7 +80,7 @@ namespace wrld::obj {
         void recompute_normals();
 
         /// Return the bounding-box of the mesh.
-        Box get_bounding_box() const;
+        [[nodiscard]] Box get_bounding_box() const;
 
     private:
         std::vector<Vertex> vertices;

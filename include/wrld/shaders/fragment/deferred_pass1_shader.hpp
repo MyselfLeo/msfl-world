@@ -37,7 +37,8 @@ uniform Material material;
 
 out vec3 out_frag_pos;
 out vec3 out_frag_normal;
-out vec4 out_color;// diffuse (vec3) + specular (a)
+out vec4 out_color; // diffuse (vec3) + specular (a)
+out uint out_do_lighting;
 
 
 vec4 sample_diffuse() {
@@ -64,6 +65,12 @@ float sample_specular() {
 void main() {
     if (sample_diffuse().a < 0.01) discard;
 
+    if (material.do_lighting) {
+        out_do_lighting = 1;
+    }
+    else {
+        out_do_lighting = 0;
+    }
     out_frag_pos = frag_pos;
     out_frag_normal = frag_normal;
     // Why 1 - specular :

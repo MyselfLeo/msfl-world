@@ -44,12 +44,10 @@ struct DirectionalLight {
 };
 
 // From viewport to world (viewport -> projection -> view)
-//uniform sampler2D position_texture;
-//uniform sampler2D normal_texture;
-//uniform sampler2D diffuse_texture;
 layout(binding = 0) uniform sampler2D position_texture;
 layout(binding = 1) uniform sampler2D normal_texture;
 layout(binding = 2) uniform sampler2D diffuse_texture;
+layout(binding = 3) uniform usampler2D do_lighting_texture;
 
 // Position of the camera in world space
 uniform vec3 view_pos;
@@ -65,6 +63,10 @@ uniform DirectionalLight directional_lights[MAX_LIGHTS];
 
 
 out vec4 FragColor;
+
+uint do_lighting(vec2 uv) {
+    return texture(do_lighting_texture, uv).r;
+}
 
 vec3 sample_diffuse(vec2 uv) {
     return texture(diffuse_texture, uv).rgb;
@@ -137,6 +139,11 @@ void main()
 {
     vec2 uv = gl_FragCoord.xy / vec2(textureSize(diffuse_texture, 0));
 
+    if (do_lighting(uv) == 0) {
+        FragColor = vec4(sample_diffuse(uv), 1.0);
+        return;
+    }
+
     vec4 res = vec4(0.0);
 
     // Process ambient light
@@ -153,8 +160,6 @@ void main()
     }
 
     FragColor = res;
-
-    //FragColor = calc_point_light(point_lights[0], uv);
 }
 
 #endif

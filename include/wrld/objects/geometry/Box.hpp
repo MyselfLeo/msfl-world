@@ -8,6 +8,7 @@
 #include <array>
 
 namespace wrld::obj {
+    class Mesh;
 
     /// Box defined by 8 vertices (see Box::vertices()).
     /// Transforms (mat4x4 multiplication) can be applied
@@ -64,6 +65,9 @@ namespace wrld::obj {
         /// Given 2 bounding boxes, return the bounding box of the set.
         /// Only makes sense if the box was created as a bounding box.
         Box operator+(const Box &other) const;
+
+        /// Return a mesh representing the edges of this box.
+        Mesh get_mesh() const;
 
     private:
         std::array<glm::vec3, 8> corners;

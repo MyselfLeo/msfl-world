@@ -61,7 +61,7 @@ namespace wrld::rsc {
 
         void set_uniform(const std::string &uniform, const glm::mat3x3 &value) const;
 
-        void set_uniform(const std::string &uniform, const Material &material) const;
+        void set_uniform(const std::string &uniform, const Rc<Material> &material) const;
 
         void reload() const;
 

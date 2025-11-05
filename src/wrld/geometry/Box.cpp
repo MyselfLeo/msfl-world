@@ -2,8 +2,8 @@
 // Created by leo on 10/24/25.
 //
 
-#include <cfloat>
-#include <../../../include/wrld/objects/geometry/Box.hpp>
+#include <wrld/objects/geometry/Box.hpp>
+#include <wrld/objects/geometry/Mesh.hpp>
 
 namespace wrld::obj {
     Box::Box() :
@@ -98,6 +98,46 @@ namespace wrld::obj {
             upper.z = other.upper().z;
 
         return bounding_box(lower, upper);
+    }
+
+    Mesh Box::get_mesh() const {
+        std::vector<Vertex> vertices;
+
+        for (const auto &c: corners) {
+            vertices.emplace_back(c, glm::vec3{0}, glm::vec2{0}, glm::vec3{1, 0, 0});
+        }
+
+        // Order for the vertices
+        //   6           upper
+        //      +---------+
+        //     /|        /|
+        // 4  / |     5 / |
+        //   +---------+  |              y
+        //   |  +----- | -+              |  z
+        //   | / 2     | /  3            | /
+        //   |/        |/                |/
+        //   +---------+                 +--- x
+        // lower        1
+        static const std::vector<VertexID> elements{
+                0, 1, // 0
+                0, 2, // 1
+                0, 4, // 2
+                1, 5, // 3
+                1, 3, // 4,
+                2, 3, // 5
+                2, 6, // 6
+                3, 7, // 7
+                4, 5, // 8
+                4, 6, // 9
+                5, 7, // 10
+                6, 7, // 11
+        };
+
+        Mesh mesh{PrimitiveType::Lines};
+        mesh.set_vertices(vertices);
+        mesh.set_elements(elements);
+
+        return mesh;
     }
 
 } // namespace wrld::obj

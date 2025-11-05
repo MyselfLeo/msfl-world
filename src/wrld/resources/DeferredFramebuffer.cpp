@@ -8,9 +8,10 @@
 #include <format>
 
 namespace wrld::rsc {
-    DeferredFramebuffer::DeferredFramebuffer(std::string name, World &world /*, Rc<Resource> *rc*/) :
-        Resource(std::move(name), world /*, rc*/), fbo(0), position_texture(0), normal_texture(0), diffuse_texture(0),
-        depth_texture(0), width(0), height(0) {}
+    DeferredFramebuffer::DeferredFramebuffer(std::string name, World &world) :
+        Resource(std::move(name), world), fbo(0), position_texture(0), normal_texture(0),
+        diffuse_texture(0), do_lighting_texture(0), depth_texture(0), width(0),
+        height(0) {}
 
     DeferredFramebuffer::~DeferredFramebuffer() {
         if (fbo != 0) {
@@ -20,7 +21,8 @@ namespace wrld::rsc {
 
     GLuint DeferredFramebuffer::get_fbo() const { return fbo; }
 
-    DeferredFramebuffer &DeferredFramebuffer::set_size(const unsigned width, const unsigned height) {
+    DeferredFramebuffer &DeferredFramebuffer::set_size(const unsigned width,
+                                                       const unsigned height) {
         this->width = width;
         this->height = height;
         return *this;
@@ -44,13 +46,16 @@ namespace wrld::rsc {
             glDeleteFramebuffers(1, &fbo);
         }
         if (position_texture != 0) {
-            glDeleteTextures(1, &depth_texture);
+            glDeleteTextures(1, &position_texture);
         }
         if (normal_texture != 0) {
-            glDeleteTextures(1, &depth_texture);
+            glDeleteTextures(1, &normal_texture);
         }
         if (diffuse_texture != 0) {
-            glDeleteTextures(1, &depth_texture);
+            glDeleteTextures(1, &diffuse_texture);
+        }
+        if (do_lighting_texture != 0) {
+            glDeleteTextures(1, &do_lighting_texture);
         }
         if (depth_texture != 0) {
             glDeleteTextures(1, &depth_texture);
@@ -62,7 +67,8 @@ namespace wrld::rsc {
         // position texture
         glGenTextures(1, &position_texture);
         glBindTexture(GL_TEXTURE_2D, position_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT,
+                     nullptr);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -70,7 +76,8 @@ namespace wrld::rsc {
         // normal texture
         glGenTextures(1, &normal_texture);
         glBindTexture(GL_TEXTURE_2D, normal_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8_SNORM, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8_SNORM, width, height, 0, GL_RGB, GL_FLOAT,
+                     nullptr);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -78,7 +85,17 @@ namespace wrld::rsc {
         // diffuse texture
         glGenTextures(1, &diffuse_texture);
         glBindTexture(GL_TEXTURE_2D, diffuse_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT,
+                     nullptr);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        // lighting mode texture
+        glGenTextures(1, &do_lighting_texture);
+        glBindTexture(GL_TEXTURE_2D, do_lighting_texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, width, height, 0, GL_RED_INTEGER,
+                     GL_UNSIGNED_BYTE, nullptr);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -86,21 +103,27 @@ namespace wrld::rsc {
         // depth texture
         glGenTextures(1, &depth_texture);
         glBindTexture(GL_TEXTURE_2D, depth_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,
-                     nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
+                     GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // Attach textures to framebuffer
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, position_texture, 0);
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, normal_texture, 0);
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, diffuse_texture, 0);
+        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, position_texture,
+                             0);
+        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, normal_texture,
+                             0);
+        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, diffuse_texture,
+                             0);
+        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3,
+                             do_lighting_texture, 0);
         glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture, 0);
 
         // Link program output to textures
-        constexpr GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-        glDrawBuffers(3, buffers);
+        constexpr GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+                                      GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        glDrawBuffers(4, buffers);
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
@@ -110,6 +133,10 @@ namespace wrld::rsc {
     GLuint DeferredFramebuffer::get_normal_texture() const { return normal_texture; }
 
     GLuint DeferredFramebuffer::get_diffuse_texture() const { return diffuse_texture; }
+
+    GLuint DeferredFramebuffer::get_do_lighting_texture() const {
+        return do_lighting_texture;
+    }
 
     GLuint DeferredFramebuffer::get_depth_texture() const { return depth_texture; }
 } // namespace wrld::rsc
