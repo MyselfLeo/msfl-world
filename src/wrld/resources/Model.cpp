@@ -69,8 +69,8 @@ namespace wrld::rsc {
 
     Model &Model::from_mesh_groups(const std::vector<obj::MeshGroup> &meshgroups,
                                    const std::vector<Rc<Material>> &groups_materials) {
-        if (meshgroups.size() != materials.size()) {
-            throw std::runtime_error("meshgroups.size() != materials.size()");
+        if (meshgroups.size() != groups_materials.size()) {
+            throw std::runtime_error("meshgroups.size() != groups_materials.size()");
         }
 
         clear();

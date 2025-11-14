@@ -29,12 +29,13 @@ namespace wrld::tools {
         /// Mesh::get_bounding_box.
         /// Assumes that each bounding box is independant.
         static std::vector<obj::Mesh>
-        split_mesh(const obj::Mesh &mesh, const std::vector<obj::Box> &bounding_boxes);
+        split_mesh(const obj::Mesh &mesh, float grid_size,
+                                                 const obj::Box &global_box);
 
         /// Same as ModelTool::split_mesh.
         static std::vector<obj::MeshGroup>
-        split_mesh_group(const obj::MeshGroup &mesh_group,
-                         const std::vector<obj::Box> &bounding_boxes);
+        split_mesh_group(const obj::MeshGroup &mesh_group, float grid_size,
+                         const obj::Box &global_box);
     };
 
 } // namespace wrld::tools

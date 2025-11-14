@@ -42,6 +42,14 @@ namespace wrld::obj {
         }};
     }
 
+    glm::vec3 Box::center() const {
+        glm::vec3 sum;
+        for (const auto &c: corners) {
+            sum += c;
+        }
+        return {sum.x / 8.0, sum.y / 8.0, sum.z / 8.0};
+    }
+
     // Box Box::empty_bounding_box() {
     //     return bounding_box({FLT_MAX, FLT_MAX, FLT_MAX}, {FLT_MIN, FLT_MIN, FLT_MIN});
     // }

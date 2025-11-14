@@ -45,7 +45,6 @@ namespace wrld {
     DeferredRendererSystem::~DeferredRendererSystem() { glDeleteVertexArrays(1, &vao); }
 
     void DeferredRendererSystem::render_camera(const cpt::Camera3D &camera) {
-        // wrldInfo("Rendering");
         //  FIRST PASS
 
         const glm::mat4x4 view_matrix = camera.get_view_matrix();

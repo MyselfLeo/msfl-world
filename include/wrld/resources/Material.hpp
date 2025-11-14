@@ -67,6 +67,12 @@ namespace wrld::rsc {
         /// (equivalent to a full white ambiant light).
         void do_lighting(bool do_lighting);
 
+        /// If set to False, the object won't write to the
+        /// depth mask.
+        void do_depth_mask(bool do_depth_mask);
+
+        [[nodiscard]] bool is_doing_depth_mask() const;
+
         [[nodiscard]] bool is_using_mesh_color() const;
 
         [[nodiscard]] bool is_doing_lighting() const;
@@ -112,6 +118,7 @@ namespace wrld::rsc {
         // Config
         bool _use_mesh_color = true;
         bool _do_lighting = true;
+        bool _do_depth_mask = true;
         PolygonMode polygon_mode = WrldPolyFill;
 
         float line_width = 1.0;

@@ -57,6 +57,12 @@ namespace wrld::rsc {
         this->_do_lighting = do_lighting;
     }
 
+    void Material::do_depth_mask(const bool do_depth_mask) {
+        this->_do_depth_mask = do_depth_mask;
+    }
+
+    bool Material::is_doing_depth_mask() const { return this->_do_depth_mask; }
+
     bool Material::is_using_mesh_color() const { return this->_use_mesh_color; }
 
     bool Material::is_doing_lighting() const { return this->_do_lighting; }

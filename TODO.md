@@ -2,6 +2,11 @@ Box & all:
 
 - Change FLT_MIN to -FLT_MAX
 
+Resources:
+
+- Create world.copy(other), which returns a new resource with
+  the same values as other (but is a new instance)
+
 Box:
 
 - Make Box::inside work with all boxes (not only bounding boxes)
@@ -36,3 +41,9 @@ Orbiter (and possibly others):
 Bugs :
 
 - when the camera position is extreme, the cubemap looks weird (precision errors ?)
+
+Transform :
+
+- Create HierarchicTransform, like transform (in fact it extends Transform) but with a reference
+  to a transform. Then to get from model to world we apply the first transform then the 2nd.
+  We can build a transform tree with that.

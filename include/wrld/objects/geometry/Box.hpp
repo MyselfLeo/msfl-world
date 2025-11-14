@@ -24,6 +24,9 @@ namespace wrld::obj {
         /// Returns an axis-aligned box based on lower & upper corners.
         static Box bounding_box(const glm::vec3 &lower, const glm::vec3 &upper);
 
+        /// Returns the center of this box (average of all corners).
+        [[nodiscard]] glm::vec3 center() const;
+
         // /// Returns a bounding-box (see Box::bounding_box) with "impossible" values
         // /// (FLT_MAX on lower, FLT_MIN on upper). This box will always be updated when
         // /// calling add_point (making its state valid again).

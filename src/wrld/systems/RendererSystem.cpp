@@ -257,7 +257,6 @@ namespace wrld {
                                     const glm::mat4x4 &model_matrix,
                                     const rsc::Program &program) {
         glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
         program.set_uniform("model", model_matrix);
@@ -275,6 +274,8 @@ namespace wrld {
             for (const auto &[mat_idx, meshes]: r) {
                 const auto &material = model.get_materials()[mat_idx];
                 program.set_uniform("material", material);
+
+                glDepthMask(material->is_doing_depth_mask());
 
                 std::vector<int64_t> mat_starts{};
                 mat_starts.reserve(meshes.size());
@@ -310,6 +311,7 @@ namespace wrld {
                         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                         // glActiveTexture(GL_TEXTURE0);
                         glBindVertexArray(model.get_vao());
+
                         glMultiDrawElements(
                             primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
                             reinterpret_cast<const void **>(mat_starts.data()),

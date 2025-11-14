@@ -13,6 +13,7 @@ namespace wrld::tools {
         // For simplification the grid will be aligned with the bounding box of
         // source_model.
         const obj::Box source_bb = source_model->get_bounding_box();
+
         const glm::vec3 source_bb_size = source_bb.size();
 
         // Number of boxes on each coordinates
@@ -20,37 +21,19 @@ namespace wrld::tools {
         const unsigned y_count = std::ceil(source_bb_size.y / grid_size);
         const unsigned z_count = std::ceil(source_bb_size.z / grid_size);
 
-        std::vector<obj::Box> boxes(x_count * y_count * z_count);
-
-        // Create the bounding boxes
-        for (int x = 0; x < x_count; x++) {
-            for (int y = 0; y < y_count; y++) {
-                for (int z = 0; z < z_count; z++) {
-                    const float offset_x = x * grid_size;
-                    const float offset_y = y * grid_size;
-                    const float offset_z = z * grid_size;
-
-                    glm::vec3 lower =
-                            source_bb.lower() + glm::vec3{offset_x, offset_y, offset_z};
-                    glm::vec3 upper = lower + glm::vec3{grid_size};
-
-                    boxes[x + y * y_count + z * (x_count + y_count)] =
-                            obj::Box::bounding_box(lower, upper);
-                }
-            }
-        }
+        const unsigned max_mesh_count = x_count * y_count * z_count;
 
         // Compute the meshgroups & materials to set in each model
-        std::vector<std::vector<obj::MeshGroup>> mesh_groups(boxes.size());
-        std::vector<std::vector<Rc<rsc::Material>>> materials(boxes.size());
+        std::vector<std::vector<obj::MeshGroup>> mesh_groups(max_mesh_count);
+        std::vector<std::vector<Rc<rsc::Material>>> materials(max_mesh_count);
 
         const auto src_meshgroups = source_model->get_mesh_groups();
         const auto src_materials = source_model->get_materials();
 
         for (const auto &[mg, mat]: src_meshgroups) {
             // Split the mesh group
-            const auto splitted_mg = split_mesh_group(mg, boxes);
-            for (int i = 0; i < boxes.size(); i++) {
+            const auto splitted_mg = split_mesh_group(mg, grid_size, source_bb);
+            for (int i = 0; i < splitted_mg.size(); i++) {
                 if (splitted_mg[i].get_element_count() == 0)
                     continue;
 
@@ -61,9 +44,9 @@ namespace wrld::tools {
 
         // Create the new models
         std::vector<Rc<rsc::Model>> new_models;
-        new_models.reserve(boxes.size());
+        new_models.reserve(max_mesh_count);
 
-        for (int i = 0; i < boxes.size(); i++) {
+        for (int i = 0; i < max_mesh_count; i++) {
             // Don't create empty models
             if (mesh_groups[i].empty())
                 continue;
@@ -72,20 +55,27 @@ namespace wrld::tools {
                     std::format("{}_split_{}", source_model->get_name(), i);
 
             const auto new_model = world.create_resource<rsc::Model>(new_name);
+
             new_model->from_mesh_groups(mesh_groups[i], materials[i]);
             new_models.push_back(new_model);
         }
 
-
         return new_models;
     }
 
-    std::vector<obj::Mesh>
-    ModelTool::split_mesh(const obj::Mesh &mesh,
-                          const std::vector<obj::Box> &bounding_boxes) {
+    std::vector<obj::Mesh> ModelTool::split_mesh(const obj::Mesh &mesh,
+                                                 const float grid_size,
+                                                 const obj::Box &global_box) {
+        const auto offset = global_box.lower();
+
+        // Number of boxes on each coordinates
+        const unsigned x_count = std::ceil(global_box.size().x / grid_size);
+        const unsigned y_count = std::ceil(global_box.size().y / grid_size);
+        const unsigned z_count = std::ceil(global_box.size().z / grid_size);
+        const unsigned max_mesh_count = x_count * y_count * z_count;
 
         // Prepare the new meshes
-        std::vector<obj::Mesh> new_meshes(bounding_boxes.size());
+        std::vector<obj::Mesh> new_meshes(max_mesh_count);
         for (auto &m: new_meshes) {
             m.set_primitive_type(mesh.get_primitive_type());
         }
@@ -96,7 +86,7 @@ namespace wrld::tools {
         // For each newly created mesh, we store the vertices already added.
         // It prevents duplication in the mesh vertex list.
         std::vector<std::unordered_map<obj::VertexID, obj::VertexID>> assigned_vertices(
-                bounding_boxes.size());
+                max_mesh_count);
 
         /// Add a new element index to the specified mesh.
         /// Will add the corresponding vertex in the mesh's vertices if required.
@@ -116,19 +106,23 @@ namespace wrld::tools {
         for (unsigned prim_id = 0; prim_id < source_elements.size();
              prim_id += prim_size) {
 
-            // We have to choose a bounding box for this primitive. For now, we'll use
-            // its first coordinate, but maybe we can compute its center for example ?
-            const glm::vec3 center = source_vertices[prim_id].position;
+            // Compute center of the primitive
+            glm::vec3 center{0};
+            for (unsigned e_id = 0; e_id < prim_size; e_id++) {
+                center += source_vertices[source_elements[prim_id + e_id]].position;
+            }
+            center = glm::vec3{center.x / prim_size, center.y / prim_size,
+                               center.z / prim_size};
 
-            // Find the bounding box that contains this point
-            for (const auto &[b_id, b]: bounding_boxes | std::views::enumerate) {
-                if (b.inside(center)) {
-                    // Add the elements to the correct mesh
-                    for (unsigned e_id = 0; e_id < prim_size; e_id++) {
-                        add_mesh_element(prim_id + e_id, b_id);
-                    }
-                    break;
-                }
+            const glm::vec3 offset_center = center - offset;
+
+            const unsigned i_x = std::floor(offset_center.x / grid_size);
+            const unsigned i_y = std::floor(offset_center.y / grid_size);
+            const unsigned i_z = std::floor(offset_center.z / grid_size);
+            const unsigned mesh_id = i_x + i_y * x_count + i_z * (x_count * y_count);
+
+            for (unsigned e_id = 0; e_id < prim_size; e_id++) {
+                add_mesh_element(source_elements[prim_id + e_id], mesh_id);
             }
         }
 
@@ -136,12 +130,18 @@ namespace wrld::tools {
     }
 
     std::vector<obj::MeshGroup>
-    ModelTool::split_mesh_group(const obj::MeshGroup &mesh_group,
-                                const std::vector<obj::Box> &bounding_boxes) {
-        std::vector<obj::MeshGroup> new_groups(bounding_boxes.size());
+    ModelTool::split_mesh_group(const obj::MeshGroup &mesh_group, const float grid_size,
+                                const obj::Box &global_box) {
+        // Number of boxes on each coordinates
+        const unsigned x_count = std::ceil(global_box.size().x / grid_size);
+        const unsigned y_count = std::ceil(global_box.size().y / grid_size);
+        const unsigned z_count = std::ceil(global_box.size().z / grid_size);
+        const unsigned max_mesh_count = x_count * y_count * z_count;
+
+        std::vector<obj::MeshGroup> new_groups(max_mesh_count);
 
         for (const auto &m: mesh_group.get_meshes()) {
-            const auto &split_meshes = split_mesh(m, bounding_boxes);
+            const auto &split_meshes = split_mesh(m, grid_size, global_box);
 
             for (const auto &[sm_id, sm]: split_meshes | std::views::enumerate) {
                 new_groups[sm_id].add_mesh(sm);
