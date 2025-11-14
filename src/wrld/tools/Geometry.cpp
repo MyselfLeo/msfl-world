@@ -26,7 +26,7 @@ namespace wrld::tools {
 
         // Projective-space axis-aligned bounding box of the frustum
         static const obj::Box proj_frustum =
-                obj::Box::bounding_box({-1, -1, 0}, {1, 1, 1});
+                obj::Box::bounding_box({-1, -1, -1}, {1, 1, 1});
 
         // Projective-space bounding box of the model
         const auto &view = camera_cpt->get_view_matrix();
