@@ -15,6 +15,8 @@ Resources & Components:
 
 - Components: have default values for -almost- everything
 
+- Components should "depend on" other components and fail to initialize if not present.
+
 Camera:
 
 - switch between projection & orthographic mode
