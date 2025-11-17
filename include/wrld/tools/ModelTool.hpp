@@ -30,12 +30,12 @@ namespace wrld::tools {
         /// Assumes that each bounding box is independant.
         static std::vector<obj::Mesh>
         split_mesh(const obj::Mesh &mesh, float grid_size,
-                                                 const obj::Box &global_box);
+                                                 const obj::AABoundingBox &global_box);
 
         /// Same as ModelTool::split_mesh.
         static std::vector<obj::MeshGroup>
         split_mesh_group(const obj::MeshGroup &mesh_group, float grid_size,
-                         const obj::Box &global_box);
+                         const obj::AABoundingBox &global_box);
     };
 
 } // namespace wrld::tools

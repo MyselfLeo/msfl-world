@@ -25,6 +25,7 @@ namespace wrld {
     std::string Main::window_title = "Unnamed";
     glm::vec3 Main::clear_color = {0.08, 0.08, 0.08};
     RendererType Main::renderer_type = RendererType::ForwardRenderer;
+    std::unordered_map<std::string, std::string> Main::statistics = {};
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
         wrldInfo("msfl-world");
@@ -103,13 +104,17 @@ namespace wrld {
 
     GLFWwindow *Main::get_window() { return window; }
 
-    std::shared_ptr<rsc::WindowFramebuffer> Main::get_window_viewport() { return window_viewport; }
+    std::shared_ptr<rsc::WindowFramebuffer> Main::get_window_viewport() {
+        return window_viewport;
+    }
 
     double Main::get_time() { return glfwGetTime(); }
 
     double Main::get_delta_time() { return delta_time; }
 
-    void Main::set_renderer_type(const RendererType _renderer_type) { renderer_type = _renderer_type; }
+    void Main::set_renderer_type(const RendererType _renderer_type) {
+        renderer_type = _renderer_type;
+    }
 
     void Main::set_clear_color(const glm::vec3 &color) { clear_color = color; }
 
@@ -117,6 +122,14 @@ namespace wrld {
         window_title = title;
         if (window != nullptr)
             update_window_title();
+    }
+
+    void Main::set_statistic(const std::string &stat_name, const std::string &value) {
+        statistics.insert_or_assign(stat_name, value);
+    }
+
+    const std::unordered_map<std::string, std::string> &Main::get_statistics() {
+        return statistics;
     }
 
     std::unique_ptr<RendererSystem> Main::get_renderer() {
@@ -144,17 +157,20 @@ namespace wrld {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
-        const float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+        const float main_scale =
+                ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
 
         wrldInfo("Creating window");
-        window = glfwCreateWindow(width, height, std::format("{} :: msfl-world", window_title).c_str(), nullptr,
-                                  nullptr);
+        window = glfwCreateWindow(width, height,
+                                  std::format("{} :: msfl-world", window_title).c_str(),
+                                  nullptr, nullptr);
 
         if (window == nullptr) {
             const char *error = nullptr;
             int code = glfwGetError(&error);
             throw std::runtime_error(
-                    std::format("Failed to create GLFW window with error code {:0X}: {}", code, error));
+                    std::format("Failed to create GLFW window with error code {:0X}: {}",
+                                code, error));
         }
 
         glfwMakeContextCurrent(window);
@@ -177,9 +193,11 @@ namespace wrld {
 
         // Setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
-        style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a solution for dynamic style
+        style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a
+                                         // solution for dynamic style
         // scaling, changing this requires resetting Style + calling this again)
-        style.FontScaleDpi = main_scale; // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this
+        style.FontScaleDpi = main_scale; // Set initial font scale. (using
+                                         // io.ConfigDpiScaleFonts=true makes this
         // unnecessary. We leave both here for documentation purpose)
 
         ImGui_ImplOpenGL3_Init();
@@ -197,7 +215,8 @@ namespace wrld {
             glEnable(GL_DEBUG_OUTPUT);
             glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
             glDebugMessageCallback(glDebugOutput, nullptr);
-            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr,
+                                  GL_TRUE);
         }
         return window;
     }
@@ -207,8 +226,9 @@ namespace wrld {
         // window_viewport->set_size(width, height);
     }
 
-    void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id, GLenum severity,
-                                      GLsizei length, const char *message, const void *userParam) {
+    void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
+                                      GLenum severity, GLsizei length,
+                                      const char *message, const void *userParam) {
         // ignore non-significant error/warning codes
         if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
             return;

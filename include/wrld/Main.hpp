@@ -50,6 +50,12 @@ namespace wrld {
 
         static void set_window_title(const std::string &title);
 
+        /// Defines a statistic that may be accessed using Main::get_statistics
+        static void set_statistic(const std::string &stat_name, const std::string &value);
+
+        /// Returns all statistics.
+        static const std::unordered_map<std::string, std::string> &get_statistics();
+
         /// Return the platform used to compile the program.
         /// Can be used at compile-time (constexpr).
         static constexpr Platform get_platform() {
@@ -80,6 +86,8 @@ namespace wrld {
 
         static std::string window_title;
 
+        static std::unordered_map<std::string, std::string> statistics;
+
         static std::unique_ptr<RendererSystem> get_renderer();
 
         static void update_window_title();
@@ -88,7 +96,8 @@ namespace wrld {
 
         static void window_resize_callback(GLFWwindow *window, int width, int height);
 
-        static void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
+        static void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id,
+                                           GLenum severity, GLsizei length,
                                            const char *message, const void *userParam);
     };
 } // namespace wrld

@@ -9,13 +9,18 @@
 #include <wrld/resources/WindowFramebuffer.hpp>
 
 #include <glm/mat4x4.hpp>
+#include <wrld/objects/geometry/Box.hpp>
 
 namespace wrld::cpt {
     /// Attach a camera to the Entity.
     class Camera3D final : public Component {
     public:
+        /// Frustum in projective space.
+        static const obj::AABoundingBox Frustum;
+
         explicit Camera3D(EntityID entity_id, World &world, float fov, bool do_culling,
-                          std::shared_ptr<rsc::WindowFramebuffer> viewport, const Rc<rsc::Program> &program);
+                          std::shared_ptr<rsc::WindowFramebuffer> viewport,
+                          const Rc<rsc::Program> &program);
 
         [[nodiscard]] float get_fov() const;
 
@@ -37,9 +42,17 @@ namespace wrld::cpt {
 
         void set_culling(bool do_culling);
 
+        [[nodiscard]] float get_near_plane() const;
+        [[nodiscard]] float get_far_plane() const;
+        void set_near_plane(float z_near);
+        void set_far_plane(float z_far);
+
         /// Return the camera position in world space.
         /// This is directly related to the attached Transform component (if any).
         glm::vec3 get_position() const;
+
+        /// Return the frustum in camera local space.
+        obj::Box get_frustum_box() const;
 
         // todo: add ortographic mode
 
@@ -49,6 +62,8 @@ namespace wrld::cpt {
         static const glm::vec3 UP_VECTOR;
         float fov;
         bool do_culling;
+        float near_plane = 0.1;
+        float far_plane = 1000;
         std::shared_ptr<const rsc::WindowFramebuffer> viewport;
     };
 } // namespace wrld::cpt

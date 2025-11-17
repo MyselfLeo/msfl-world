@@ -82,7 +82,13 @@ namespace wrld::rsc {
         void update();
 
         /// Return the bounding box of this model in local space.
-        const obj::Box &get_bounding_box() const;
+        const obj::AABoundingBox &get_bounding_box() const;
+
+        [[nodiscard]] const std::unordered_map<
+                obj::PrimitiveType, std::unordered_map<int, std::vector<MeshEBOData>>> &
+        get_mesh_ebo_data() const;
+
+        [[nodiscard]] GLuint get_vao() const;
 
         std::string get_type() const override { return "Model"; }
 
@@ -91,8 +97,8 @@ namespace wrld::rsc {
         // friend class ModelTool;
 
         /// Rebuild the bounding box of the model by iterating
-        /// over every vertices.
-        void update_bounding_box(const std::vector<obj::Vertex> &vertices);
+        /// over every mesh of this model.
+        void update_bounding_box();
 
         /// Returns the index of the material if it's already
         /// in Model::materials. Returns -1 otherwise.
@@ -140,17 +146,10 @@ namespace wrld::rsc {
                            std::unordered_map<int, std::vector<MeshEBOData>>>
                 mesh_ebo_data;
 
-    public:
-        [[nodiscard]] const std::unordered_map<
-                obj::PrimitiveType, std::unordered_map<int, std::vector<MeshEBOData>>> &
-        get_mesh_ebo_data() const;
-        [[nodiscard]] GLuint get_vao() const;
-
-    protected:
         GLuint vao, vbo, ebo;
 
         /// Bounding box of the model in local-space. Updated by Model::update
-        obj::Box bounding_box;
+        obj::AABoundingBox bounding_box;
 
         // std::vector<Rc<Material>> meshes_materials; // Material of each mesh
 

@@ -59,17 +59,19 @@ namespace wrld {
         pass1_program->set_uniform("projection", projection_matrix);
 
         // Find each entity with a model, get its transform, and render it.
-        visible_models = 0;
+        unsigned visible_models = 0;
         const bool do_culling = camera.is_culling();
-        for (const std::vector model_entities =
-                     world.get_entities_with_component<cpt::StaticModel>();
-             const auto entity: model_entities) {
+        const std::vector model_entities =
+                world.get_entities_with_component<cpt::StaticModel>();
+        for (const auto entity: model_entities) {
             // Skip unseen models if culling
-            if (!tools::Geometry::is_visible(world, entity, camera.get_entity()) &&
-                do_culling)
+            if (do_culling &&
+                !tools::Geometry::is_visible(world, entity, camera.get_entity())) {
                 continue;
+            }
 
             visible_models += 1;
+
             const auto model_cmpnt =
                     world.get_component_opt<cpt::StaticModel>(entity).value();
             const auto &model = model_cmpnt->get_model();
@@ -79,6 +81,10 @@ namespace wrld {
             // Actual draw call
             draw_model(model.get_ref(), model_matrix, pass1_program.get_ref());
         }
+
+        unsigned total_models = model_entities.size();
+        Main::set_statistic("visible_model_count",
+                            std::format("{}/{}", visible_models, total_models));
 
         // SECOND PASS
         const auto &window_fb = Main::get_window_viewport();

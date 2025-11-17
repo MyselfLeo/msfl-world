@@ -19,6 +19,7 @@
 #include "assimp/postprocess.h"
 
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 #include <wrld/builtins.hpp>
 #include <wrld/logs.hpp>
 #include <wrld/tools/ModelTool.hpp>
@@ -48,10 +49,9 @@ public:
         material->set_shininess(64);
 
         auto city_model = world.create_resource<rsc::Model>("city_model");
-        city_model->from_file("data/models/rungholt/house.obj",
+        city_model->from_file("data/models/rungholt/rungholt.obj",
                               aiProcess_Triangulate | aiProcess_FlipUVs, false, material);
 
-#if 1
         wrldInfo("Splitting model");
         const auto &split_models = tools::ModelTool::split_in_grid(world, city_model, 40);
         world.destroy_resource<rsc::Model>(city_model);
@@ -63,50 +63,31 @@ public:
             world.attach_component<cpt::StaticModel>(city_crumb, s);
             world.attach_component<cpt::Transform>(city_crumb);
 
-            const obj::Box city_bb = s->get_bounding_box();
-            const EntityID city_bb_entity = world.create_entity("city_crumb_bb");
-            const auto bb_model = world.create_resource<rsc::Model>("city_crumb_bb");
-            bb_model->from_mesh(city_bb.get_mesh(), builtins::unlit_material(world));
-            world.attach_component<cpt::StaticModel>(city_bb_entity, bb_model);
-            world.attach_component<cpt::Transform>(city_bb_entity);
+            // const obj::Box city_bb = s->get_bounding_box();
+            // const EntityID city_bb_entity = world.create_entity("city_crumb_bb");
+            // const auto bb_model = world.create_resource<rsc::Model>("city_crumb_bb");
+            // bb_model->from_mesh(city_bb.get_mesh(), builtins::unlit_material(world));
+            // world.attach_component<cpt::StaticModel>(city_bb_entity, bb_model);
+            // world.attach_component<cpt::Transform>(city_bb_entity);
         }
-#else
-        const EntityID city = world.create_entity("city");
-        world.attach_component<cpt::StaticModel>(city, city_model);
-        world.attach_component<cpt::Transform>(city);
-
-        const obj::Box city_bb = city_model->get_bounding_box();
-        const EntityID city_bb_entity = world.create_entity("city_bb");
-        const auto bb = world.create_resource<rsc::Model>("city_bb");
-        bb->from_mesh(city_bb.get_mesh(), builtins::unlit_material(world));
-        world.attach_component<cpt::StaticModel>(city_bb_entity, bb);
-        world.attach_component<cpt::Transform>(city_bb_entity);
-#endif
-
-        // frustum_model = world.create_resource<rsc::Model>("frustum_model");
-        // const EntityID frustum_entity = world.create_entity("frustum_entity");
-        // world.attach_component<cpt::StaticModel>(frustum_entity, frustum_model);
-        // world.attach_component<cpt::Transform>(frustum_entity);
-
-        // city_model.get_mut()->from_file("data/models/rungholt/house.obj",
-        // aiProcess_Triangulate | aiProcess_FlipUVs,
-        //                                 false, material);
-
-        // const EntityID city_entity = world.create_entity("City");
 
         const EntityID camera_entity = world.create_entity("Camera");
         camera_3D = world.attach_component<cpt::Camera3D>(
                 camera_entity, 45, true, Main::get_window_viewport(),
                 world.get_default<rsc::Program>());
+        camera_3D->set_far_plane(1000);
 
         camera_transform = world.attach_component<cpt::Transform>(camera_entity);
+        camera_transform->set_position({100, 50, 100});
+
+
         control = world.attach_component<cpt::FPSControl>(camera_entity);
         const auto &env = world.attach_component<cpt::Environment>(camera_entity);
-        env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.83, 0.64}, 0.4});
+        env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.83, 0.64}, 0.1});
         env->set_cubemap(world.get_default<rsc::CubemapTexture>());
 
         const EntityID sun = world.create_entity("Sun");
-        world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.4);
+        world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.1);
         world.attach_component<cpt::Transform>(sun);
 
         for (int i = 0; i < LIGHT_COUNT; i++) {
@@ -118,7 +99,7 @@ public:
                                                     10.0);
             const auto &transform = world.attach_component<cpt::Transform>(light);
             transform->set_position(glm::vec3{300.0 - float(rand() % 600),
-                                              float(rand() % 50),
+                                              float(rand() % 40) + 10,
                                               300.0 - float(rand() % 600)});
             light_transforms[i] = transform;
         }
@@ -127,17 +108,13 @@ public:
     }
 
     void update(World &world, const double delta_time) override {
-        static const obj::Box proj_frustum =
-                obj::Box::bounding_box({-1, -1, 0}, {1, 1, 1});
-
-
         this->deltatime = delta_time;
 
         if (glfwGetKey(Main::get_window(), GLFW_KEY_L) == GLFW_PRESS && !l_key_pressed) {
             l_key_pressed = true;
             capture_cursor = !capture_cursor;
 
-            control->set_lock(!capture_cursor);
+            control->enable_mouse_control(capture_cursor);
 
             if (capture_cursor) {
                 glfwSetInputMode(Main::get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -158,25 +135,17 @@ public:
         }
     }
 
-    void ui(World &world) override {
-        static bool show = true;
-        gui::render_component_window(world, &show);
-        gui::render_resources_window(world, &show);
-        gui::render_info_window(world);
-    }
+    void ui(World &world) override { gui::render_info_window(world); }
 
     void exit(World &world) override {}
 
 private:
-    // static constexpr int LIGHT_COUNT = 100;
-    static constexpr int LIGHT_COUNT = 1;
+    static constexpr int LIGHT_COUNT = 100;
 
-    // Rc<rsc::Model> city_model;
     std::shared_ptr<cpt::FPSControl> control;
 
     std::shared_ptr<cpt::Transform> camera_transform;
     std::shared_ptr<cpt::Camera3D> camera_3D;
-    Rc<rsc::Model> frustum_model;
 
     std::array<std::shared_ptr<cpt::Transform>, LIGHT_COUNT> light_transforms;
 

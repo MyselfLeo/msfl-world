@@ -7,20 +7,30 @@
 #include <wrld/components/Camera3D.hpp>
 #include <wrld/components/Transform.hpp>
 #include <wrld/World.hpp>
+#include <wrld/objects/geometry/AABoundingBox.hpp>
 
 namespace wrld::cpt {
+    const obj::AABoundingBox Camera3D::Frustum =
+            obj::AABoundingBox{{-1, -1, -1}, {1, 1, 1}};
+
     const glm::vec3 Camera3D::UP_VECTOR = glm::vec3(0, 1, 0);
 
-    Camera3D::Camera3D(const EntityID entity_id, World &world, const float fov, const bool do_culling,
+    Camera3D::Camera3D(const EntityID entity_id, World &world, const float fov,
+                       const bool do_culling,
                        std::shared_ptr<rsc::WindowFramebuffer> viewport,
-                       const Rc<rsc::Program> &program) : Component(entity_id, world), fov(fov), do_culling(do_culling),
-                                                          viewport(std::move(viewport)) {
+                       const Rc<rsc::Program> &program) :
+        Component(entity_id, world), fov(fov), do_culling(do_culling),
+        viewport(std::move(viewport)) {
         attach_resource("program", program);
     }
 
-    Rc<rsc::Program> Camera3D::get_program() const { return get_resource<rsc::Program>("program"); }
+    Rc<rsc::Program> Camera3D::get_program() const {
+        return get_resource<rsc::Program>("program");
+    }
 
-    void Camera3D::set_program(const Rc<rsc::Program> &program) { attach_resource("program", program); }
+    void Camera3D::set_program(const Rc<rsc::Program> &program) {
+        attach_resource("program", program);
+    }
 
     float Camera3D::get_fov() const { return fov; }
 
@@ -34,8 +44,9 @@ namespace wrld::cpt {
     }
 
     glm::mat4x4 Camera3D::get_projection_matrix() const {
-        const float ratio = static_cast<float>(viewport->get_width()) / static_cast<float>(viewport->get_height());
-        return glm::perspective(glm::radians(this->fov), ratio, 0.1f, 5000.0f);
+        const float ratio = static_cast<float>(viewport->get_width()) /
+                            static_cast<float>(viewport->get_height());
+        return glm::perspective(glm::radians(this->fov), ratio, near_plane, far_plane);
     }
 
     glm::mat4x4 Camera3D::get_viewport_matrix() const {
@@ -45,19 +56,41 @@ namespace wrld::cpt {
         return glm::mat4x4{w, 0, 0, 0, 0, h, 0, 0, 0, 0, 0.5, 0, w, h, 0.5, 1};
     }
 
-    bool Camera3D::is_culling() const {
-        return do_culling;
-    }
+    bool Camera3D::is_culling() const { return do_culling; }
 
-    void Camera3D::set_culling(const bool do_culling) {
-        this->do_culling = do_culling;
-    }
+    void Camera3D::set_culling(const bool do_culling) { this->do_culling = do_culling; }
+
+    float Camera3D::get_near_plane() const { return near_plane; }
+
+    float Camera3D::get_far_plane() const { return far_plane; }
+
+    void Camera3D::set_near_plane(const float z_near) { near_plane = z_near; }
+
+    void Camera3D::set_far_plane(const float z_far) { far_plane = z_far; }
 
     glm::vec3 Camera3D::get_position() const {
         if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
             return transform_cmpnt.value()->get_position();
         }
         return glm::vec3(0.0);
+    }
+
+    obj::Box Camera3D::get_frustum_box() const {
+        std::array<glm::vec3, 8> corners;
+
+        // Compute the reversed projected coordinates of each corner of the frustum
+        for (int i = 0; i < 8; i++) {
+            const auto point = glm::vec4{Frustum[i], 1.0};
+
+            const glm::vec4 view_space_corner =
+                    glm::inverse(get_projection_matrix()) * point;
+
+            corners[i] = glm::vec3{view_space_corner.x, view_space_corner.y,
+                                   view_space_corner.z} /
+                         view_space_corner.w;
+        }
+
+        return obj::Box(corners);
     }
 
     // void Camera::load_default_resources() {}

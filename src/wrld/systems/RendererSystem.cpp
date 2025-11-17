@@ -16,25 +16,26 @@
 
 #include <format>
 #include <utility>
+#include <wrld/Main.hpp>
 #include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
     PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color,
-                                   const float intensity) : position(position), color(color), intensity(intensity) {
-    }
+                                   const float intensity) :
+        position(position), color(color), intensity(intensity) {}
 
     DirectionalLightData::DirectionalLightData(const glm::vec3 direction,
                                                const glm::vec3 color,
-                                               const float intensity) : direction(direction), color(color),
-                                                                        intensity(intensity) {
-    }
+                                               const float intensity) :
+        direction(direction), color(color), intensity(intensity) {}
 
     EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
-                                     const std::optional<Rc<rsc::CubemapTexture> > &skybox,
-                                     const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {
-    }
+                                     const std::optional<Rc<rsc::CubemapTexture>> &skybox,
+                                     const GLuint vao) :
+        vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
 
-    RendererSystem::RendererSystem(World &world, GLFWwindow *window) : System(world), window(window) {
+    RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
+        System(world), window(window) {
         const auto program = world.create_resource<rsc::Program>("skybox_program");
         program->from_source(shader::SKYBOX);
         skybox_program = program;
@@ -57,7 +58,7 @@ namespace wrld {
 
     GLFWwindow *RendererSystem::get_window() const { return window; }
 
-    unsigned RendererSystem::get_visible_models() const { return visible_models; }
+    unsigned RendererSystem::get_visible_models() const { return hidden_models; }
 
     glm::mat4x4 RendererSystem::get_entity_transform(const EntityID id) const {
         if (const auto transform_cmpnt = world.get_component_opt<cpt::Transform>(id))
@@ -65,7 +66,7 @@ namespace wrld {
         return glm::mat4x4(1.0);
     }
 
-    std::optional<std::shared_ptr<const cpt::Camera3D> >
+    std::optional<std::shared_ptr<const cpt::Camera3D>>
     RendererSystem::get_camera() const {
         if (const std::vector camera_entities =
                     world.get_entities_with_component<cpt::Camera3D>();
@@ -142,14 +143,16 @@ namespace wrld {
         }
 
         // Find each entity with a model, get its transform, and render it.
-        visible_models = 0;
+        unsigned visible_models = 0;
         const bool do_culling = camera.is_culling();
-        for (const std::vector model_entities =
-                     world.get_entities_with_component<cpt::StaticModel>();
-             const auto entity: model_entities) {
+        const std::vector model_entities =
+                world.get_entities_with_component<cpt::StaticModel>();
+        for (const auto entity: model_entities) {
             // Skip unseen models if culling
-            if (do_culling && !tools::Geometry::is_visible(world, entity, camera.get_entity()))
+            if (do_culling &&
+                !tools::Geometry::is_visible(world, entity, camera.get_entity())) {
                 continue;
+            }
 
             visible_models += 1;
 
@@ -160,19 +163,21 @@ namespace wrld {
             // Actual draw call
             draw_model(model.get_ref(), model_matrix, program);
         }
+
+        unsigned total_models = model_entities.size();
+        Main::set_statistic("visible_model_count",
+                            std::format("{}/{}", visible_models, total_models));
     }
 
     EnvironmentData RendererSystem::get_environment(const cpt::Camera3D &camera) const {
         const EntityID camera_entity = camera.get_entity();
 
         if (const auto env_cpnt_opt =
-                world.get_component_opt<cpt::Environment>(camera_entity)) {
+                    world.get_component_opt<cpt::Environment>(camera_entity)) {
             const auto &env_cpnt = env_cpnt_opt.value();
 
-            return EnvironmentData{
-                env_cpnt->get_ambiant_light(), env_cpnt->get_cubemap(),
-                env_cpnt->get_vao()
-            };
+            return EnvironmentData{env_cpnt->get_ambiant_light(), env_cpnt->get_cubemap(),
+                                   env_cpnt->get_vao()};
         }
 
         return EnvironmentData{cpt::AmbiantLight{}, std::nullopt, 0};
@@ -286,16 +291,13 @@ namespace wrld {
                 switch (pt) {
                     case obj::PrimitiveType::Points: {
                         primitive_type = GL_POINTS;
-                    }
-                    break;
+                    } break;
                     case obj::PrimitiveType::Lines: {
                         primitive_type = GL_LINES;
-                    }
-                    break;
+                    } break;
                     case obj::PrimitiveType::Triangles: {
                         primitive_type = GL_TRIANGLES;
-                    }
-                    break;
+                    } break;
                     default:
                         std::unreachable();
                 }
@@ -303,7 +305,8 @@ namespace wrld {
                 for (const auto [count, start]: meshes) {
                     mat_starts.push_back(start * sizeof(GLuint));
                     mat_sizes.push_back(count);
-                } {
+                }
+                {
                     glBindVertexArray(model.get_vao());
                     if (material->get_polygon_mode() & rsc::WrldPolyFill) {
                         program.set_uniform("polygon_mode", 0);
@@ -313,9 +316,9 @@ namespace wrld {
                         glBindVertexArray(model.get_vao());
 
                         glMultiDrawElements(
-                            primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
-                            reinterpret_cast<const void **>(mat_starts.data()),
-                            meshes.size());
+                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                                reinterpret_cast<const void **>(mat_starts.data()),
+                                meshes.size());
                         glBindVertexArray(0);
 
                         glDepthMask(GL_FALSE);
@@ -330,9 +333,9 @@ namespace wrld {
                         // glActiveTexture(GL_TEXTURE0);
                         glBindVertexArray(model.get_vao());
                         glMultiDrawElements(
-                            primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
-                            reinterpret_cast<const void **>(mat_starts.data()),
-                            meshes.size());
+                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                                reinterpret_cast<const void **>(mat_starts.data()),
+                                meshes.size());
                         glBindVertexArray(0);
 
                         glDepthMask(GL_FALSE);
@@ -347,9 +350,9 @@ namespace wrld {
                         // glActiveTexture(GL_TEXTURE0);
                         glBindVertexArray(model.get_vao());
                         glMultiDrawElements(
-                            primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
-                            reinterpret_cast<const void **>(mat_starts.data()),
-                            meshes.size());
+                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                                reinterpret_cast<const void **>(mat_starts.data()),
+                                meshes.size());
                         glBindVertexArray(0);
                     }
 

@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <glad/glad.h>
-#include <wrld/objects/geometry/Box.hpp>
+#include <wrld/objects/geometry/AABoundingBox.hpp>
 
 namespace wrld::obj {
     enum class PrimitiveType {
@@ -61,7 +61,7 @@ namespace wrld::obj {
         VertexID &get_element(ElementID element_id);
 
         /// Return the element indices of the mesh.
-        const std::vector<VertexID> &get_elements() const;
+        [[nodiscard]] const std::vector<VertexID> &get_elements() const;
 
         /// Return the number of element indices.
         [[nodiscard]] unsigned get_element_count() const;
@@ -79,14 +79,14 @@ namespace wrld::obj {
         /// Throws an error if self is not PrimitiveType::triangle.
         void recompute_normals();
 
-        /// Return the bounding-box of the mesh.
-        [[nodiscard]] Box get_bounding_box() const;
+        /// Return the axis-aligned bounding-box of the mesh.
+        [[nodiscard]] AABoundingBox get_bounding_box() const;
 
     private:
         std::vector<Vertex> vertices;
         std::vector<VertexID> indices;
         PrimitiveType primitive_type;
 
-        Box bounding_box;
+        AABoundingBox bounding_box;
     };
 } // namespace wrld::obj

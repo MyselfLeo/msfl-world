@@ -59,7 +59,7 @@ namespace wrld {
         Rc<rsc::Program> skybox_program;
 
         /// Amount of visible models on the active camera.
-        unsigned visible_models = 0;
+        unsigned hidden_models = 0;
 
         /// Return the entity's transform or a default one if not provided.
         [[nodiscard]] glm::mat4x4 get_entity_transform(EntityID id) const;

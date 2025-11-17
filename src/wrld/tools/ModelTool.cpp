@@ -12,7 +12,7 @@ namespace wrld::tools {
         // Define the grid.
         // For simplification the grid will be aligned with the bounding box of
         // source_model.
-        const obj::Box source_bb = source_model->get_bounding_box();
+        const obj::AABoundingBox source_bb = source_model->get_bounding_box();
 
         const glm::vec3 source_bb_size = source_bb.size();
 
@@ -65,7 +65,7 @@ namespace wrld::tools {
 
     std::vector<obj::Mesh> ModelTool::split_mesh(const obj::Mesh &mesh,
                                                  const float grid_size,
-                                                 const obj::Box &global_box) {
+                                                 const obj::AABoundingBox &global_box) {
         const auto offset = global_box.lower();
 
         // Number of boxes on each coordinates
@@ -131,7 +131,7 @@ namespace wrld::tools {
 
     std::vector<obj::MeshGroup>
     ModelTool::split_mesh_group(const obj::MeshGroup &mesh_group, const float grid_size,
-                                const obj::Box &global_box) {
+                                const obj::AABoundingBox &global_box) {
         // Number of boxes on each coordinates
         const unsigned x_count = std::ceil(global_box.size().x / grid_size);
         const unsigned y_count = std::ceil(global_box.size().y / grid_size);

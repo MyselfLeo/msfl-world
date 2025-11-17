@@ -20,8 +20,11 @@ namespace wrld::cpt {
         void set_translation_speed(float translation_speed);
         void set_camera_sensitivity(double camera_sensitivity);
 
-        void set_lock(bool lock);
-        [[nodiscard]] bool is_locked() const;
+        void enable_mouse_control(bool mouse_control);
+        [[nodiscard]] bool is_mouse_control_enabled() const;
+
+        void enable_keyboard_control(bool keyboard_control);
+        [[nodiscard]] bool is_keyboard_control_enabled() const;
 
         std::string get_type() override { return "FPSControl"; }
 
@@ -36,7 +39,8 @@ namespace wrld::cpt {
         float translation_speed = 10;
         double camera_sensitivity = 0.1;
 
-        bool lock = false;
+        bool do_mouse_control = true;
+        bool do_keyboard_control = true;
     };
 
 } // namespace wrld::cpt

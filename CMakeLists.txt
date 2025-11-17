@@ -61,6 +61,7 @@ set(HEADERS
         include/wrld/objects/geometry/Mesh.hpp
         include/wrld/objects/geometry/MeshGroup.hpp
         include/wrld/objects/geometry/Box.hpp
+        include/wrld/objects/geometry/AABoundingBox.hpp
 
         include/wrld/systems/RendererSystem.hpp
         include/wrld/systems/DeferredRendererSystem.hpp
@@ -102,9 +103,10 @@ set(SOURCE
         src/wrld/resources/DeferredFramebuffer.cpp
         src/wrld/resources/Rc.cpp
 
-        src/wrld/geometry/Mesh.cpp
-        src/wrld/geometry/MeshGroup.cpp
-        src/wrld/geometry/Box.cpp
+        src/wrld/objects/geometry/Mesh.cpp
+        src/wrld/objects/geometry/MeshGroup.cpp
+        src/wrld/objects/geometry/Box.cpp
+        src/wrld/objects/geometry/AABoundingBox.cpp
 
         src/wrld/systems/RendererSystem.cpp
         src/wrld/systems/DeferredRendererSystem.cpp
@@ -144,3 +146,6 @@ target_link_libraries(shader_view msfl_world)
 
 add_executable(proima proima.cpp)
 target_link_libraries(proima msfl_world)
+
+add_executable(test test.cpp)
+target_link_libraries(test msfl_world)

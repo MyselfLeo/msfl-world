@@ -34,6 +34,12 @@ namespace wrld::obj {
 
     Mesh &Mesh::set_elements(const std::vector<VertexID> &elements) {
         this->indices = elements;
+
+        // Update bounding box
+        bounding_box = AABoundingBox{};
+        for (const auto &i: elements) {
+            bounding_box.add_point(vertices[i].position);
+        }
         return *this;
     }
 
@@ -56,6 +62,9 @@ namespace wrld::obj {
 
     ElementID Mesh::add_element(const VertexID vertex_id) {
         this->indices.push_back(vertex_id);
+
+        bounding_box.add_point(vertices[vertex_id].position);
+
         return this->indices.size() - 1;
     }
 
@@ -96,5 +105,5 @@ namespace wrld::obj {
         }
     }
 
-    Box Mesh::get_bounding_box() const { return bounding_box; }
+    AABoundingBox Mesh::get_bounding_box() const { return bounding_box; }
 } // namespace wrld::obj

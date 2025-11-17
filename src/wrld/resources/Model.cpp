@@ -183,6 +183,8 @@ namespace wrld::rsc {
                     custom_material.has_value() ? 0 : mesh->mMaterialIndex);
         }
 
+        import.FreeScene();
+
         update();
         return *this;
     }
@@ -196,6 +198,8 @@ namespace wrld::rsc {
     }
 
     void Model::update() {
+        update_bounding_box();
+
         // Collect vertices & elements to send to the GPU
         std::vector<obj::Vertex> vertices;
         std::vector<obj::VertexID> elements;
@@ -251,7 +255,7 @@ namespace wrld::rsc {
             } break;
             default: {
                 std::unreachable();
-            } break;
+            }
         }
 
         glBindVertexArray(vao);
@@ -280,11 +284,9 @@ namespace wrld::rsc {
         glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(obj::Vertex),
                               reinterpret_cast<void *>(offsetof(obj::Vertex, texcoords)));
         glBindVertexArray(0);
-
-        update_bounding_box(vertices);
     }
 
-    const obj::Box &Model::get_bounding_box() const { return bounding_box; }
+    const obj::AABoundingBox &Model::get_bounding_box() const { return bounding_box; }
 
     int Model::get_material_index(const Rc<Material> &material) const {
         // todo: currently it's O(n)
@@ -296,26 +298,14 @@ namespace wrld::rsc {
         return -1;
     }
 
-    void Model::update_bounding_box(const std::vector<obj::Vertex> &vertices) {
-        glm::vec3 lower, upper;
+    void Model::update_bounding_box() {
+        this->bounding_box = obj::AABoundingBox{};
 
-        for (const auto &v: vertices) {
-            if (v.position.x < lower.x)
-                lower.x = v.position.x;
-            if (v.position.y < lower.y)
-                lower.y = v.position.y;
-            if (v.position.z < lower.z)
-                lower.z = v.position.z;
-
-            if (v.position.x > upper.x)
-                upper.x = v.position.x;
-            if (v.position.y > upper.y)
-                upper.y = v.position.y;
-            if (v.position.z > upper.z)
-                upper.z = v.position.z;
+        for (const auto &mg: groups) {
+            for (const auto &m: mg.get_meshes()) {
+                this->bounding_box = this->bounding_box + m.get_bounding_box();
+            }
         }
-
-        this->bounding_box = obj::Box::bounding_box(lower, upper);
     }
 
     // std::vector<Rc<Material>> Model::load_materials(const aiScene *scene) {

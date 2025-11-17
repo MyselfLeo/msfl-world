@@ -7,80 +7,91 @@
 namespace wrld::tools {
     bool Geometry::is_visible(World &world, const EntityID entity,
                               const EntityID camera) {
+        /// Return true if there exists axis for which points of 'box' are either
+        /// ALL greater or ALL lower than 'point'.
+        auto all_outside = [](const obj::Box &box, const glm::vec3 &point,
+                              const bool greater = true) {
+            // Test all axis
+            for (int axis = 0; axis < 3; axis++) {
+                bool all = true;
+
+                // Test all points
+                for (const auto &p: box.vertices()) {
+                    // They all need to be greater than point
+                    if (greater && p[axis] < point[axis]) {
+                        all = false;
+                        break;
+                    }
+                    // They all need to be less than point
+                    if (!greater && p[axis] > point[axis]) {
+                        all = false;
+                        break;
+                    }
+                }
+
+                if (all)
+                    return true;
+            }
+
+            return false;
+        };
+
+        /// Compares an AABB ("home_bb") and a regular bounding box ("away_bb").
+        /// Returns false if it is certain that away_bb DOESN'T intersect home_bb.
+        auto bb_collide = [&](const obj::AABoundingBox &home_bb,
+                              const obj::Box &away_bb) {
+            // lower and upper both represent 3 face planes of the home_bb
+            // (6 in total as expected)
+            if (all_outside(away_bb, home_bb.lower(), false)) {
+                return false;
+            }
+            if (all_outside(away_bb, home_bb.upper(), true)) {
+                return false;
+            }
+            return true;
+        };
+
         const auto &model_opt = world.get_component_opt<cpt::Transform>(entity);
-        const auto model = model_opt.has_value() ? model_opt.value()->model_matrix()
-                                                 : glm::mat4x4(1.0);
+
+        // todo: once Components have dependencies, we can remove this test
+        const auto model_transform = model_opt.has_value()
+                                             ? model_opt.value()->model_matrix()
+                                             : glm::mat4x4(1.0);
+
         const auto &entity_model = world.get_component<cpt::StaticModel>(entity);
         const auto &camera_cpt = world.get_component<cpt::Camera3D>(camera);
 
-        // We must find a plane that totally separates the frustum and the bounding box.
-        // For that, we test in 2 different spaces: the local-space (where the object's bb
-        // is aligned to the axis) and the projective-space (where the frustum is aligned
-        // to the axis). For each space, and each axis, we check if all the points of the
-        // non-aligned box are on the same side of the plane. If so, then we can say early
-        // that it is not visible. If no plane separates them, we can say that they are
-        // indeed crossing. NB: It looks like the Separate-Axis theorem used in 2D
-
-        // Local-space axis-aligned bounding box of the model
+        // Object's AABB in local space
         const auto &local_bb = entity_model->get_model()->get_bounding_box();
 
-        // Projective-space axis-aligned bounding box of the frustum
-        static const obj::Box proj_frustum =
-                obj::Box::bounding_box({-1, -1, -1}, {1, 1, 1});
+        // Frustum's corners in projective space
+        const auto proj_frustum = cpt::Camera3D::Frustum;
 
         // Projective-space bounding box of the model
         const auto &view = camera_cpt->get_view_matrix();
         const auto &proj = camera_cpt->get_projection_matrix();
-        const auto &transform = proj * view * model;
+        const auto transform = proj * view * model_transform;
+
         const obj::Box proj_bb = local_bb * transform;
 
-        // Local-space bounding box of the frustum
-        const obj::Box local_frustum = proj_frustum * glm::inverse(transform);
-
-        /// Check that all the points of box are greater/lower than the given point on the
-        /// same axis.
-        auto are_all_exterior = [](const obj::Box &box, const glm::vec3 &point,
-                                   const bool negative = false) {
-            for (int axis = 0; axis < 3; axis++) {
-                bool all_exterior = true;
-                for (const auto &p: box.vertices()) {
-                    // They all need to be less than point
-                    if (negative && p[axis] > point[axis]) {
-                        all_exterior = false;
-                        break;
-                    }
-                    // They all need to be greater than point
-                    if (!negative && p[axis] < point[axis]) {
-                        all_exterior = false;
-                        break;
-                    }
-                }
-                if (all_exterior)
-                    return true;
-            }
-            return false;
-        };
-
-        /// Tries to find a plane (based on the axis-aligned bounding box) that
-        /// separates the 2 bounding boxes.
-        /// Only tests axis-aligned planes, so you need 2 tests to be sure (one
-        /// in each space where the bounding boxes are axis-aligned).
-        /// home-bb: the Bounding box that is aligned with the axis
-        /// away-bb: the one that isnt.
-        auto bb_collide = [&](const obj::Box &home_bb, const obj::Box &away_bb) {
-            return !are_all_exterior(away_bb, home_bb.lower(), true) &&
-                   !are_all_exterior(away_bb, home_bb.upper(), false);
-        };
-
-        // First test: in the projective-space
+        // First test : check in the projective-space
         if (!bb_collide(proj_frustum, proj_bb)) {
-            // wrldInfo("No collide in projective space");
             return false;
         }
 
-        // Second test: in the local-space
+        // Local-space bounding box of the frustum
+        std::array<glm::vec3, 8> local_frustum_corners;
+
+        for (int i = 0; i < 8; i++) {
+            const glm::vec4 tmp =
+                    glm::inverse(transform) * glm::vec4{proj_frustum[i], 1.0};
+            local_frustum_corners[i] = glm::vec3{tmp.x, tmp.y, tmp.z} / tmp.w;
+        }
+
+        const auto local_frustum = obj::Box(local_frustum_corners);
+
+        // Second test : check in the local-space
         if (!bb_collide(local_bb, local_frustum)) {
-            // wrldInfo("No collide in local space");
             return false;
         }
 
