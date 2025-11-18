@@ -6,8 +6,6 @@
 #include <wrld/components/Transform.hpp>
 #include <wrld/World.hpp>
 
-#include "GLFW/glfw3.h"
-
 #include <iostream>
 
 namespace wrld::cpt {

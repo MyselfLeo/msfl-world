@@ -5,17 +5,21 @@
 #include <wrld/resources/Texture.hpp>
 #include <wrld/logs.hpp>
 
+#include <glad/glad.h>
+
 #include <format>
 #include <iostream>
 #include <stb_image.hpp>
 #include <stdexcept>
 
 namespace wrld::rsc {
-    Texture::Texture(const std::string &name, World &world /*, Rc<Resource> *rc*/) : Resource(name, world /*, rc*/) {
+    Texture::Texture(const std::string &name, World &world /*, Rc<Resource> *rc*/) :
+        Resource(name, world /*, rc*/) {
         reload();
     }
 
-    Texture &Texture::set_texture(const std::string &texture_path, const aiTextureType type, const bool flip_textures) {
+    Texture &Texture::set_texture(const std::string &texture_path,
+                                  const aiTextureType type, const bool flip_textures) {
         this->path = texture_path;
         this->type = type;
         this->flip_textures = flip_textures;
@@ -53,7 +57,8 @@ namespace wrld::rsc {
     void Texture::reload() {
         stbi_set_flip_vertically_on_load(flip_textures);
 
-        wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type), path));
+        wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type),
+                             path));
 
         // Filtering for regular textures
         // todo: move to material
@@ -79,8 +84,9 @@ namespace wrld::rsc {
             } break;
             default: {
                 stbi_image_free(data);
-                throw std::runtime_error(
-                        std::format("Only RGB and RGBA images are supported for now. Nbchannels: {}", nb_channels));
+                throw std::runtime_error(std::format(
+                        "Only RGB and RGBA images are supported for now. Nbchannels: {}",
+                        nb_channels));
             }
         }
 
@@ -89,7 +95,8 @@ namespace wrld::rsc {
         }
 
         glBindTexture(GL_TEXTURE_2D, gl_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE,
+                     data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(data);

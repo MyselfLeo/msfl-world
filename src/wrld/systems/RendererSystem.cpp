@@ -37,8 +37,10 @@ namespace wrld {
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
         System(world), window(window) {
         const auto program = world.create_resource<rsc::Program>("skybox_program");
-        program->from_source(shader::SKYBOX);
+        program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
+        program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
         skybox_program = program;
+        skybox_program->reload();
     }
 
     RendererSystem::~RendererSystem() = default;

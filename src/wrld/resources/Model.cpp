@@ -9,9 +9,11 @@
 #include "assimp/scene.h"
 
 #include <format>
+#include <iostream>
 #include <stdexcept>
 #include <utility>
 #include <assimp/postprocess.h>
+#include <wrld/logs.hpp>
 
 namespace wrld::rsc {
     Model::Model(std::string name, World &world) :

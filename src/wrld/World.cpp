@@ -34,9 +34,12 @@ namespace wrld {
         }
     }
 
-    std::unordered_map<EntityID, std::string> World::get_entities() const { return entities; }
+    std::unordered_map<EntityID, std::string> World::get_entities() const {
+        return entities;
+    }
 
-    std::vector<std::type_index> World::get_components_of_entity(const EntityID id) const {
+    std::vector<std::type_index>
+    World::get_components_of_entity(const EntityID id) const {
         std::vector<std::type_index> res;
 
         for (const auto &[cpt_type, entity_map]: components) {
@@ -54,7 +57,8 @@ namespace wrld {
     size_t World::generate_random_id() {
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        static std::uniform_int_distribution<size_t> dis(1, std::numeric_limits<size_t>::max());
+        static std::uniform_int_distribution<size_t> dis(
+                1, std::numeric_limits<size_t>::max());
         return dis(gen);
     }
 } // namespace wrld

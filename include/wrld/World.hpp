@@ -7,6 +7,7 @@
 #include <wrld/components/Component.hpp>
 #include <wrld/resources/Resource.hpp>
 #include <wrld/resources/Rc.hpp>
+#include <wrld/resources/Program.hpp>
 
 #include <format>
 #include <memory>
@@ -20,15 +21,20 @@
 
 namespace wrld {
     typedef size_t EntityID;
-    typedef std::unordered_map<std::type_index, std::unordered_map<std::string, Rc<Resource>>> ResourcePool;
+    typedef std::unordered_map<std::type_index,
+                               std::unordered_map<std::string, Rc<Resource>>>
+            ResourcePool;
     typedef std::unordered_map<std::type_index, Rc<Resource>> DefaultResourcePool;
-    typedef std::unordered_map<std::type_index, std::unordered_map<EntityID, std::shared_ptr<Component>>> ComponentPool;
+    typedef std::unordered_map<std::type_index,
+                               std::unordered_map<EntityID, std::shared_ptr<Component>>>
+            ComponentPool;
 
     class World {
     public:
         World();
 
-        /// Creates an Entity, returning its ID. An optional name can be given. It doesn't need to be unique.
+        /// Creates an Entity, returning its ID. An optional name can be given. It doesn't
+        /// need to be unique.
         EntityID create_entity(const std::string &name = "");
 
         std::string get_entity_name(EntityID id);
@@ -50,7 +56,8 @@ namespace wrld {
             }
 
             if (components[std::type_index(typeid(C))].contains(id))
-                throw std::runtime_error("The entity already has a component of this type.");
+                throw std::runtime_error(
+                        "The entity already has a component of this type.");
 
             // Returns the created component
             auto new_comp = std::make_shared<C>(id, *this, std::forward<Args>(args)...);
@@ -76,11 +83,13 @@ namespace wrld {
         template<ComponentConcept C>
         std::shared_ptr<C> get_component(const EntityID id) {
             if (!components.contains(std::type_index(typeid(C))))
-                throw std::runtime_error(
-                        std::format("Entity {} does not have a component {} attached to it", id, typeid(C).name()));
+                throw std::runtime_error(std::format(
+                        "Entity {} does not have a component {} attached to it", id,
+                        typeid(C).name()));
             if (!components[std::type_index(typeid(C))].contains(id))
-                throw std::runtime_error(
-                        std::format("Entity {} does not have a component {} attached to it", id, typeid(C).name()));
+                throw std::runtime_error(std::format(
+                        "Entity {} does not have a component {} attached to it", id,
+                        typeid(C).name()));
 
             return static_pointer_cast<C>(components[std::type_index(typeid(C))][id]);
         }
@@ -92,7 +101,8 @@ namespace wrld {
             std::vector<EntityID> res;
             res.reserve(components[std::type_index(typeid(C))].size());
 
-            for (const auto k: components[std::type_index(typeid(C))] | std::views::keys) {
+            for (const auto k:
+                 components[std::type_index(typeid(C))] | std::views::keys) {
                 res.push_back(k);
             }
 
@@ -122,7 +132,8 @@ namespace wrld {
                 resources[std::type_index(typeid(R))] = {};
             }
 
-            resources.at(std::type_index(typeid(R))).insert_or_assign(new_name, new_ressource.template as<Resource>());
+            resources.at(std::type_index(typeid(R)))
+                    .insert_or_assign(new_name, new_ressource.template as<Resource>());
             return new_ressource;
         }
 
@@ -148,6 +159,9 @@ namespace wrld {
             resources.at(std::type_index(typeid(R))).erase(name);
         }
 
+        // TODO: Resource will have to have a ::as_default() "constructor"
+        // prevent loading default values if not required.
+        // For now only implemented on rsc::Program.
         template<ResourceConcept R>
         Rc<R> get_default() {
             if (!default_resources.contains(std::type_index(typeid(R)))) {
@@ -158,6 +172,21 @@ namespace wrld {
             }
 
             return default_resources.at(std::type_index(typeid(R))).as<R>();
+        }
+
+        template<>
+        Rc<rsc::Program> get_default() {
+            if (!default_resources.contains(std::type_index(typeid(rsc::Program)))) {
+                const auto new_resource = Rc<rsc::Program>("default", *this);
+                new_resource->as_default();
+                const Rc<Resource> casted = new_resource.template as<Resource>();
+
+                default_resources.insert_or_assign(std::type_index(typeid(rsc::Program)),
+                                                   casted);
+            }
+
+            return default_resources.at(std::type_index(typeid(rsc::Program)))
+                    .as<rsc::Program>();
         }
 
         const ResourcePool &get_resources() const;
@@ -172,11 +201,13 @@ namespace wrld {
         // Default resources, one for each type. They are immutable.
         DefaultResourcePool default_resources;
 
-        // Access a resource by its name. World::create_resource ensure that this name is unique.
+        // Access a resource by its name. World::create_resource ensure that this name is
+        // unique.
         ResourcePool resources;
 
         // Access a component first by type then by entity ID.
-        // Ensure that two components of the same type cannot be applied to the same entity.
+        // Ensure that two components of the same type cannot be applied to the same
+        // entity.
         ComponentPool components;
 
         static size_t generate_random_id();

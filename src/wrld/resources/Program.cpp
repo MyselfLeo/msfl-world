@@ -8,81 +8,69 @@
 
 #include <wrld/resources/Rc.hpp>
 #include <wrld/logs.hpp>
-#include <wrld/macros.hpp>
 
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <regex>
-
-#include "glm/gtc/type_ptr.inl"
+#include <utility>
 
 #include <sstream>
+#include <glm/gtc/type_ptr.inl>
 #include <wrld/Main.hpp>
 
 namespace wrld::rsc {
     std::string get_type_name(const ShaderType type) {
         switch (type) {
-            case VERTEX_SHADER:
+            case ShaderType::Vertex:
                 return "VERTEX_SHADER";
-            case FRAGMENT_SHADER:
+            case ShaderType::Fragment:
                 return "FRAGMENT_SHADER";
+            case ShaderType::Compute:
+                return "COMPUTE_SHADER";
             default:
-                throw std::runtime_error(std::format("Invalid shader type"));
+                std::unreachable();
+        }
+    }
+
+    GLenum get_gl_type(const ShaderType type) {
+        switch (type) {
+            case ShaderType::Vertex:
+                return GL_VERTEX_SHADER;
+            case ShaderType::Fragment:
+                return GL_FRAGMENT_SHADER;
+            case ShaderType::Compute:
+                return GL_COMPUTE_SHADER;
+            default:
+                std::unreachable();
         }
     }
 
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
-    Program::Program(std::string name, World &world /*, Rc<Resource> *rc*/) :
-        Resource(std::move(name), world /*, rc*/) {
-        reload_from_source(shader::DEFAULT_VERTEX, shader::DEFAULT_FRAGMENT);
-    }
+    Program::Program(std::string name, World &world) : Resource(std::move(name), world) {}
 
-    Program &Program::from_file(const std::string &combined_shader_path) {
-        this->vertex_shader_path = combined_shader_path;
-        this->fragment_shader_path = combined_shader_path;
-        reload_from_file();
+    Program &Program::as_default() {
+        shader_source(ShaderType::Vertex, shader::DEFAULT_VERTEX);
+        shader_source(ShaderType::Fragment, shader::DEFAULT_FRAGMENT);
+        reload();
         return *this;
     }
 
-    Program &Program::from_file(const std::string &vertex_path,
-                                const std::string &fragment_path) {
-        this->vertex_shader_path = vertex_path;
-        this->fragment_shader_path = fragment_path;
-        reload_from_file();
+    Program &Program::shader_path(const ShaderType shader_type, const std::string &path) {
+        shader_paths[shader_type] = path;
         return *this;
     }
 
-    Program &Program::from_source(const std::string &combined_shader_src) {
-        reload_from_source(combined_shader_src, combined_shader_src);
+    Program &Program::shader_source(const ShaderType shader_type,
+                                    const std::string &source) {
+        shader_sources[shader_type] = source;
         return *this;
     }
-
-    Program &Program::from_source(const std::string &vertex_source,
-                                  const std::string &fragment_source) {
-        reload_from_source(vertex_source, fragment_source);
-        return *this;
-    }
-
-    // Program::Program(Program &&other) noexcept :
-    //     vertex_shader(other.vertex_shader), fragment_shader(other.fragment_shader),
-    //     gl_program(other.gl_program) { other.vertex_shader = 0; other.fragment_shader =
-    //     0; other.gl_program = 0;
-    // }
-    //
-    // Program &Program::operator=(Program &&other) noexcept {
-    //     vertex_shader = other.vertex_shader;
-    //     fragment_shader = other.fragment_shader;
-    //     gl_program = other.gl_program;
-    //     other.vertex_shader = 0;
-    //     other.fragment_shader = 0;
-    //     other.gl_program = 0;
-    //     return *this;
-    // }
 
     Program::~Program() {
-        glDeleteShader(vertex_shader);
-        glDeleteShader(fragment_shader);
+        for (const auto &s: gl_shaders | std::views::values) {
+            glDeleteShader(s);
+        }
         glDeleteProgram(gl_program);
     }
 
@@ -175,15 +163,59 @@ namespace wrld::rsc {
         set_uniform(uniform + ".do_lighting", material->is_doing_lighting());
     }
 
-    void Program::reload() const {
-        wrldInfo("Reloading shaders...");
-        // Compile the shaders, check for error
-        compile_shader(vertex_shader, vertex_shader_path, VERTEX_SHADER);
-        compile_shader(fragment_shader, fragment_shader_path, FRAGMENT_SHADER);
+    void Program::reload() {
+        wrldInfo(std::format("Reloading shaders for program {}", gl_program));
 
-        // glAttachShader(gl_program, vertex_shader);
-        // glAttachShader(gl_program, fragment_shader);
-        // glLinkProgram(gl_program);
+        constexpr std::array SHADER_TYPES = {ShaderType::Vertex, ShaderType::Fragment,
+                                             ShaderType::Compute};
+
+        std::unordered_map<ShaderType, std::string> final_sources;
+
+        // Collect raw sources
+        for (const auto st: SHADER_TYPES) {
+            if (shader_paths.contains(st) && !shader_sources.contains(st)) {
+                wrldInfo(std::format("{}: from {}", get_type_name(st),
+                                     shader_paths.at(st)));
+
+                final_sources[st] = read_file(shader_paths.at(st));
+            } else if (shader_sources.contains(st)) {
+                wrldInfo(std::format("{}: from source", get_type_name(st)));
+
+                final_sources[st] = preprocess_source(shader_sources.at(st), st);
+            }
+        }
+
+        // Create the Program if required
+        if (gl_program == 0) {
+            gl_program = glCreateProgram();
+            if (gl_program == 0) {
+                throw std::runtime_error("Unable to create OpenGL program object");
+            }
+        }
+
+        // Compile all the shaders
+        int i = 1;
+        for (const auto &[st, src]: final_sources) {
+            if (!gl_shaders.contains(st)) {
+                gl_shaders[st] = glCreateShader(get_gl_type(st));
+                if (gl_shaders[st] == 0) {
+                    throw std::runtime_error(
+                            "Unable to create OpenGL vertex shader object");
+                }
+            }
+            wrldInfo(std::format("Compiling shader {}/{}", i, final_sources.size()));
+            compile_shader(gl_shaders[st], src);
+            i += 1;
+        }
+
+        // Attach the shaders on the program
+        for (const auto shader: gl_shaders | std::views::values) {
+            glAttachShader(gl_program, shader);
+        }
+
+        glLinkProgram(gl_program);
+
+        compiled_once = true;
     }
 
     void Program::set_uniform(const std::string &uniform,
@@ -211,89 +243,12 @@ namespace wrld::rsc {
         return buffer.str();
     }
 
-    void Program::reload_from_file() {
-        if (vertex_shader == 0) {
-            vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-            if (vertex_shader == 0) {
-                throw std::runtime_error("Unable to create OpenGL vertex shader object");
-            }
-        }
-
-        if (fragment_shader == 0) {
-            fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-            if (fragment_shader == 0) {
-                throw std::runtime_error(
-                        "Unable to create OpenGL fragment shader object");
-            }
-        }
-
-        // Compile the shaders, check for error
-        wrldInfo(std::format("Loading shader {}", vertex_shader_path));
-        const std::string vertex_src = read_file(vertex_shader_path);
-        wrldInfo(std::format("Loading shader {}", fragment_shader_path));
-        const std::string fragment_src = read_file(fragment_shader_path);
-
-        compile_shader(vertex_shader, vertex_src, VERTEX_SHADER);
-        compile_shader(fragment_shader, fragment_src, FRAGMENT_SHADER);
-
-        // Create the program
-        if (gl_program == 0) {
-            gl_program = glCreateProgram();
-            if (gl_program == 0) {
-                throw std::runtime_error("Unable to create OpenGL program object");
-            }
-
-            glAttachShader(gl_program, vertex_shader);
-            glAttachShader(gl_program, fragment_shader);
-        }
-
-        glLinkProgram(gl_program);
-
-        compiled_once = true;
-    }
-
-    void Program::reload_from_source(const std::string &vertex_src,
-                                     const std::string &fragment_src) {
-        if (vertex_shader == 0) {
-            vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-            if (vertex_shader == 0) {
-                throw std::runtime_error("Unable to create OpenGL vertex shader object");
-            }
-        }
-
-        if (fragment_shader == 0) {
-            fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-            if (fragment_shader == 0) {
-                throw std::runtime_error(
-                        "Unable to create OpenGL fragment shader object");
-            }
-        }
-
-        compile_shader(vertex_shader, vertex_src, VERTEX_SHADER);
-        compile_shader(fragment_shader, fragment_src, FRAGMENT_SHADER);
-
-        // Create the program
-        if (gl_program == 0) {
-            gl_program = glCreateProgram();
-            if (gl_program == 0) {
-                throw std::runtime_error("Unable to create OpenGL program object");
-            }
-
-            glAttachShader(gl_program, vertex_shader);
-            glAttachShader(gl_program, fragment_shader);
-        }
-
-        glLinkProgram(gl_program);
-
-        compiled_once = true;
-    }
-
     std::string Program::preprocess_source(const std::string &shader_source,
                                            const ShaderType shader_type) {
         // We need to find the #version line. We'll remove it but re-add it later
 
-        // Sadly we can't use the constexpr Main::get_platform() because it will still try
-        // to parse std::regex_constants::multiline under MSVC
+        // Sadly we can't use the constexpr Main::get_platform() because it will still
+        // try to parse std::regex_constants::multiline under MSVC
         std::regex re;
 #if defined(_MSC_VER) && !defined(__clang__)
         re = std::regex(R"(^#version.*$)");
@@ -325,15 +280,8 @@ namespace wrld::rsc {
         return res;
     }
 
-    void Program::compile_shader(const GLuint gl_shader, const std::string &shader_src,
-                                 const ShaderType type) {
-        wrldInfo(std::format("Compiling shader {}", gl_shader));
-
-        // const std::string shader_src = read_file(shader_path);
-
-        const std::string preprocessed_src = preprocess_source(shader_src, type);
-
-        const char *shader_src_str = preprocessed_src.c_str();
+    void Program::compile_shader(const GLuint gl_shader, const std::string &shader_src) {
+        const char *shader_src_str = shader_src.c_str();
         glShaderSource(gl_shader, 1, &shader_src_str, nullptr);
         glCompileShader(gl_shader);
 

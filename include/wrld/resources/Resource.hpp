@@ -7,11 +7,9 @@
 #include <memory>
 #include <string>
 #include <format>
-#include <iostream>
 #include <unordered_map>
 
 #include <wrld/concepts.hpp>
-#include <wrld/logs.hpp>
 
 namespace wrld {
     class Component;
@@ -22,7 +20,9 @@ namespace wrld {
 
     class Resource : public std::enable_shared_from_this<Resource> {
     public:
-        virtual ~Resource() { /*wrldInfo(std::format("Resource '{}' got freed", get_name()));*/ }
+        virtual ~Resource() { /*wrldInfo(std::format("Resource '{}' got freed",
+                                 get_name()));*/
+        }
 
         explicit Resource(std::string name, World &world /*, Rc<Resource> *rc*/);
 
@@ -39,7 +39,6 @@ namespace wrld {
         friend class Component;
         std::string name;
         World &world;
-        // Rc<Resource> *rc;
 
         /// Attach a resource R to this object.
         /// This resource will be later accessible via get_resource.

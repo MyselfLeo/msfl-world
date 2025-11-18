@@ -26,12 +26,17 @@ namespace wrld {
         glGenVertexArrays(1, &vao);
 
         const auto pass1 = world.create_resource<rsc::Program>("pass1_program");
-        pass1->from_source(shader::DEFAULT_VERTEX, shader::DEFERRED_PASS1);
+        pass1->shader_source(rsc::ShaderType::Vertex, shader::DEFAULT_VERTEX);
+        pass1->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_PASS1);
         pass1_program = pass1;
 
         const auto pass2 = world.create_resource<rsc::Program>("pass2_program");
-        pass2->from_source(shader::DEFERRED_PASS2);
+        pass2->shader_source(rsc::ShaderType::Vertex, shader::DEFERRED_PASS2);
+        pass2->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_PASS2);
         pass2_program = pass2;
+
+        pass1_program->reload();
+        pass2_program->reload();
 
         int w, h;
         glfwGetWindowSize(window, &w, &h);

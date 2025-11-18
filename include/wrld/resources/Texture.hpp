@@ -10,14 +10,13 @@
 
 #include <string>
 
-#include <glad/glad.h>
-
 namespace wrld::rsc {
     class Texture final : public Resource {
     public:
         explicit Texture(const std::string &name, World &world /*, Rc<Resource> *rc*/);
 
-        Texture &set_texture(const std::string &texture_path, aiTextureType type, bool flip_textures = false);
+        Texture &set_texture(const std::string &texture_path, aiTextureType type,
+                             bool flip_textures = false);
 
         Texture(Texture &other) = delete;
         Texture(Texture &&other) = delete;
@@ -31,7 +30,7 @@ namespace wrld::rsc {
         std::string get_type() const override { return "Texture"; }
 
     private:
-        GLuint gl_texture = 0;
+        unsigned int gl_texture = 0;
         std::string path = "data/textures/default.png";
         bool flip_textures = true;
 
