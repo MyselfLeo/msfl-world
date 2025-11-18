@@ -57,7 +57,8 @@ namespace wrld::rsc {
         ~Program() override;
 
         /// Use this program in the GL context.
-        void use() const;
+        /// May compile the program if not already done.
+        void use();
 
         void set_uniform(const std::string &uniform, float value) const;
 

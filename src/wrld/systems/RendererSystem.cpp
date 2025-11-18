@@ -90,7 +90,7 @@ namespace wrld {
     }*/
 
     void RendererSystem::render_camera(const cpt::Camera3D &camera) {
-        const rsc::Program &program = camera.get_program().get_ref();
+        const auto program = camera.get_program();
 
         // Todo: In the future, a camera should be attached to a viewport
         // of a given size. We should get this viewport size instead of the window size.
@@ -114,34 +114,37 @@ namespace wrld {
         // Camera dependent uniforms
         const glm::mat4x4 view_matrix = camera.get_view_matrix();
         const glm::mat4x4 projection_matrix = camera.get_projection_matrix();
-        program.use();
-        program.set_uniform("view_pos", camera.get_position());
-        program.set_uniform("view", view_matrix);
-        program.set_uniform("projection", projection_matrix);
+        program->use();
+        program->set_uniform("view_pos", camera.get_position());
+        program->set_uniform("view", view_matrix);
+        program->set_uniform("projection", projection_matrix);
 
         // Ambiant light uniform
-        program.set_uniform("ambiant_light.color", environment_data.ambiant_light.color);
-        program.set_uniform("ambiant_light.intensity",
-                            environment_data.ambiant_light.intensity);
+        program->set_uniform("ambiant_light.color", environment_data.ambiant_light.color);
+        program->set_uniform("ambiant_light.intensity",
+                             environment_data.ambiant_light.intensity);
 
         // Point light dependent uniforms
-        program.set_uniform("point_light_nb", static_cast<unsigned>(point_lights.size()));
+        program->set_uniform("point_light_nb",
+                             static_cast<unsigned>(point_lights.size()));
         for (const auto &[i, pl]: std::views::enumerate(point_lights)) {
-            program.set_uniform(std::format("point_lights[{}].position", i), pl.position);
-            program.set_uniform(std::format("point_lights[{}].color", i), pl.color);
-            program.set_uniform(std::format("point_lights[{}].intensity", i),
-                                pl.intensity);
+            program->set_uniform(std::format("point_lights[{}].position", i),
+                                 pl.position);
+            program->set_uniform(std::format("point_lights[{}].color", i), pl.color);
+            program->set_uniform(std::format("point_lights[{}].intensity", i),
+                                 pl.intensity);
         }
 
         // Directional light dependent uniforms
-        program.set_uniform("directional_lights_nb",
-                            static_cast<unsigned>(directional_lights.size()));
+        program->set_uniform("directional_lights_nb",
+                             static_cast<unsigned>(directional_lights.size()));
         for (const auto &[i, dl]: std::views::enumerate(directional_lights)) {
-            program.set_uniform(std::format("directional_lights[{}].direction", i),
-                                dl.direction);
-            program.set_uniform(std::format("directional_lights[{}].color", i), dl.color);
-            program.set_uniform(std::format("directional_lights[{}].intensity", i),
-                                dl.intensity);
+            program->set_uniform(std::format("directional_lights[{}].direction", i),
+                                 dl.direction);
+            program->set_uniform(std::format("directional_lights[{}].color", i),
+                                 dl.color);
+            program->set_uniform(std::format("directional_lights[{}].intensity", i),
+                                 dl.intensity);
         }
 
         // Find each entity with a model, get its transform, and render it.
@@ -163,7 +166,7 @@ namespace wrld {
             glm::mat4x4 model_matrix = get_entity_transform(entity);
 
             // Actual draw call
-            draw_model(model.get_ref(), model_matrix, program);
+            draw_model(model.get_ref(), model_matrix, program.get_ref());
         }
 
         unsigned total_models = model_entities.size();
@@ -238,8 +241,7 @@ namespace wrld {
 
     void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap,
                                      const cpt::Camera3D &camera, GLuint vao) const {
-        const auto &skybox_prgm = skybox_program.get_ref();
-        skybox_prgm.use();
+        skybox_program->use();
 
         const auto inv_matrix =
                 glm::inverse(camera.get_viewport_matrix() *
@@ -247,9 +249,9 @@ namespace wrld {
 
         cubemap.use(0);
 
-        skybox_prgm.set_uniform("inv_matrix", inv_matrix);
-        skybox_prgm.set_uniform("camera_pos", camera.get_position());
-        skybox_prgm.set_uniform("cubemap", 0);
+        skybox_program->set_uniform("inv_matrix", inv_matrix);
+        skybox_program->set_uniform("camera_pos", camera.get_position());
+        skybox_program->set_uniform("cubemap", 0);
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);

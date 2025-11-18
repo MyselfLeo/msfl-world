@@ -74,7 +74,12 @@ namespace wrld::rsc {
         glDeleteProgram(gl_program);
     }
 
-    void Program::use() const { glUseProgram(gl_program); }
+    void Program::use() {
+        if (!compiled_once) {
+            reload();
+        }
+        glUseProgram(gl_program);
+    }
 
     void Program::set_uniform(const std::string &uniform, const float value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());

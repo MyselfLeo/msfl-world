@@ -104,7 +104,7 @@ namespace wrld {
 
         window_fb->use();
 
-        pass2_program.get()->use();
+        pass2_program->use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, framebuffer->get_position_texture());
