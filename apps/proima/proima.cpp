@@ -40,7 +40,7 @@ public:
         // attached to it, it will work just fine but we'll have only 1 material meaning 1
         // draw call needed
         const auto texture = world.create_resource<rsc::Texture>("minecraft_texture");
-        texture.get_mut()->set_texture("data/models/rungholt/house-RGBA.png",
+        texture.get_mut()->set_texture("apps/proima/rungholt/house-RGBA.png",
                                        aiTextureType_DIFFUSE, false);
 
         const auto material = world.create_resource<rsc::Material>("city_material");
@@ -49,7 +49,7 @@ public:
         material->set_shininess(64);
 
         auto city_model = world.create_resource<rsc::Model>("city_model");
-        city_model->from_file("data/models/rungholt/rungholt.obj",
+        city_model->from_file("apps/proima/rungholt/rungholt.obj",
                               aiProcess_Triangulate | aiProcess_FlipUVs, false, material);
 
         wrldInfo("Splitting model");
@@ -83,11 +83,11 @@ public:
 
         control = world.attach_component<cpt::FPSControl>(camera_entity);
         const auto &env = world.attach_component<cpt::Environment>(camera_entity);
-        env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.83, 0.64}, 0.1});
+        env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0, 0.83, 0.64}, 0.3});
         env->set_cubemap(world.get_default<rsc::CubemapTexture>());
 
         const EntityID sun = world.create_entity("Sun");
-        world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.1);
+        world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.4);
         world.attach_component<cpt::Transform>(sun);
 
         for (int i = 0; i < LIGHT_COUNT; i++) {

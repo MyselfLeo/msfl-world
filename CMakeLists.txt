@@ -144,8 +144,5 @@ target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw im
 add_executable(shader_view shader_view.cpp)
 target_link_libraries(shader_view msfl_world)
 
-add_executable(proima proima.cpp)
+add_executable(proima apps/proima/proima.cpp)
 target_link_libraries(proima msfl_world)
-
-add_executable(test test.cpp)
-target_link_libraries(test msfl_world)

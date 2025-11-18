@@ -20,4 +20,4 @@ docs/
 examples/
 
 ## Data for proima
-data/models/rungholt*
+apps/proima/rungholt
