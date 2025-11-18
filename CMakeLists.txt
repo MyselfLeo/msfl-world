@@ -146,6 +146,3 @@ target_link_libraries(shader_view msfl_world)
 
 add_executable(proima apps/proima/proima.cpp)
 target_link_libraries(proima msfl_world)
-
-add_executable(proima2 apps/proima2/proima2.cpp)
-target_link_libraries(proima2 msfl_world)
