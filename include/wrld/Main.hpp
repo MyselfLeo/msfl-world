@@ -18,6 +18,7 @@ namespace wrld {
     enum class RendererType {
         ForwardRenderer,
         DeferredRenderer,
+        NoRenderer,
     };
 
     enum class Platform {

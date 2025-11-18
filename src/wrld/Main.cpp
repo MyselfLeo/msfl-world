@@ -50,49 +50,56 @@ namespace wrld {
 
         // Create systems
         wrldInfo("Initialising systems");
-        // RendererSystem renderer{world, window};
-        const std::unique_ptr<RendererSystem> renderer = get_renderer();
 
-        should_close = false;
+        std::unique_ptr<RendererSystem> renderer;
+
+        // todo: make RendererSystem abstract, implement
+        // ForwardRendererSystem (which replace RendererSystem) and
+        // NoRendererSystem (doesn't render anything).
+        if (renderer_type != RendererType::NoRenderer) {
+            renderer = get_renderer();
+        }
+
         wrldInfo("Initializing app");
         app.init(world);
 
         wrldInfo("Starting main loop");
         while (!should_close) {
-            // todo: move this to the camera
-            glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            // Update user application
+            app.update(world, delta_time);
 
             // Compute deltatime
             const double current_frame = glfwGetTime();
             delta_time = current_frame - last_frame; // in seconds
             last_frame = current_frame;
 
-            // Update user application
-            app.update(world, delta_time);
+            if (renderer_type != RendererType::NoRenderer) {
+                // todo: move this to the camera
+                glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-            // Execute systems
-            renderer->exec(delta_time);
+                renderer->exec(delta_time);
 
-            // Render UI using ImGUI
-            {
-                ImGui_ImplOpenGL3_NewFrame();
-                ImGui_ImplGlfw_NewFrame();
-                ImGui::NewFrame();
+                // Render UI using ImGUI
+                {
+                    ImGui_ImplOpenGL3_NewFrame();
+                    ImGui_ImplGlfw_NewFrame();
+                    ImGui::NewFrame();
 
-                app.ui(world);
+                    app.ui(world);
 
-                ImGui::Render();
-                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            }
+                    ImGui::Render();
+                    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+                }
 
-            // Prepare next frame
-            glfwSwapBuffers(window);
-            glfwPollEvents();
+                // Prepare next frame
+                glfwSwapBuffers(window);
+                glfwPollEvents();
 
-            if (glfwWindowShouldClose(window)) {
-                should_close = true;
+                if (glfwWindowShouldClose(window)) {
+                    should_close = true;
+                }
             }
         }
 
