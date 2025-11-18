@@ -53,7 +53,7 @@ public:
                               aiProcess_Triangulate | aiProcess_FlipUVs, false, material);
 
         wrldInfo("Splitting model");
-        const auto &split_models = tools::ModelTool::split_in_grid(world, city_model, 40);
+        const auto &split_models = tools::ModelTool::split_in_grid(world, city_model, 50);
         world.destroy_resource<rsc::Model>(city_model);
 
         // Create an entity for each split models
@@ -135,7 +135,11 @@ public:
         }
     }
 
-    void ui(World &world) override { gui::render_info_window(world); }
+    void ui(World &world) override {
+        gui::render_component_window(world);
+        gui::render_resources_window(world);
+        gui::render_info_window(world);
+    }
 
     void exit(World &world) override {}
 

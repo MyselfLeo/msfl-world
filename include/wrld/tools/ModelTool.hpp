@@ -11,7 +11,6 @@
 #include <vector>
 
 namespace wrld::tools {
-
     /// Static class for manipulating Models.
     class ModelTool {
     public:
@@ -21,21 +20,20 @@ namespace wrld::tools {
         static std::vector<Rc<rsc::Model>>
         split_in_grid(World &world, const Rc<rsc::Model> &source_model, float grid_size);
 
-        /// Given a list of bounding boxes and a mesh, split this mesh in each bounding
-        /// box.
-        /// Note that the resulting meshes won't be totally inside their defined
-        /// bounding-box; some triangles will be between 2 bounds and thus will fall in
-        /// either one of the 2 boxes. You can get the mesh bounding box using
-        /// Mesh::get_bounding_box.
-        /// Assumes that each bounding box is independant.
-        static std::vector<obj::Mesh>
-        split_mesh(const obj::Mesh &mesh, float grid_size,
-                                                 const obj::AABoundingBox &global_box);
+    private:
+        struct GridData {
+            glm::uvec3 grid_dimensions;
+            unsigned cell_count = 0;
+            float cell_size = 0.0;
+            glm::vec3 grid_origin;
+        };
+
+        static std::vector<obj::Mesh> split_mesh(const obj::Mesh &mesh,
+                                                 const GridData &grid_data);
 
         /// Same as ModelTool::split_mesh.
         static std::vector<obj::MeshGroup>
-        split_mesh_group(const obj::MeshGroup &mesh_group, float grid_size,
-                         const obj::AABoundingBox &global_box);
+        split_mesh_group(const obj::MeshGroup &mesh_group, const GridData &grid_data);
     };
 
 } // namespace wrld::tools

@@ -90,6 +90,12 @@ namespace wrld::rsc {
 
         [[nodiscard]] GLuint get_vao() const;
 
+        /// Return the number of vertices.
+        [[nodiscard]] unsigned get_vertex_count() const;
+
+        /// Return the number of element indices.
+        [[nodiscard]] unsigned get_element_count() const;
+
         std::string get_type() const override { return "Model"; }
 
     protected:
@@ -103,12 +109,6 @@ namespace wrld::rsc {
         /// Returns the index of the material if it's already
         /// in Model::materials. Returns -1 otherwise.
         int get_material_index(const Rc<Material> &material) const;
-
-        /// Return the number of vertices.
-        [[nodiscard]] unsigned get_vertex_count() const;
-
-        /// Return the number of element indices.
-        [[nodiscard]] unsigned get_element_count() const;
 
         /// Load materials from the aiScene.
         void load_materials(const aiScene *scene, const std::string &directory,

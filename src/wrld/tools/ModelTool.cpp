@@ -13,26 +13,30 @@ namespace wrld::tools {
         // For simplification the grid will be aligned with the bounding box of
         // source_model.
         const obj::AABoundingBox source_bb = source_model->get_bounding_box();
-
         const glm::vec3 source_bb_size = source_bb.size();
 
         // Number of boxes on each coordinates
-        const unsigned x_count = std::ceil(source_bb_size.x / grid_size);
-        const unsigned y_count = std::ceil(source_bb_size.y / grid_size);
-        const unsigned z_count = std::ceil(source_bb_size.z / grid_size);
+        const unsigned x_count = std::ceil((source_bb_size.x + 1) / grid_size);
+        const unsigned y_count = std::ceil((source_bb_size.y + 1) / grid_size);
+        const unsigned z_count = std::ceil((source_bb_size.z + 1) / grid_size);
 
-        const unsigned max_mesh_count = x_count * y_count * z_count;
+        GridData grid_data;
+        grid_data.grid_dimensions = glm::uvec3{x_count, y_count, z_count};
+        grid_data.cell_count = x_count * y_count * z_count;
+        grid_data.grid_origin = source_bb.lower();
+        grid_data.cell_size = grid_size;
 
         // Compute the meshgroups & materials to set in each model
-        std::vector<std::vector<obj::MeshGroup>> mesh_groups(max_mesh_count);
-        std::vector<std::vector<Rc<rsc::Material>>> materials(max_mesh_count);
+        std::vector<std::vector<obj::MeshGroup>> mesh_groups(grid_data.cell_count);
+        std::vector<std::vector<Rc<rsc::Material>>> materials(grid_data.cell_count);
 
         const auto src_meshgroups = source_model->get_mesh_groups();
         const auto src_materials = source_model->get_materials();
 
         for (const auto &[mg, mat]: src_meshgroups) {
             // Split the mesh group
-            const auto splitted_mg = split_mesh_group(mg, grid_size, source_bb);
+            const auto splitted_mg = split_mesh_group(mg, grid_data);
+
             for (int i = 0; i < splitted_mg.size(); i++) {
                 if (splitted_mg[i].get_element_count() == 0)
                     continue;
@@ -44,9 +48,9 @@ namespace wrld::tools {
 
         // Create the new models
         std::vector<Rc<rsc::Model>> new_models;
-        new_models.reserve(max_mesh_count);
+        new_models.reserve(grid_data.cell_count);
 
-        for (int i = 0; i < max_mesh_count; i++) {
+        for (int i = 0; i < grid_data.cell_count; i++) {
             // Don't create empty models
             if (mesh_groups[i].empty())
                 continue;
@@ -64,18 +68,9 @@ namespace wrld::tools {
     }
 
     std::vector<obj::Mesh> ModelTool::split_mesh(const obj::Mesh &mesh,
-                                                 const float grid_size,
-                                                 const obj::AABoundingBox &global_box) {
-        const auto offset = global_box.lower();
-
-        // Number of boxes on each coordinates
-        const unsigned x_count = std::ceil(global_box.size().x / grid_size);
-        const unsigned y_count = std::ceil(global_box.size().y / grid_size);
-        const unsigned z_count = std::ceil(global_box.size().z / grid_size);
-        const unsigned max_mesh_count = x_count * y_count * z_count;
-
+                                                 const GridData &grid_data) {
         // Prepare the new meshes
-        std::vector<obj::Mesh> new_meshes(max_mesh_count);
+        std::vector<obj::Mesh> new_meshes(grid_data.cell_count);
         for (auto &m: new_meshes) {
             m.set_primitive_type(mesh.get_primitive_type());
         }
@@ -86,7 +81,7 @@ namespace wrld::tools {
         // For each newly created mesh, we store the vertices already added.
         // It prevents duplication in the mesh vertex list.
         std::vector<std::unordered_map<obj::VertexID, obj::VertexID>> assigned_vertices(
-                max_mesh_count);
+                grid_data.cell_count);
 
         /// Add a new element index to the specified mesh.
         /// Will add the corresponding vertex in the mesh's vertices if required.
@@ -97,12 +92,15 @@ namespace wrld::tools {
                 assigned_vertices[mesh_id].insert_or_assign(
                         vertex_id, new_meshes[mesh_id].add_vertex(vertex));
             }
+
             const obj::VertexID id = assigned_vertices[mesh_id][vertex_id];
+
             new_meshes[mesh_id].add_element(id);
         };
 
         // Iterate over each element of the mesh.
         const unsigned prim_size = obj::get_primitive_size(mesh.get_primitive_type());
+
         for (unsigned prim_id = 0; prim_id < source_elements.size();
              prim_id += prim_size) {
 
@@ -114,12 +112,14 @@ namespace wrld::tools {
             center = glm::vec3{center.x / prim_size, center.y / prim_size,
                                center.z / prim_size};
 
-            const glm::vec3 offset_center = center - offset;
+            const glm::vec3 offset_center = center - grid_data.grid_origin;
 
-            const unsigned i_x = std::floor(offset_center.x / grid_size);
-            const unsigned i_y = std::floor(offset_center.y / grid_size);
-            const unsigned i_z = std::floor(offset_center.z / grid_size);
-            const unsigned mesh_id = i_x + i_y * x_count + i_z * (x_count * y_count);
+            const unsigned i_x = std::floor(offset_center.x / grid_data.cell_size);
+            const unsigned i_y = std::floor(offset_center.y / grid_data.cell_size);
+            const unsigned i_z = std::floor(offset_center.z / grid_data.cell_size);
+            const unsigned mesh_id =
+                    i_x + i_y * grid_data.grid_dimensions.x +
+                    i_z * (grid_data.grid_dimensions.x * grid_data.grid_dimensions.y);
 
             for (unsigned e_id = 0; e_id < prim_size; e_id++) {
                 add_mesh_element(source_elements[prim_id + e_id], mesh_id);
@@ -130,18 +130,12 @@ namespace wrld::tools {
     }
 
     std::vector<obj::MeshGroup>
-    ModelTool::split_mesh_group(const obj::MeshGroup &mesh_group, const float grid_size,
-                                const obj::AABoundingBox &global_box) {
-        // Number of boxes on each coordinates
-        const unsigned x_count = std::ceil(global_box.size().x / grid_size);
-        const unsigned y_count = std::ceil(global_box.size().y / grid_size);
-        const unsigned z_count = std::ceil(global_box.size().z / grid_size);
-        const unsigned max_mesh_count = x_count * y_count * z_count;
-
-        std::vector<obj::MeshGroup> new_groups(max_mesh_count);
+    ModelTool::split_mesh_group(const obj::MeshGroup &mesh_group,
+                                const GridData &grid_data) {
+        std::vector<obj::MeshGroup> new_groups(grid_data.cell_count);
 
         for (const auto &m: mesh_group.get_meshes()) {
-            const auto &split_meshes = split_mesh(m, grid_size, global_box);
+            const auto &split_meshes = split_mesh(m, grid_data);
 
             for (const auto &[sm_id, sm]: split_meshes | std::views::enumerate) {
                 new_groups[sm_id].add_mesh(sm);
