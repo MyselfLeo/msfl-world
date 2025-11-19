@@ -12,6 +12,11 @@
 #include <wrld/objects/geometry/Box.hpp>
 
 namespace wrld::cpt {
+    enum class ProjectionMode {
+        Perspective,
+        Orthographic,
+    };
+
     /// Attach a camera to the Entity.
     class Camera3D final : public Component {
     public:
@@ -54,6 +59,12 @@ namespace wrld::cpt {
         /// Return the frustum in camera local space.
         obj::Box get_frustum_box() const;
 
+        /// Return the current projection mode.
+        [[nodiscard]] ProjectionMode get_projection_mode() const;
+
+        /// Defined the projection mode of this camera.
+        void set_projection_mode(ProjectionMode projection_mode);
+
         // todo: add ortographic mode
 
         std::string get_type() override { return "Camera3D"; }
@@ -65,5 +76,6 @@ namespace wrld::cpt {
         float near_plane = 0.1;
         float far_plane = 1000;
         std::shared_ptr<const rsc::WindowFramebuffer> viewport;
+        ProjectionMode projection_mode;
     };
 } // namespace wrld::cpt

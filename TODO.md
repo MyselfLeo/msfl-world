@@ -1,7 +1,3 @@
-Box & all:
-
-- Change FLT_MIN to -FLT_MAX
-
 Resources:
 
 - Create world.copy(other), which returns a new resource with

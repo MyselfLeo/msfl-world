@@ -13,8 +13,6 @@ namespace wrld::cpt {
     const obj::AABoundingBox Camera3D::Frustum =
             obj::AABoundingBox{{-1, -1, -1}, {1, 1, 1}};
 
-    const glm::vec3 Camera3D::UP_VECTOR = glm::vec3(0, 1, 0);
-
     Camera3D::Camera3D(const EntityID entity_id, World &world, const float fov,
                        const bool do_culling,
                        std::shared_ptr<rsc::WindowFramebuffer> viewport,
@@ -24,6 +22,10 @@ namespace wrld::cpt {
         attach_resource("program", program);
     }
 
+    float Camera3D::get_fov() const { return fov; }
+
+    void Camera3D::set_fov(const float fov) { this->fov = fov; }
+
     Rc<rsc::Program> Camera3D::get_program() const {
         return get_resource<rsc::Program>("program");
     }
@@ -31,10 +33,6 @@ namespace wrld::cpt {
     void Camera3D::set_program(const Rc<rsc::Program> &program) {
         attach_resource("program", program);
     }
-
-    float Camera3D::get_fov() const { return fov; }
-
-    void Camera3D::set_fov(const float fov) { this->fov = fov; }
 
     glm::mat4x4 Camera3D::get_view_matrix() const {
         if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
@@ -44,6 +42,10 @@ namespace wrld::cpt {
     }
 
     glm::mat4x4 Camera3D::get_projection_matrix() const {
+        if (projection_mode == ProjectionMode::Orthographic) {
+            return glm::ortho(-fov, fov, -fov, fov, near_plane, far_plane);
+        }
+
         const float ratio = static_cast<float>(viewport->get_width()) /
                             static_cast<float>(viewport->get_height());
         return glm::perspective(glm::radians(this->fov), ratio, near_plane, far_plane);
@@ -91,6 +93,14 @@ namespace wrld::cpt {
         }
 
         return obj::Box(corners);
+    }
+
+    const glm::vec3 Camera3D::UP_VECTOR = glm::vec3(0, 1, 0);
+
+    ProjectionMode Camera3D::get_projection_mode() const { return projection_mode; }
+
+    void Camera3D::set_projection_mode(const ProjectionMode projection_mode) {
+        this->projection_mode = projection_mode;
     }
 
     // void Camera::load_default_resources() {}

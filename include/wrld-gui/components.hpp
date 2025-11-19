@@ -16,6 +16,7 @@
 
 #include <imgui.h>
 #include <map>
+#include <utility>
 
 namespace wrld::gui {
     // Function pointer type for component menu handlers
@@ -36,10 +37,43 @@ namespace wrld::gui {
         const auto &cpt = world.get_component<cpt::Camera3D>(entity);
         if (ImGui::TreeNode(cpt->get_type().c_str())) {
             float fov = cpt->get_fov();
+            float near_plane = cpt->get_near_plane();
+            float far_plane = cpt->get_far_plane();
 
             ImGui::SliderFloat("FOV", &fov, 0.0, 180.0, "%.2f");
+            ImGui::SliderFloat("Near plane", &near_plane, 0.01, 1000.0, "%.2f");
+            ImGui::SliderFloat("Far plane", &far_plane, 0.01, 1000.0, "%.2f");
 
+            int mode = 0;
+            switch (cpt->get_projection_mode()) {
+                case cpt::ProjectionMode::Perspective: {
+                    mode = 0;
+                } break;
+                case cpt::ProjectionMode::Orthographic: {
+                    mode = 1;
+                } break;
+            }
+
+            ImGui::RadioButton("Projective", &mode, 0);
+            ImGui::RadioButton("Orthographic", &mode, 1);
+
+            if (far_plane < near_plane)
+                far_plane = near_plane + 0.01;
+
+            cpt->set_near_plane(near_plane);
+            cpt->set_far_plane(far_plane);
             cpt->set_fov(fov);
+
+            switch (mode) {
+                case 0: {
+                    cpt->set_projection_mode(cpt::ProjectionMode::Perspective);
+                } break;
+                case 1: {
+                    cpt->set_projection_mode(cpt::ProjectionMode::Orthographic);
+                } break;
+                default:
+                    std::unreachable();
+            }
 
             ImGui::TreePop();
         }
@@ -154,8 +188,15 @@ namespace wrld::gui {
     inline void component_menu<cpt::PointLight>(World &world, const EntityID &entity) {
         const auto &cpt = world.get_component<cpt::PointLight>(entity);
         if (ImGui::TreeNode(cpt->get_type().c_str())) {
-            // Default behavior for any component type
-            ImGui::Text("PointLight");
+            glm::vec3 color = cpt->get_color();
+            float intensity = cpt->get_intensity();
+
+            ImGui::ColorEdit3("Color", &color.r);
+            ImGui::SliderFloat("Intensity", &intensity, 0.0, 1.0);
+
+            cpt->set_color(color);
+            cpt->set_intensity(intensity);
+
             ImGui::TreePop();
         }
     }
@@ -181,7 +222,7 @@ namespace wrld::gui {
             if (ImGui::InputFloat3("Position", &position.x)) {
                 cpt->set_position(position);
             }
-            if (ImGui::InputFloat3("Rotation", &rotation.x)) {
+            if (ImGui::SliderFloat3("Rotation", &rotation.x, -M_PI, M_PI - 0.001)) {
                 cpt->set_rotation(glm::quat{rotation});
             }
             if (ImGui::InputFloat3("Scale", &scale.x)) {

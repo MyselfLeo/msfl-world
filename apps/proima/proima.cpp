@@ -144,7 +144,8 @@ public:
     void exit(World &world) override {}
 
 private:
-    static constexpr int LIGHT_COUNT = 100;
+    static constexpr int LIGHT_COUNT = 0;
+    // static constexpr int LIGHT_COUNT = 100;
 
     std::shared_ptr<cpt::FPSControl> control;
 
