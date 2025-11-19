@@ -33,6 +33,8 @@ namespace wrld::obj {
 
     const std::vector<Mesh> &MeshGroup::get_meshes() const { return meshes; }
 
+    std::vector<Mesh> &MeshGroup::get_meshes() { return meshes; }
+
     PrimitiveType MeshGroup::get_primitive_type() const {
         if (meshes.empty()) {
             throw std::runtime_error("The mesh is empty.");

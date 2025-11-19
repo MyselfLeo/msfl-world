@@ -82,6 +82,10 @@ namespace wrld::obj {
         /// Return the axis-aligned bounding-box of the mesh.
         [[nodiscard]] AABoundingBox get_bounding_box() const;
 
+        /// Clears mesh data (vertices & elements) of this mesh.
+        /// PrimitiveType and bounding_box are not modified.
+        void clear();
+
     private:
         std::vector<Vertex> vertices;
         std::vector<VertexID> indices;

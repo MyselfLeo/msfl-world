@@ -106,4 +106,9 @@ namespace wrld::obj {
     }
 
     AABoundingBox Mesh::get_bounding_box() const { return bounding_box; }
+
+    void Mesh::clear() {
+        vertices.clear();
+        indices.clear();
+    }
 } // namespace wrld::obj

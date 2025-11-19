@@ -49,7 +49,7 @@ public:
         material->set_shininess(64);
 
         auto city_model = world.create_resource<rsc::Model>("city_model");
-        city_model->from_file("apps/proima/rungholt/house.obj",
+        city_model->from_file("apps/proima/rungholt/rungholt.obj",
                               aiProcess_Triangulate | aiProcess_FlipUVs, false, material);
 
         wrldInfo("Splitting model");
@@ -58,7 +58,8 @@ public:
 
         // Create an entity for each split models
         for (int i = 0; i < split_models.size(); i++) {
-            const auto &s = split_models[i];
+            auto &s = split_models[i];
+
             const EntityID city_crumb = world.create_entity("city_crumb");
             world.attach_component<cpt::StaticModel>(city_crumb, s);
             world.attach_component<cpt::Transform>(city_crumb);

@@ -188,6 +188,7 @@ namespace wrld::rsc {
         import.FreeScene();
 
         update();
+
         return *this;
     }
 

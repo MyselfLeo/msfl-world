@@ -28,19 +28,22 @@ namespace wrld::obj {
         void add_mesh(const Mesh &mesh);
 
         /// Return the number of meshes in the group.
-        size_t get_mesh_count() const;
+        [[nodiscard]] size_t get_mesh_count() const;
 
         /// Return the meshes of this group.
-        const std::vector<Mesh> &get_meshes() const;
+        [[nodiscard]] const std::vector<Mesh> &get_meshes() const;
+
+        /// Return the meshes of this group.
+        std::vector<Mesh> &get_meshes();
 
         /// Return the PrimitiveType of the meshes of this group.
         /// Fails if the group is empty.
-        PrimitiveType get_primitive_type() const;
+        [[nodiscard]] PrimitiveType get_primitive_type() const;
 
         /// Return a structure with all meshes vertices stored in a single
         /// vector, alongside the start & size of each mesh.
         /// This function is quite compute-heavy so don't call too often.
-        MeshGroupAggregate get_aggregate() const;
+        [[nodiscard]] MeshGroupAggregate get_aggregate() const;
 
         /// Return the number of vertices.
         [[nodiscard]] unsigned get_vertex_count() const;
