@@ -50,7 +50,7 @@ namespace wrld::obj {
         glm::vec3 operator[](int idx) const;
 
         /// Return an axis-aligned bounding-box of this box.
-        [[nodiscard]] AABoundingBox get_bounding_box() const;
+        [[nodiscard]] virtual AABoundingBox get_bounding_box() const;
 
         /// Return a mesh representing the edges of this box.
         [[nodiscard]] Mesh get_mesh() const;

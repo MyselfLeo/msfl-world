@@ -99,9 +99,6 @@ namespace wrld::rsc {
         std::string get_type() const override { return "Model"; }
 
     protected:
-        friend class RendererSystem;
-        // friend class ModelTool;
-
         /// Rebuild the bounding box of the model by iterating
         /// over every mesh of this model.
         void update_bounding_box();
@@ -113,13 +110,6 @@ namespace wrld::rsc {
         /// Load materials from the aiScene.
         void load_materials(const aiScene *scene, const std::string &directory,
                             bool flip_textures);
-
-        // /// Load textures of the given type from aiMaterial.
-        // /// Will only load a maximum of max textures.
-        // void load_textures(const std::string &model_directory, const aiMaterial
-        // *material,
-        //                    aiTextureType type, const aiScene *scene, bool
-        //                    flip_textures, unsigned max = 1);
 
         /// Load a specific texture based on its string.
         Rc<Texture> load_texture(const std::string &directory, const std::string &str,
@@ -150,41 +140,5 @@ namespace wrld::rsc {
 
         /// Bounding box of the model in local-space. Updated by Model::update
         obj::AABoundingBox bounding_box;
-
-        // std::vector<Rc<Material>> meshes_materials; // Material of each mesh
-
-        ////// BELOW : Data & functions when model is loaded from file
-
-        // Cache loaded textures
-        // std::unordered_map<std::string, Rc<Texture>> loaded_textures;
-        // Loaded materials
-        // std::vector<Rc<Material>> loaded_materials;
-
-        // Save the directory where we loaded the model in order
-        // to load relative textures
-        // std::string model_directory;
-        // std::string model_path;
-        // unsigned ai_flags;
-        // bool flip_textures;
-        // std::optional<Rc<Material>> custom_material;
-
-        // GLenum gl_primitive_type = GL_TRIANGLES;
-        // GLenum gl_usage = GL_STATIC_DRAW;
-
-        // void reload_from_file();
-
-        // std::vector<Rc<Material>> load_materials(const aiScene *scene);
-        //
-        // std::shared_ptr<MeshGraphNode> process_node(const aiNode *node,
-        //                                             const aiScene *scene);
-        //
-        // Rc<Mesh> process_mesh(const aiMesh *mesh);
-
-        // /// Load textures of the given type from aiMaterial.
-        // /// Will only return a maximum of max textures.
-        // std::vector<Rc<Texture>> load_textures(const aiMaterial *material,
-        //                                        aiTextureType type, const aiScene
-        //                                        *scene, bool flip_textures, unsigned max
-        //                                        = 1);
     };
 } // namespace wrld::rsc

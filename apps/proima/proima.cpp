@@ -49,7 +49,7 @@ public:
         material->set_shininess(64);
 
         auto city_model = world.create_resource<rsc::Model>("city_model");
-        city_model->from_file("apps/proima/rungholt/rungholt.obj",
+        city_model->from_file("apps/proima/rungholt/house.obj",
                               aiProcess_Triangulate | aiProcess_FlipUVs, false, material);
 
         wrldInfo("Splitting model");

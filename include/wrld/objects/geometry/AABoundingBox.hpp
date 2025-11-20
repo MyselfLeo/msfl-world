@@ -4,6 +4,8 @@
 
 #pragma once
 #include <wrld/objects/geometry/Box.hpp>
+#include <wrld/objects/geometry/Ray.hpp>
+#include <wrld/objects/geometry/GeoRequestable.hpp>
 
 namespace wrld::obj {
 
@@ -18,7 +20,7 @@ namespace wrld::obj {
     ///   |/        |/                |/
     ///   +---------+                 +--- x
     /// lower        1
-    class AABoundingBox : public Box {
+    class AABoundingBox : public Box, public GeoRequestable {
     public:
         /// Empty bounding-box with its lower coordinates to FLT_MAX and
         /// its upper coordinates to -FLT_MAX.
@@ -41,11 +43,15 @@ namespace wrld::obj {
         /// is expanded to fit the point.
         void add_point(const glm::vec3 &point);
 
-        /// Returns true if the point is inside the box.
-        [[nodiscard]] bool inside(const glm::vec3 &point) const;
-
         /// Given two bounding boxes, return the bounding box that encompasses both.
         AABoundingBox operator+(const AABoundingBox &other) const;
+
+        [[nodiscard]] AABoundingBox get_bounding_box() const override;
+
+        [[nodiscard]] std::optional<double> intersect(const Ray &ray) const override;
+
+        [[nodiscard]] bool include(const glm::vec3 &point) const override;
+
 
     private:
         /// Recompute the corners to match lower & upper vertices.

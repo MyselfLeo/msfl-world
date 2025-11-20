@@ -52,7 +52,7 @@ namespace wrld::obj {
         recompute_corners(n_lower, n_upper);
     }
 
-    bool AABoundingBox::inside(const glm::vec3 &point) const {
+    bool AABoundingBox::include(const glm::vec3 &point) const {
         if (point.x < lower().x || point.x > upper().x)
             return false;
         if (point.y < lower().y || point.y > upper().y)
@@ -81,6 +81,55 @@ namespace wrld::obj {
             upper.z = other.upper().z;
 
         return AABoundingBox{lower, upper};
+    }
+
+    AABoundingBox AABoundingBox::get_bounding_box() const { return *this; }
+
+    std::optional<double> AABoundingBox::intersect(const Ray &ray) const {
+        // Uses the slab method
+        // See https://education.siggraph.org/static/HyperGraph/raytrace/rtinter3.htm
+
+        const auto orig = ray.get_origin();
+        const auto dir = ray.get_direction();
+
+        double close = -DBL_MAX;
+        double far = DBL_MAX;
+
+        for (int axis = 0; axis < 3; axis++) {
+            // if dir[axis] == 0, the ray is colinear to the axis.
+            if (dir[axis] == 0) {
+                // if it is parallel and the origin is not between the planes
+                // then we are not intersecting for sure
+                if (orig[axis] < lower()[axis] || orig[axis] > upper()[axis]) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            // Not colinear to the axis
+            double local_close = (lower()[axis] - orig[axis]) / dir[axis];
+            double local_far = (upper()[axis] - orig[axis]) / dir[axis];
+
+            // We want local_close smaller than T2
+            if (local_close > local_far) {
+                std::swap(local_close, local_far);
+            }
+
+            if (local_close > close) {
+                close = local_close;
+            }
+            if (local_far < far) {
+                far = local_far;
+            }
+
+            if (close > far)
+                return std::nullopt;
+            if (far < 0)
+                return std::nullopt;
+        }
+
+        return close;
     }
 
     void AABoundingBox::recompute_corners(const glm::vec3 &lower,

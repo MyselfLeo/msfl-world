@@ -62,6 +62,9 @@ set(HEADERS
         include/wrld/objects/geometry/MeshGroup.hpp
         include/wrld/objects/geometry/Box.hpp
         include/wrld/objects/geometry/AABoundingBox.hpp
+        include/wrld/objects/geometry/BVHierarchy.hpp
+        include/wrld/objects/geometry/GeoRequestable.hpp
+        include/wrld/objects/geometry/Ray.hpp
 
         include/wrld/systems/RendererSystem.hpp
         include/wrld/systems/DeferredRendererSystem.hpp
@@ -107,6 +110,9 @@ set(SOURCE
         src/wrld/objects/geometry/MeshGroup.cpp
         src/wrld/objects/geometry/Box.cpp
         src/wrld/objects/geometry/AABoundingBox.cpp
+        src/wrld/objects/geometry/Ray.cpp
+        src/wrld/objects/geometry/BVHierarchy.cpp
+        src/wrld/objects/geometry/GeoRequestable.cpp
 
         src/wrld/systems/RendererSystem.cpp
         src/wrld/systems/DeferredRendererSystem.cpp

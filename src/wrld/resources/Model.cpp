@@ -184,11 +184,7 @@ namespace wrld::rsc {
             material_of_group.push_back(
                     custom_material.has_value() ? 0 : mesh->mMaterialIndex);
         }
-
-        import.FreeScene();
-
         update();
-
         return *this;
     }
 
@@ -367,29 +363,6 @@ namespace wrld::rsc {
             materials.push_back(material);
         }
     }
-
-    // void Model::load_textures(const std::string &model_directory,
-    //                           const aiMaterial *material, const aiTextureType type,
-    //                           const aiScene *scene, const bool flip_textures,
-    //                           const unsigned max) {
-    //     const unsigned count = std::min(material->GetTextureCount(type), max);
-    //
-    //     std::vector<Rc<Texture>> res;
-    //     res.reserve(count);
-    //
-    //     for (unsigned i = 0; i < count; i++) {
-    //         aiString str;
-    //         material->GetTexture(type, i, &str);
-    //
-    //         load_texture(model_directory, std::string(str.C_Str()), scene, type,
-    //                      flip_textures);
-    //
-    //         // Case of an embedded file
-    //         if (scene->GetEmbeddedTexture(str.C_Str())) {
-    //             throw std::runtime_error("Embedded textures are not supported yet");
-    //         }
-    //     }
-    // }
 
     Rc<Texture> Model::load_texture(const std::string &directory, const std::string &str,
                                     const aiScene *scene, const aiTextureType &type,
