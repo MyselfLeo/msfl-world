@@ -8,7 +8,8 @@
 #include <ranges>
 
 namespace wrld {
-    World::World() : components({}) {}
+    World::World() : components({}) {
+    }
 
     EntityID World::create_entity(const std::string &name) {
         max_entity_id += 1;
@@ -58,7 +59,7 @@ namespace wrld {
         static std::random_device rd;
         static std::mt19937 gen(rd());
         static std::uniform_int_distribution<size_t> dis(
-                1, std::numeric_limits<size_t>::max());
+            1, std::numeric_limits<size_t>::max());
         return dis(gen);
     }
 } // namespace wrld

@@ -22,12 +22,12 @@
 namespace wrld {
     typedef size_t EntityID;
     typedef std::unordered_map<std::type_index,
-                               std::unordered_map<std::string, Rc<Resource>>>
-            ResourcePool;
-    typedef std::unordered_map<std::type_index, Rc<Resource>> DefaultResourcePool;
+        std::unordered_map<std::string, Rc<Resource> > >
+    ResourcePool;
+    typedef std::unordered_map<std::type_index, Rc<Resource> > DefaultResourcePool;
     typedef std::unordered_map<std::type_index,
-                               std::unordered_map<EntityID, std::shared_ptr<Component>>>
-            ComponentPool;
+        std::unordered_map<EntityID, std::shared_ptr<Component> > >
+    ComponentPool;
 
     class World {
     public:
@@ -47,7 +47,7 @@ namespace wrld {
         /// Attach a new component of the given type to the entity,
         /// returning a reference to it.
         template<ComponentConcept C, typename... Args>
-        std::shared_ptr<C> attach_component(const EntityID id, Args &&...args) {
+        std::shared_ptr<C> attach_component(const EntityID id, Args &&... args) {
             if (!entity_exists(id))
                 throw std::runtime_error("Creating a Component on inexisting Entity");
 
@@ -57,7 +57,7 @@ namespace wrld {
 
             if (components[std::type_index(typeid(C))].contains(id))
                 throw std::runtime_error(
-                        "The entity already has a component of this type.");
+                    "The entity already has a component of this type.");
 
             // Returns the created component
             auto new_comp = std::make_shared<C>(id, *this, std::forward<Args>(args)...);
@@ -68,7 +68,7 @@ namespace wrld {
         /// Returns an optional pointer to the component of the given type
         /// attached to the given object.
         template<ComponentConcept C>
-        std::optional<std::shared_ptr<C>> get_component_opt(const EntityID id) {
+        std::optional<std::shared_ptr<C> > get_component_opt(const EntityID id) {
             if (!components.contains(std::type_index(typeid(C))))
                 return std::nullopt;
             if (!components[std::type_index(typeid(C))].contains(id))
@@ -84,12 +84,12 @@ namespace wrld {
         std::shared_ptr<C> get_component(const EntityID id) {
             if (!components.contains(std::type_index(typeid(C))))
                 throw std::runtime_error(std::format(
-                        "Entity {} does not have a component {} attached to it", id,
-                        typeid(C).name()));
+                    "Entity {} does not have a component {} attached to it", id,
+                    typeid(C).name()));
             if (!components[std::type_index(typeid(C))].contains(id))
                 throw std::runtime_error(std::format(
-                        "Entity {} does not have a component {} attached to it", id,
-                        typeid(C).name()));
+                    "Entity {} does not have a component {} attached to it", id,
+                    typeid(C).name()));
 
             return static_pointer_cast<C>(components[std::type_index(typeid(C))][id]);
         }
@@ -174,12 +174,11 @@ namespace wrld {
             return default_resources.at(std::type_index(typeid(R))).as<R>();
         }
 
-        template<>
         Rc<rsc::Program> get_default() {
             if (!default_resources.contains(std::type_index(typeid(rsc::Program)))) {
                 const auto new_resource = Rc<rsc::Program>("default", *this);
                 new_resource->as_default();
-                const Rc<Resource> casted = new_resource.template as<Resource>();
+                const Rc<Resource> casted = new_resource.as<Resource>();
 
                 default_resources.insert_or_assign(std::type_index(typeid(rsc::Program)),
                                                    casted);
