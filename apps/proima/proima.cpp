@@ -13,7 +13,6 @@
 #include <wrld/resources/Model.hpp>
 
 #include <wrld-gui/components.hpp>
-#include <wrld-gui/resources.hpp>
 #include <wrld-gui/misc.hpp>
 
 #include "assimp/postprocess.h"
@@ -90,7 +89,8 @@ public:
 
         const EntityID sun = world.create_entity("Sun");
         world.attach_component<cpt::DirectionalLight>(sun, glm::vec3{1, 0.69, 0.35}, 0.4);
-        world.attach_component<cpt::Transform>(sun);
+        const auto sun_transform = world.attach_component<cpt::Transform>(sun);
+        sun_transform->set_rotation(glm::quat{glm::vec3{200, 0, 0}});
 
         for (int i = 0; i < LIGHT_COUNT; i++) {
             const EntityID light = world.create_entity(std::format("Light_{}", i));
@@ -190,6 +190,8 @@ public:
         if (glm::length(hor_walk) > 0)
             hor_walk = glm::normalize(hor_walk) * PLAYER_SPEED *
                        static_cast<float>(delta_time);
+        if (glfwGetKey(Main::get_window(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            hor_walk *= 2;
 
         // Test if we can walk (i.e the place in front is not too high)
         // How do we test that : we throw a Ray at the Y level where it is no longer
@@ -198,7 +200,7 @@ public:
         // and cannot walk without jumping
         if (hor_walk.x != 0 || hor_walk.z != 0) {
             glm::vec3 collision_ray_origin = camera_transform->get_position();
-            collision_ray_origin.y += -PLAYER_HEIGHT + WALK_THRESHOLD;
+            collision_ray_origin.y -= 0.2;
 
             obj::Ray collision_ray{collision_ray_origin, hor_walk, 5.0};
             const auto collision = rungholt_bvh.intersect(collision_ray);
@@ -212,8 +214,7 @@ public:
     }
 
     void ui(World &world) override {
-        gui::render_component_window(world);
-        gui::render_resources_window(world);
+        // gui::render_component_window(world);
         gui::render_info_window(world);
     }
 
@@ -222,7 +223,7 @@ public:
 private:
     static constexpr float PLAYER_RADIUS = 0.3;
     static constexpr double JUMP_FORCE = 0.4;
-    static constexpr double WALK_THRESHOLD = 0.6;
+    static constexpr double WALK_THRESHOLD = 2.0;
     static constexpr float PLAYER_SPEED = 10.0;
     static constexpr float PLAYER_HEIGHT = 2.0;
     static constexpr float GRAVITY = -0.98;
