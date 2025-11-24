@@ -9,6 +9,8 @@
 #include <wrld/objects/geometry/AABoundingBox.hpp>
 
 namespace wrld::obj {
+    class AABoundingBox;
+
     enum class PrimitiveType {
         Points,
         Lines,

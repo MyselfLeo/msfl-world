@@ -7,6 +7,9 @@
 #include <wrld/components/StaticModel.hpp>
 #include <wrld/components/Transform.hpp>
 #include <../../include/wrld/objects/geometry/Mesh.hpp>
+#include <wrld/Main.hpp>
+#include <wrld/components/Camera3D.hpp>
+#include <wrld/components/FPSControl.hpp>
 #include <wrld/resources/Model.hpp>
 
 namespace wrld::builtins {
@@ -119,6 +122,21 @@ namespace wrld::builtins {
         world.attach_component<cpt::Transform>(entity);
 
         return entity;
+    }
+
+    EntityID flyover(World &world) {
+        const EntityID flyover = world.create_entity("Flyover");
+
+        world.attach_component<cpt::Transform>(flyover);
+        world.attach_component<cpt::FPSControl>(flyover);
+        world.attach_component<cpt::Camera3D>(flyover, 45, true,
+                                              Main::get_window_viewport(),
+                                              world.get_default<rsc::Program>());
+
+        const auto &env = world.attach_component<cpt::Environment>(flyover);
+        env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0}, 1.0});
+
+        return flyover;
     }
 
 

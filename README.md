@@ -8,7 +8,7 @@
 
 # Features
 
-- Forward & deffered rendering
+- Forward & deferred rendering
 - Easy-to-use ECS: each resource has a default value, you don't have to import anythingupdated gitignore
 
 ![Screenshot of msfl-world](/data/screenshot.png)

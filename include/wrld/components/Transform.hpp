@@ -13,15 +13,19 @@ namespace wrld::cpt {
     class Transform final : public Component {
     public:
         // The constructor cannot take other parameters than that
-        Transform(EntityID entity_id, World &world, const glm::vec3 &position = glm::vec3(0.0f),
-                  const glm::quat &rotation = glm::quat(1, 0, 0, 0), const glm::vec3 &scale = glm::vec3(1.0f));
+        Transform(EntityID entity_id, World &world,
+                  const glm::vec3 &position = glm::vec3(0.0f),
+                  const glm::quat &rotation = glm::quat(1, 0, 0, 0),
+                  const glm::vec3 &scale = glm::vec3(1.0f));
 
         [[nodiscard]] glm::vec3 get_position() const;
         [[nodiscard]] glm::quat get_rotation() const;
         [[nodiscard]] glm::vec3 get_scale() const;
 
         /// Return the direction of the Transform as a vec3
-        [[nodiscard]] glm::vec3 get_direction() const;
+        [[nodiscard]] glm::vec3 forward() const;
+        /// Return the direction to the right of the Transform as a vec3
+        [[nodiscard]] glm::vec3 right() const;
 
         void set_position(const glm::vec3 &position);
         void set_rotation(const glm::quat &rotation);
@@ -33,7 +37,6 @@ namespace wrld::cpt {
         /// Look in a specific direction in world space.
         /// Equivalent to look_at(position + direction, up).
         void look_towards(const glm::vec3 &direction, const glm::vec3 &up);
-
         [[nodiscard]] glm::mat4x4 model_matrix() const;
         [[nodiscard]] glm::mat4x4 translate_matrix() const;
         [[nodiscard]] glm::mat4x4 rotation_matrix() const;

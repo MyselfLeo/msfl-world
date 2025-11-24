@@ -8,10 +8,12 @@
 
 #include <memory>
 #include <vector>
+#include <wrld/objects/geometry/BVHierarchy.hpp>
 
 #include <wrld/objects/geometry/Box.hpp>
 #include <wrld/objects/geometry/MeshGroup.hpp>
 #include <wrld/objects/geometry/Mesh.hpp>
+#include <wrld/objects/geometry/Triangle.hpp>
 #include <wrld/resources/Texture.hpp>
 #include <wrld/resources/Material.hpp>
 
@@ -83,6 +85,14 @@ namespace wrld::rsc {
 
         /// Return the bounding box of this model in local space.
         const obj::AABoundingBox &get_bounding_box() const;
+
+        /// Return a BVHierarchy that allows fast geometrical requests over the
+        /// triangles of the model (it WONT include other primitives).
+        /// This function is cost-heavy and should not be called frequently.
+        /// transform - The BVH needs to be computed in the space it will be used in.
+        /// group_size - see BVHierarchy::BVHierarchy().
+        obj::BVHierarchy<obj::Triangle> compute_bvh(const glm::mat4x4 &transform,
+                                                    unsigned group_size = 20) const;
 
         [[nodiscard]] const std::unordered_map<
                 obj::PrimitiveType, std::unordered_map<int, std::vector<MeshEBOData>>> &

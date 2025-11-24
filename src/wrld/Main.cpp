@@ -199,7 +199,6 @@ namespace wrld {
         ImGui::StyleColorsDark();
         // ImGui::StyleColorsLight();
 
-
         // Setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
         style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a
@@ -235,6 +234,7 @@ namespace wrld {
         // window_viewport->set_size(width, height);
     }
 
+#ifndef NDEBUG
     void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
                                       GLenum severity, GLsizei length,
                                       const char *message, const void *userParam) {
@@ -268,4 +268,10 @@ namespace wrld {
 
         std::cout << message << std::endl;
     }
+#else
+    void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
+                                      GLenum severity, GLsizei length,
+                                      const char *message, const void *userParam) {}
+#endif
+
 } // namespace wrld

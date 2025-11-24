@@ -4,6 +4,7 @@
 #pragma once
 
 #include <type_traits>
+#include <wrld/objects/geometry/GeoRequestable.hpp>
 
 namespace wrld {
     class Resource;
@@ -16,5 +17,8 @@ namespace wrld {
     /// Concept of a Component: it must inherit the cpt::Component class
     template<class T>
     concept ComponentConcept = std::is_base_of_v<Component, T>;
+
+    template<class T>
+    concept GeoRequestableConcept = std::is_base_of_v<obj::GeoRequestable, T>;
 
 } // namespace wrld

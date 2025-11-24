@@ -16,4 +16,7 @@ namespace wrld::builtins {
 
     /// Creates an Entity with an axis model and a default transform.
     EntityID create_axis(World &world, float axis_length = 1.0);
+
+    /// Create an Entity with a Camera3D, a FPSControl, and an Env componant.
+    EntityID flyover(World &world);
 } // namespace wrld::builtins

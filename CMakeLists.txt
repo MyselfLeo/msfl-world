@@ -65,6 +65,7 @@ set(HEADERS
         include/wrld/objects/geometry/BVHierarchy.hpp
         include/wrld/objects/geometry/GeoRequestable.hpp
         include/wrld/objects/geometry/Ray.hpp
+        include/wrld/objects/geometry/Triangle.hpp
 
         include/wrld/systems/RendererSystem.hpp
         include/wrld/systems/DeferredRendererSystem.hpp
@@ -113,6 +114,7 @@ set(SOURCE
         src/wrld/objects/geometry/Ray.cpp
         src/wrld/objects/geometry/BVHierarchy.cpp
         src/wrld/objects/geometry/GeoRequestable.cpp
+        src/wrld/objects/geometry/Triangle.cpp
 
         src/wrld/systems/RendererSystem.cpp
         src/wrld/systems/DeferredRendererSystem.cpp
@@ -152,3 +154,11 @@ target_link_libraries(shader_view msfl_world)
 
 add_executable(proima apps/proima/proima.cpp)
 target_link_libraries(proima msfl_world)
+
+# Test executables
+
+add_executable(test_aabb test_apps/AABB.cpp)
+target_link_libraries(test_aabb msfl_world)
+
+add_executable(test_triangles test_apps/triangle.cpp)
+target_link_libraries(test_triangles msfl_world)

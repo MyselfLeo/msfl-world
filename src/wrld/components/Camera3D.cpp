@@ -79,10 +79,11 @@ namespace wrld::cpt {
 
     obj::Box Camera3D::get_frustum_box() const {
         std::array<glm::vec3, 8> corners;
+        obj::Box frustum_box = Frustum.as_box();
 
         // Compute the reversed projected coordinates of each corner of the frustum
         for (int i = 0; i < 8; i++) {
-            const auto point = glm::vec4{Frustum[i], 1.0};
+            const auto point = glm::vec4{frustum_box[i], 1.0};
 
             const glm::vec4 view_space_corner =
                     glm::inverse(get_projection_matrix()) * point;

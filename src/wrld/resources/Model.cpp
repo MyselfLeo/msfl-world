@@ -14,6 +14,7 @@
 #include <utility>
 #include <assimp/postprocess.h>
 #include <wrld/logs.hpp>
+#include <wrld/objects/geometry/Triangle.hpp>
 
 namespace wrld::rsc {
     Model::Model(std::string name, World &world) :
@@ -286,6 +287,46 @@ namespace wrld::rsc {
     }
 
     const obj::AABoundingBox &Model::get_bounding_box() const { return bounding_box; }
+
+    obj::BVHierarchy<obj::Triangle> Model::compute_bvh(const glm::mat4x4 &transform,
+                                                       unsigned group_size) const {
+        // We'll have to collect the triangles so we get the count first
+        unsigned triangle_count = 0;
+        for (const auto &g: groups) {
+            for (const auto &m: g.get_meshes()) {
+                if (m.get_primitive_type() != obj::PrimitiveType::Triangles)
+                    continue;
+
+                triangle_count += m.get_element_count() /
+                                  obj::get_primitive_size(obj::PrimitiveType::Triangles);
+            }
+        }
+
+        std::vector<obj::Triangle> triangles;
+        triangles.reserve(triangle_count);
+
+        // Query the triangles
+        for (const auto &g: groups) {
+            for (const auto &m: g.get_meshes()) {
+                if (m.get_primitive_type() != obj::PrimitiveType::Triangles)
+                    continue;
+
+                const auto &el = m.get_elements();
+                const auto &vs = m.get_vertices();
+                for (int i = 0; i < m.get_element_count(); i += 3) {
+                    const auto v1 = transform * glm::vec4{vs[el[i + 0]].position, 1.0};
+                    const auto v2 = transform * glm::vec4{vs[el[i + 1]].position, 1.0};
+                    const auto v3 = transform * glm::vec4{vs[el[i + 2]].position, 1.0};
+
+
+                    triangles.emplace_back(v1, v2, v3);
+                }
+            }
+        }
+
+        // Construct the BVH over the triangles
+        return obj::BVHierarchy{triangles, group_size};
+    }
 
     int Model::get_material_index(const Rc<Material> &material) const {
         // todo: currently it's O(n)

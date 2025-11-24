@@ -23,7 +23,7 @@ namespace wrld::tools {
         GridData grid_data;
         grid_data.grid_dimensions = glm::uvec3{x_count, y_count, z_count};
         grid_data.cell_count = x_count * y_count * z_count;
-        grid_data.grid_origin = source_bb.lower();
+        grid_data.grid_origin = source_bb.get_lower();
         grid_data.cell_size = grid_size;
 
         // Compute the meshgroups & materials to set in each model

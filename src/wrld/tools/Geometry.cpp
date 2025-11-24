@@ -42,10 +42,10 @@ namespace wrld::tools {
                               const obj::Box &away_bb) {
             // lower and upper both represent 3 face planes of the home_bb
             // (6 in total as expected)
-            if (all_outside(away_bb, home_bb.lower(), false)) {
+            if (all_outside(away_bb, home_bb.get_lower(), false)) {
                 return false;
             }
-            if (all_outside(away_bb, home_bb.upper(), true)) {
+            if (all_outside(away_bb, home_bb.get_upper(), true)) {
                 return false;
             }
             return true;
@@ -72,7 +72,7 @@ namespace wrld::tools {
         const auto &proj = camera_cpt->get_projection_matrix();
         const auto transform = proj * view * model_transform;
 
-        const obj::Box proj_bb = local_bb * transform;
+        const obj::Box proj_bb = local_bb.as_box() * transform;
 
         // First test : check in the projective-space
         if (!bb_collide(proj_frustum, proj_bb)) {
@@ -82,9 +82,10 @@ namespace wrld::tools {
         // Local-space bounding box of the frustum
         std::array<glm::vec3, 8> local_frustum_corners;
 
+        const obj::Box frustum_box = proj_frustum.as_box();
         for (int i = 0; i < 8; i++) {
             const glm::vec4 tmp =
-                    glm::inverse(transform) * glm::vec4{proj_frustum[i], 1.0};
+                    glm::inverse(transform) * glm::vec4{frustum_box[i], 1.0};
             local_frustum_corners[i] = glm::vec3{tmp.x, tmp.y, tmp.z} / tmp.w;
         }
 

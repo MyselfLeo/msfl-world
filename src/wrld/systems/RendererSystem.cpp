@@ -230,7 +230,7 @@ namespace wrld {
             if (const auto direction_opt =
                         world.get_component_opt<cpt::Transform>(entity);
                 direction_opt.has_value()) {
-                direction = direction_opt.value()->get_direction();
+                direction = direction_opt.value()->forward();
             }
 
             res.emplace_back(direction, cpnt->get_color(), cpnt->get_intensity());

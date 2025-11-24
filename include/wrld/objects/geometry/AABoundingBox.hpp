@@ -20,21 +20,21 @@ namespace wrld::obj {
     ///   |/        |/                |/
     ///   +---------+                 +--- x
     /// lower        1
-    class AABoundingBox : public Box, public GeoRequestable {
+    class AABoundingBox : public GeoRequestable {
     public:
         /// Empty bounding-box with its lower coordinates to FLT_MAX and
         /// its upper coordinates to -FLT_MAX.
         /// This ensure that operator+, add_point, etc. all works as predicted.
         AABoundingBox();
 
-        /// Returns an axis-aligned bounding box based on lower & upper corners.
-        AABoundingBox(const glm::vec3 &lower, const glm::vec3 &upper);
+        /// Returns an axis-aligned bounding box based on 2 opposite corners.
+        AABoundingBox(const glm::vec3 &p1, const glm::vec3 &p2);
 
         /// Returns the "lower" corner of the bounding box (smallest in each axis).
-        [[nodiscard]] glm::vec3 lower() const;
+        [[nodiscard]] glm::vec3 get_lower() const;
 
         /// Returns the "upper" corner of the bounding box (greatest in each axis).
-        [[nodiscard]] glm::vec3 upper() const;
+        [[nodiscard]] glm::vec3 get_upper() const;
 
         /// Return the size of the box, in each axis.
         [[nodiscard]] glm::vec3 size() const;
@@ -52,10 +52,14 @@ namespace wrld::obj {
 
         [[nodiscard]] bool include(const glm::vec3 &point) const override;
 
+        [[nodiscard]] glm::vec3 center() const override;
+
+        [[nodiscard]] Box as_box() const;
+
 
     private:
-        /// Recompute the corners to match lower & upper vertices.
-        void recompute_corners(const glm::vec3 &lower, const glm::vec3 &upper);
+        glm::vec3 lower;
+        glm::vec3 upper;
     };
 
 } // namespace wrld::obj

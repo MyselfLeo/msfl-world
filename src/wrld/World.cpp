@@ -8,8 +8,7 @@
 #include <ranges>
 
 namespace wrld {
-    World::World() : components({}) {
-    }
+    World::World() : components({}) {}
 
     EntityID World::create_entity(const std::string &name) {
         max_entity_id += 1;
@@ -59,7 +58,22 @@ namespace wrld {
         static std::random_device rd;
         static std::mt19937 gen(rd());
         static std::uniform_int_distribution<size_t> dis(
-            1, std::numeric_limits<size_t>::max());
+                1, std::numeric_limits<size_t>::max());
         return dis(gen);
+    }
+
+    template<>
+    Rc<rsc::Program> World::get_default() {
+        if (!default_resources.contains(std::type_index(typeid(rsc::Program)))) {
+            const auto new_resource = Rc<rsc::Program>("default", *this);
+            new_resource->as_default();
+            const Rc<Resource> casted = new_resource.as<Resource>();
+
+            default_resources.insert_or_assign(std::type_index(typeid(rsc::Program)),
+                                               casted);
+        }
+
+        return default_resources.at(std::type_index(typeid(rsc::Program)))
+                .as<rsc::Program>();
     }
 } // namespace wrld

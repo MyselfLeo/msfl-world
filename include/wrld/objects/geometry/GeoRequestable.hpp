@@ -27,6 +27,10 @@ namespace wrld::obj {
         /// Returns true if the point is included in the object, false otherwise.
         /// The definition of "being inside" depends on the object.
         [[nodiscard]] virtual bool include(const glm::vec3 &point) const = 0;
+
+        /// Return the center of the object.
+        /// The definition of "center" depends on the object.
+        [[nodiscard]] virtual glm::vec3 center() const = 0;
     };
 
 } // namespace wrld::obj

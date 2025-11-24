@@ -14,6 +14,8 @@ namespace wrld::obj {
     /// Box defined by 8 vertices (see Box::vertices()).
     class Box {
     public:
+        virtual ~Box() = default;
+
         /// Empty box (all corners at {0, 0, 0}).
         Box();
 
@@ -40,8 +42,9 @@ namespace wrld::obj {
         /// Transform matrix application on a box.
         /// Instead of dividing the final result by the W component (operator*),
         /// we just discard it.
-        Box undivided_transform(const glm::mat4x4 &trsfrm) const;
-         /// Transform matrix application on a box.
+        [[nodiscard]] Box undivided_transform(const glm::mat4x4 &trsfrm) const;
+
+        /// Transform matrix application on a box.
         /// Note that it automatically divides the components by w. If you don't
         /// want this division, Box::undivided_transform is what you need.
         Box operator*(const glm::mat4x4 &trsfrm) const;

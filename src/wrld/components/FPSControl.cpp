@@ -31,19 +31,19 @@ namespace wrld::cpt {
             }
 
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-                translation += transform->get_direction() * speed;
+                translation += transform->forward() * speed;
             }
             if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-                translation -= transform->get_direction() * speed;
+                translation -= transform->forward() * speed;
             }
             if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
                 translation -=
-                        glm::normalize(glm::cross(transform->get_direction(), up)) *
+                        glm::normalize(glm::cross(transform->forward(), up)) *
                         speed;
             }
             if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
                 translation +=
-                        glm::normalize(glm::cross(transform->get_direction(), up)) *
+                        glm::normalize(glm::cross(transform->forward(), up)) *
                         speed;
             }
             if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
