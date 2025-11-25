@@ -148,17 +148,3 @@ target_include_directories(msfl_world PUBLIC
 
 
 target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
-
-add_executable(shader_view shader_view.cpp)
-target_link_libraries(shader_view msfl_world)
-
-add_executable(proima apps/proima/proima.cpp)
-target_link_libraries(proima msfl_world)
-
-# Test executables
-
-add_executable(test_aabb test_apps/AABB.cpp)
-target_link_libraries(test_aabb msfl_world)
-
-add_executable(test_triangles test_apps/triangle.cpp)
-target_link_libraries(test_triangles msfl_world)
