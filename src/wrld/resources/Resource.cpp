@@ -22,23 +22,7 @@ namespace wrld {
         if (!attached_resources.contains(unique_name))
             return;
 
-        attached_resources[unique_name].detach_resource_user(std::type_index(typeid(*this)), get_name());
+        attached_resources[unique_name].detach_resource_user(
+                std::type_index(typeid(*this)), get_name());
     }
-
-    // void Resource::detach_resource(const std::string &unique_name) {
-    //     if (!attached_resources.contains(unique_name))
-    //         return;
-    //
-    //     attached_resources[unique_name].detach_resource_user(get_name());
-    // }
-
-    // void Resource::attach_resource(const std::string &unique_name, const std::shared_ptr<Rc<Resource>> &resource) {
-    //     if (attached_resources.contains(unique_name)) {
-    //         attached_resources[unique_name]->detach_resource_user(this);
-    //     }
-    //
-    //     resource->attach_resource_user(shared_from_this());
-    //     attached_resources[unique_name] = resource;
-    // }
-
 } // namespace wrld

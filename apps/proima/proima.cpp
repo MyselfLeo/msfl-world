@@ -39,8 +39,8 @@ public:
         // attached to it, it will work just fine but we'll have only 1 material meaning 1
         // draw call needed
         const auto texture = world.create_resource<rsc::Texture>("minecraft_texture");
-        texture.get_mut()->set_texture("apps/proima/rungholt/house-RGBA.png",
-                                       aiTextureType_DIFFUSE, false);
+        texture.get_mut()->from_file("apps/proima/rungholt/house-RGBA.png",
+                                     aiTextureType_DIFFUSE, false);
 
         const auto material = world.create_resource<rsc::Material>("city_material");
         material->set_diffuse_map(texture);

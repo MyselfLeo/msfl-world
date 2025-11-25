@@ -24,7 +24,7 @@ namespace wrld::rsc {
         explicit Program(std::string name, World &world);
 
         /// Return the default Program (default graphic pipeline).
-        Program &as_default();
+        Program &from_default();
 
         /// Set the source for the given shader type as a file.
         Program &shader_path(ShaderType shader_type, const std::string &path);

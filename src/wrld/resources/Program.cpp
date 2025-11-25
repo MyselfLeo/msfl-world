@@ -47,10 +47,9 @@ namespace wrld::rsc {
     }
 
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
-    Program::Program(std::string name, World &world) : Resource(std::move(name), world) {
-    }
+    Program::Program(std::string name, World &world) : Resource(std::move(name), world) {}
 
-    Program &Program::as_default() {
+    Program &Program::from_default() {
         shader_source(ShaderType::Vertex, shader::DEFAULT_VERTEX);
         shader_source(ShaderType::Fragment, shader::DEFAULT_FRAGMENT);
         reload();
@@ -172,10 +171,8 @@ namespace wrld::rsc {
     void Program::reload() {
         wrldInfo(std::format("Reloading shaders for program {}", gl_program));
 
-        constexpr std::array SHADER_TYPES = {
-            ShaderType::Vertex, ShaderType::Fragment,
-            ShaderType::Compute
-        };
+        constexpr std::array SHADER_TYPES = {ShaderType::Vertex, ShaderType::Fragment,
+                                             ShaderType::Compute};
 
         std::unordered_map<ShaderType, std::string> final_sources;
 
@@ -183,7 +180,7 @@ namespace wrld::rsc {
         for (const auto st: SHADER_TYPES) {
             if (shader_paths.contains(st) && !shader_sources.contains(st)) {
                 wrldInfo(std::format("{}: from {}", get_type_name(st),
-                    shader_paths.at(st)));
+                                     shader_paths.at(st)));
 
                 final_sources[st] = read_file(shader_paths.at(st));
             } else if (shader_sources.contains(st)) {
@@ -208,7 +205,7 @@ namespace wrld::rsc {
                 gl_shaders[st] = glCreateShader(get_gl_type(st));
                 if (gl_shaders[st] == 0) {
                     throw std::runtime_error(
-                        "Unable to create OpenGL vertex shader object");
+                            "Unable to create OpenGL vertex shader object");
                 }
             }
             wrldInfo(std::format("Compiling shader {}/{}", i, final_sources.size()));
@@ -258,23 +255,23 @@ namespace wrld::rsc {
         // Sadly we can't use the constexpr Main::get_platform() because it will still
         // try to parse std::regex_constants::multiline under MSVC
         std::regex re;
-        #if defined(_MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
         re = std::regex(R"(^#version.*$)");
-        #else
+#else
         re = std::regex(R"(^#version.*$)", std::regex_constants::multiline);
-        #endif
+#endif
 
         // Query the #version line
         std::smatch match;
 
         if (!std::regex_search(shader_source, match, re)) {
             throw std::runtime_error(
-                std::format("No #version directive found in the shader."));
+                    std::format("No #version directive found in the shader."));
         }
 
         if (match.size() > 1)
             throw std::runtime_error(
-                std::format("Multiple #version directives found in the shader."));
+                    std::format("Multiple #version directives found in the shader."));
 
         // Remove this same line from the source
         std::string stripped_source = std::regex_replace(shader_source, re, "");
@@ -301,7 +298,7 @@ namespace wrld::rsc {
             char infoLog[512];
             glGetShaderInfoLog(gl_shader, 512, nullptr, infoLog);
             throw std::runtime_error(
-                std::format("Failed to compile shader: {}", infoLog));
+                    std::format("Failed to compile shader: {}", infoLog));
         }
     }
 } // namespace wrld::rsc

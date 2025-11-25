@@ -13,10 +13,13 @@
 namespace wrld::rsc {
     class Texture final : public Resource {
     public:
-        explicit Texture(const std::string &name, World &world /*, Rc<Resource> *rc*/);
+        explicit Texture(const std::string &name, World &world);
 
-        Texture &set_texture(const std::string &texture_path, aiTextureType type,
-                             bool flip_textures = false);
+        Texture &from_file(const std::string &texture_path, aiTextureType type,
+                           bool flip_textures = false);
+
+        /// Returns a default texture.
+        Texture &from_default();
 
         Texture(Texture &other) = delete;
         Texture(Texture &&other) = delete;
@@ -30,11 +33,9 @@ namespace wrld::rsc {
         std::string get_type() const override { return "Texture"; }
 
     private:
-        unsigned int gl_texture = 0;
-        std::string path = "data/textures/default.png";
-        bool flip_textures = true;
+        void update_texture(int width, int height, int nb_channels, unsigned char *data);
 
-        void reload();
+        unsigned gl_texture = 0;
 
         // Using Assimp enum for now, it's good enough
         aiTextureType type = aiTextureType_DIFFUSE;

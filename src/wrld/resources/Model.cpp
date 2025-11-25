@@ -422,7 +422,7 @@ namespace wrld::rsc {
 
         // Load the texture
         auto texture = world.create_resource<Texture>(str);
-        texture.get_mut()->set_texture(texture_path, type, flip_texture);
+        texture.get_mut()->from_file(texture_path, type, flip_texture);
         textures.insert_or_assign(str, texture);
 
         return texture;

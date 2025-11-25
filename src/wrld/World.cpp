@@ -66,7 +66,7 @@ namespace wrld {
     Rc<rsc::Program> World::get_default() {
         if (!default_resources.contains(std::type_index(typeid(rsc::Program)))) {
             const auto new_resource = Rc<rsc::Program>("default", *this);
-            new_resource->as_default();
+            new_resource->from_default();
             const Rc<Resource> casted = new_resource.as<Resource>();
 
             default_resources.insert_or_assign(std::type_index(typeid(rsc::Program)),
@@ -75,5 +75,20 @@ namespace wrld {
 
         return default_resources.at(std::type_index(typeid(rsc::Program)))
                 .as<rsc::Program>();
+    }
+
+    template<>
+    Rc<rsc::Texture> World::get_default() {
+        if (!default_resources.contains(std::type_index(typeid(rsc::Texture)))) {
+            const auto new_resource = Rc<rsc::Texture>("default", *this);
+            new_resource->from_default();
+            const Rc<Resource> casted = new_resource.as<Resource>();
+
+            default_resources.insert_or_assign(std::type_index(typeid(rsc::Texture)),
+                                               casted);
+        }
+
+        return default_resources.at(std::type_index(typeid(rsc::Texture)))
+                .as<rsc::Texture>();
     }
 } // namespace wrld
