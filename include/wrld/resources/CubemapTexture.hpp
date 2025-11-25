@@ -17,7 +17,7 @@ namespace wrld::rsc {
         /// Order of textures: +X, -X, +Y, -Y, +Z, -Z
         explicit CubemapTexture(std::string name, World &world /*, Rc<Resource> *rc*/);
 
-        CubemapTexture &set_texture(const std::vector<std::string> &cubemap_paths);
+        CubemapTexture &from_texture(const std::vector<std::string> &cubemap_paths);
 
         CubemapTexture(CubemapTexture &other) = delete;
         CubemapTexture(CubemapTexture &&other) = delete;
