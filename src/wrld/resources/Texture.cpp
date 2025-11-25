@@ -22,11 +22,6 @@ namespace wrld::rsc {
         wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type),
                              texture_path));
 
-        // Filtering for regular textures
-        // todo: move to material
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
         // Load texture file
         int width, height, nb_channels;
         unsigned char *data =
@@ -81,6 +76,11 @@ namespace wrld::rsc {
         }
 
         glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+        // todo: move to material
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE,
                      data);
         glGenerateMipmap(GL_TEXTURE_2D);
