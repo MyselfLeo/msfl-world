@@ -80,16 +80,7 @@ namespace wrld::tools {
         }
 
         // Local-space bounding box of the frustum
-        std::array<glm::vec3, 8> local_frustum_corners;
-
-        const obj::Box frustum_box = proj_frustum.as_box();
-        for (int i = 0; i < 8; i++) {
-            const glm::vec4 tmp =
-                    glm::inverse(transform) * glm::vec4{frustum_box[i], 1.0};
-            local_frustum_corners[i] = glm::vec3{tmp.x, tmp.y, tmp.z} / tmp.w;
-        }
-
-        const auto local_frustum = obj::Box(local_frustum_corners);
+        const obj::Box local_frustum = proj_frustum.as_box() * glm::inverse(transform);
 
         // Second test : check in the local-space
         if (!bb_collide(local_bb, local_frustum)) {
