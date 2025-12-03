@@ -13,14 +13,9 @@ namespace wrld::cpt {
         Component(entity_id, world) {}
 
     void FPSControl::update(GLFWwindow *window, float delta_time) {
-        // Get the entity's transform first.
-        // We don't have to do anything if it no longer has one
-        const auto transform_opt = world.get_component_opt<Transform>(entity_id);
-        if (!transform_opt.has_value())
-            return;
-        const auto transform = transform_opt.value();
+        const auto transform = world.get_component<Transform>(entity_id);
 
-        const auto up = glm::vec3{0, 1, 0};
+        constexpr auto up = glm::vec3{0, 1, 0};
 
         if (do_keyboard_control) {
             auto translation = glm::vec3{0.0};

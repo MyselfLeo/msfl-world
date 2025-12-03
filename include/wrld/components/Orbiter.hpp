@@ -5,6 +5,8 @@
 #pragma once
 
 #include <wrld/components/Component.hpp>
+#include <wrld/components/Transform.hpp>
+
 
 #include <glm/vec3.hpp>
 
@@ -13,6 +15,8 @@ namespace wrld::cpt {
 
     class Orbiter final : public Component {
     public:
+        using required_components = std::tuple<Transform>;
+
         Orbiter(EntityID entity_id, World &world, glm::vec3 target, float distance);
         Orbiter(EntityID entity_id, World &world, EntityID target, float distance);
 
@@ -43,7 +47,7 @@ namespace wrld::cpt {
 
         void update() const;
 
-        std::string get_type() override { return "Orbiter"; }
+        static std::string get_type() { return "Orbiter"; }
 
 
     private:

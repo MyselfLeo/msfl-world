@@ -38,12 +38,23 @@ namespace wrld::rsc {
                 throw std::runtime_error(std::format("Error while loading texture {}", text_path));
             }
 
-            if (nb_channels != 3) {
-                stbi_image_free(data);
-                throw std::runtime_error("Only RGB images are supported for now");
+            GLenum format;
+            switch (nb_channels) {
+                case 3: {
+                    format = GL_RGB;
+                } break;
+                case 4: {
+                    format = GL_RGBA;
+                } break;
+                default: {
+                    stbi_image_free(data);
+                    throw std::runtime_error(std::format(
+                            "Only RGB and RGBA images are supported for now. Nbchannels: {}",
+                            nb_channels));
+                }
             }
 
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE,
                          data);
 
             stbi_image_free(data);

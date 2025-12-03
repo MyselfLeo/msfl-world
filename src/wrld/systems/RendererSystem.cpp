@@ -10,7 +10,7 @@
 #include <wrld/components/DirectionalLight.hpp>
 #include <wrld/components/StaticModel.hpp>
 #include <wrld/components/Transform.hpp>
-#include <wrld/components/Environment.hpp>
+#include <wrld/components/Environment3D.hpp>
 #include <wrld/components/PointLight.hpp>
 #include <wrld/shaders/skybox_shader.hpp>
 
@@ -18,6 +18,9 @@
 #include <utility>
 #include <wrld/Main.hpp>
 #include <wrld/tools/Geometry.hpp>
+
+#include "wrld/shaders/compute/frustum_culling.hpp"
+#include "wrld/systems/NewRenderSystem.hpp"
 
 namespace wrld {
     PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color,
@@ -36,11 +39,18 @@ namespace wrld {
 
     RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
         System(world), window(window) {
-        const auto program = world.create_resource<rsc::Program>("skybox_program");
-        program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
-        program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
-        skybox_program = program;
+        skybox_program = world.create_resource<rsc::Program>("skybox_program");
+        skybox_program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
+        skybox_program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
         skybox_program->reload();
+
+        frustum_culling_program = world.create_resource<rsc::Program>("frustum_culling_program");
+        frustum_culling_program->shader_source(rsc::ShaderType::Compute, shader::FRUSTUM_CULLING);
+        frustum_culling_program->reload();
+
+        glGenBuffers(1, &model_matrices_buffer);
+        glGenBuffers(1, &aabb_buffer);
+        glGenBuffers(1, &result_buffer);
     }
 
     RendererSystem::~RendererSystem() = default;
@@ -55,6 +65,7 @@ namespace wrld {
             !cameras.empty()) {
             const auto camera = world.get_component<cpt::Camera3D>(cameras[0]);
             render_camera(*camera);
+            NewRenderSystem::render_camera(world, *camera);
         }
     }
 
@@ -170,7 +181,7 @@ namespace wrld {
         }
 
         unsigned total_models = model_entities.size();
-        Main::set_statistic("visible_model_count",
+        Main::set_statistic("Visible model count (forward)",
                             std::format("{}/{}", visible_models, total_models));
     }
 
@@ -178,7 +189,7 @@ namespace wrld {
         const EntityID camera_entity = camera.get_entity();
 
         if (const auto env_cpnt_opt =
-                    world.get_component_opt<cpt::Environment>(camera_entity)) {
+                    world.get_component_opt<cpt::Environment3D>(camera_entity)) {
             const auto &env_cpnt = env_cpnt_opt.value();
 
             return EnvironmentData{env_cpnt->get_ambiant_light(), env_cpnt->get_cubemap(),

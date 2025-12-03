@@ -37,7 +37,7 @@ namespace wrld {
         /// need to be unique.
         EntityID create_entity(const std::string &name = "");
 
-        std::string get_entity_name(EntityID id);
+        std::string get_entity_name(EntityID id) const;
 
         /// Delete the Entity and all attached Components.
         void delete_entity(EntityID id);
@@ -50,6 +50,9 @@ namespace wrld {
         std::shared_ptr<C> attach_component(const EntityID id, Args &&...args) {
             if (!entity_exists(id))
                 throw std::runtime_error("Creating a Component on inexisting Entity");
+
+            // Check if the entity has all required components
+            check_required_components<C>(id);
 
             if (!components.contains(std::type_index(typeid(C)))) {
                 components[std::type_index(typeid(C))] = {};
@@ -77,6 +80,16 @@ namespace wrld {
             return static_pointer_cast<C>(components[std::type_index(typeid(C))][id]);
         }
 
+        /// Check if the entity has the given component attached to it.
+        template<ComponentConcept C>
+        bool has_component(const EntityID id) const {
+            if (!components.contains(std::type_index(typeid(C))))
+                return false;
+            if (!components.at(std::type_index(typeid(C))).contains(id))
+                return false;
+            return true;
+        }
+
         /// Returns a pointer to the component of the given type attached to the
         /// given object. Throws std::runtime_error if no component of this type
         /// is attached to the object.
@@ -97,12 +110,12 @@ namespace wrld {
         /// Return a vector of entities that have the given type
         /// of component attached to them.
         template<ComponentConcept C>
-        std::vector<EntityID> get_entities_with_component() {
+        std::vector<EntityID> get_entities_with_component() const {
             std::vector<EntityID> res;
-            res.reserve(components[std::type_index(typeid(C))].size());
+            res.reserve(components.at(std::type_index(typeid(C))).size());
 
             for (const auto k:
-                 components[std::type_index(typeid(C))] | std::views::keys) {
+                 components.at(std::type_index(typeid(C))) | std::views::keys) {
                 res.push_back(k);
             }
 
@@ -178,6 +191,31 @@ namespace wrld {
 
     private:
         friend class System;
+
+        template<typename C, std::size_t... Is>
+        void check_required_components_impl(EntityID id, std::index_sequence<Is...>) const {
+            std::vector<std::string> missing;
+            // Use fold expression to check each required component
+            (void)std::initializer_list<int>{
+                (has_component<std::tuple_element_t<Is, typename C::required_components>>(id) ? 0 :
+                 (missing.emplace_back(std::tuple_element_t<Is, typename C::required_components>::get_type()), 0))...
+            };
+
+            if (!missing.empty()) {
+                std::string error_msg = std::format("Unable to attach component {} to '{}': Missing required component(s) ", C::get_type(), get_entity_name(id));
+                for (size_t i = 0; i < missing.size(); ++i) {
+                    if (i > 0) error_msg += ", ";
+                    error_msg += missing[i];
+                }
+                throw std::runtime_error(error_msg);
+            }
+        }
+
+        template<typename C>
+        void check_required_components(EntityID id) const {
+            constexpr auto size = std::tuple_size_v<typename C::required_components>;
+            check_required_components_impl<C>(id, std::make_index_sequence<size>{});
+        }
 
         // Stores Entity names
         unsigned max_entity_id = 0;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <wrld/components/Component.hpp>
+#include <wrld/components/Transform.hpp>
 #include <glm/vec3.hpp>
 
 namespace wrld::cpt {
@@ -12,6 +13,8 @@ namespace wrld::cpt {
     /// intensity - Value from 0 to 1.
     class DirectionalLight final : public Component {
     public:
+        using required_components = std::tuple<Transform>;
+
         DirectionalLight(EntityID entity_id, World &world, const glm::vec3 &color, float intensity);
 
         [[nodiscard]] glm::vec3 get_color() const;
@@ -20,7 +23,7 @@ namespace wrld::cpt {
         [[nodiscard]] float get_intensity() const;
         void set_intensity(float intensity);
 
-        std::string get_type() override { return "DirectionalLight"; }
+        static std::string get_type() { return "DirectionalLight"; }
 
     private:
         glm::vec3 color;

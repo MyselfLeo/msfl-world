@@ -22,7 +22,7 @@ namespace wrld {
         return res;
     }
 
-    std::string World::get_entity_name(const EntityID id) { return entities[id]; }
+    std::string World::get_entity_name(const EntityID id) const { return entities.at(id); }
 
     void World::delete_entity(const EntityID id) {
         if (!entity_exists(id))

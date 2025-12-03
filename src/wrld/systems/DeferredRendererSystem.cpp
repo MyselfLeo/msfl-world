@@ -55,6 +55,60 @@ namespace wrld {
         const glm::mat4x4 view_matrix = camera.get_view_matrix();
         const glm::mat4x4 projection_matrix = camera.get_projection_matrix();
 
+        // Can't use AABoundingBox because it has a vtable pointer
+        // (40 bytes instead of 32 bytes)
+        struct AABB {
+            glm::vec4 lower;
+            glm::vec4 upper;
+        };
+
+        // Use compute shader to check visibility
+        frustum_culling_program->use();
+        frustum_culling_program->set_uniform("view_matrix", camera.get_view_matrix());
+        frustum_culling_program->set_uniform("proj_matrix", camera.get_projection_matrix());
+
+        // Collect transform matrix & bounding box of objects
+        std::vector model_entities =
+                world.get_entities_with_component<cpt::StaticModel>();
+
+        int count = model_entities.size();
+
+        std::vector<glm::mat4> model_matrices;
+        model_matrices.reserve(count);
+        std::vector<AABB> bounding_boxes;
+        bounding_boxes.reserve(count);
+
+        for (const auto entity: model_entities) {
+            const auto trsfrm_opt = world.get_component_opt<cpt::Transform>(entity);
+            const auto matrix = trsfrm_opt.has_value() ? trsfrm_opt.value()->model_matrix() : glm::mat4{};
+            const auto aabb = world.get_component<cpt::StaticModel>(entity)->get_model()->get_bounding_box();
+            model_matrices.push_back(matrix);
+            bounding_boxes.emplace_back(glm::vec4{aabb.get_lower(), 1.0}, glm::vec4{aabb.get_upper(), 1.0});
+        }
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, model_matrices_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * count, model_matrices.data(), GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, aabb_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(AABB) * count, bounding_boxes.data(), GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, result_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER,  sizeof(GLint) * count, nullptr, GL_DYNAMIC_DRAW);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, model_matrices_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, aabb_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, result_buffer);
+
+        // Start & wait the results
+        glDispatchCompute(1, 1, 1);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+        // Query the result
+        std::vector<GLint> results(count);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, result_buffer);
+        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLint) * count, results.data());
+
         framebuffer->use();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -66,14 +120,10 @@ namespace wrld {
         // Find each entity with a model, get its transform, and render it.
         unsigned visible_models = 0;
         const bool do_culling = camera.is_culling();
-        const std::vector model_entities =
+        model_entities =
                 world.get_entities_with_component<cpt::StaticModel>();
-        for (const auto entity: model_entities) {
-            // Skip unseen models if culling
-            if (do_culling &&
-                !tools::Geometry::is_visible(world, entity, camera.get_entity())) {
-                continue;
-            }
+        for (const auto [i, entity]: model_entities | std::views::enumerate) {
+            if (do_culling && !results[i]) continue;
 
             visible_models += 1;
 
@@ -88,7 +138,7 @@ namespace wrld {
         }
 
         unsigned total_models = model_entities.size();
-        Main::set_statistic("visible_model_count",
+        Main::set_statistic("Visible model count (deferred)",
                             std::format("{}/{}", visible_models, total_models));
 
         // SECOND PASS

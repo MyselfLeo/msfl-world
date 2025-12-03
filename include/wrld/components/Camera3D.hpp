@@ -7,6 +7,7 @@
 #include <wrld/components/Component.hpp>
 #include <wrld/resources/Program.hpp>
 #include <wrld/resources/WindowFramebuffer.hpp>
+#include <wrld/components/Transform.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <wrld/objects/geometry/Box.hpp>
@@ -20,6 +21,8 @@ namespace wrld::cpt {
     /// Attach a camera to the Entity.
     class Camera3D final : public Component {
     public:
+        using required_components = std::tuple<Transform>;
+
         /// Frustum in projective space.
         static const obj::AABoundingBox Frustum;
 
@@ -65,9 +68,7 @@ namespace wrld::cpt {
         /// Defined the projection mode of this camera.
         void set_projection_mode(ProjectionMode projection_mode);
 
-        // todo: add ortographic mode
-
-        std::string get_type() override { return "Camera3D"; }
+        static std::string get_type() { return "Camera3D"; }
 
     private:
         static const glm::vec3 UP_VECTOR;

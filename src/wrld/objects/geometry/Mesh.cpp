@@ -25,6 +25,16 @@ namespace wrld::obj {
         }
     }
 
+    GLenum get_primitive_gl_enum(const PrimitiveType type) {
+        switch (type) {
+            case PrimitiveType::Points: return GL_POINTS;
+            case PrimitiveType::Lines: return GL_LINES;
+            case PrimitiveType::Triangles: return GL_TRIANGLES;
+            default:
+                std::unreachable();
+        }
+    }
+
     Mesh::Mesh(const PrimitiveType primitive_type) : primitive_type(primitive_type) {}
 
     Mesh &Mesh::set_vertices(const std::vector<Vertex> &vertices) {

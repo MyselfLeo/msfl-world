@@ -144,7 +144,7 @@ namespace wrld::rsc {
 
         // Diffuse map
         if (material->get_diffuse_map().has_value()) {
-            material->get_diffuse_map().value().get()->use(0);
+            material->get_diffuse_map().value()->use(0);
 
             set_uniform(uniform + ".use_diffuse", true);
             set_uniform(uniform + ".diffuse", 0);
@@ -154,7 +154,7 @@ namespace wrld::rsc {
 
         // Specular map
         if (material->get_specular_map().has_value()) {
-            material->get_specular_map().value().get()->use(1);
+            material->get_specular_map().value()->use(1);
 
             set_uniform(uniform + ".use_specular", true);
             set_uniform(uniform + ".specular", 1);

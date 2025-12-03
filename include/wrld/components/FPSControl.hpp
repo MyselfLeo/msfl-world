@@ -5,12 +5,15 @@
 #pragma once
 
 #include <wrld/components/Component.hpp>
+#include <wrld/components/Transform.hpp>
 #include "GLFW/glfw3.h"
 
 namespace wrld::cpt {
 
     class FPSControl final : public Component {
     public:
+        using required_components = std::tuple<Transform>;
+
         FPSControl(EntityID entity_id, World &world);
 
         void update(GLFWwindow *window, float delta_time);
@@ -26,7 +29,7 @@ namespace wrld::cpt {
         void enable_keyboard_control(bool keyboard_control);
         [[nodiscard]] bool is_keyboard_control_enabled() const;
 
-        std::string get_type() override { return "FPSControl"; }
+        static std::string get_type() { return "FPSControl"; }
 
     private:
         double last_mouse_x = 400;

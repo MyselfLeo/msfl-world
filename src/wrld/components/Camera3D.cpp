@@ -35,10 +35,7 @@ namespace wrld::cpt {
     }
 
     glm::mat4x4 Camera3D::get_view_matrix() const {
-        if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
-            return glm::inverse(transform_cmpnt.value()->model_matrix());
-        }
-        return glm::mat4x4(1.0);
+        return glm::inverse(world.get_component<Transform>(entity_id)->model_matrix());
     }
 
     glm::mat4x4 Camera3D::get_projection_matrix() const {
@@ -71,10 +68,7 @@ namespace wrld::cpt {
     void Camera3D::set_far_plane(const float z_far) { far_plane = z_far; }
 
     glm::vec3 Camera3D::get_position() const {
-        if (const auto transform_cmpnt = world.get_component_opt<Transform>(entity_id)) {
-            return transform_cmpnt.value()->get_position();
-        }
-        return glm::vec3(0.0);
+        return world.get_component<Transform>(entity_id)->get_position();
     }
 
     obj::Box Camera3D::get_frustum_box() const {

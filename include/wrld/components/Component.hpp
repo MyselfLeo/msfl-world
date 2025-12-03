@@ -26,7 +26,7 @@ namespace wrld {
 
         [[nodiscard]] EntityID get_entity() const;
 
-        virtual std::string get_type() { return "Component"; }
+        static std::string get_type() { return "Component"; }
 
         // todo: move to a higher class common with component
         // virtual void load_default_resources() = 0;

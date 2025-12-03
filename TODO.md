@@ -24,7 +24,7 @@ Camera:
 
 Model:
 
-Finally MeshGroup is not useful so we'll have to remove it later
+Remove Meshgroup ! a Model should only have a list of meshes. (we're back at the start lol)
 
 World:
 
@@ -43,3 +43,7 @@ Transform :
 - Create HierarchicTransform, like transform (in fact it extends Transform) but with a reference
   to a transform. Then to get from model to world we apply the first transform then the 2nd.
   We can build a transform tree with that.
+
+Materials :
+- Maybe add StaticMaterial & DynamicMaterial. Materials are updated each frame on the GPU but for most
+  of them it may not be necessary (thus we'd use StaticMaterial).

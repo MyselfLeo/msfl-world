@@ -20,6 +20,8 @@ namespace wrld::obj {
     /// Return the size of a primitive (point -> 1, line -> 2, triangle -> 3...).
     unsigned get_primitive_size(PrimitiveType type);
 
+    GLenum get_primitive_gl_enum(PrimitiveType type);
+
     struct Vertex {
         glm::vec3 position;
         glm::vec3 normal;

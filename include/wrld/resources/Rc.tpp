@@ -5,7 +5,6 @@
 #pragma once
 
 #include <wrld/components/Component.hpp>
-#include <wrld/resources/Resource.hpp>
 
 namespace wrld {
     template<ResourceConcept R>
@@ -193,15 +192,4 @@ namespace wrld {
         component_users.reset();
         resource_users.reset();
     }
-
-    // template<ResourceConcept R>
-    // template<ResourceConcept T>
-    // std::shared_ptr<Rc<T>> Rc<R>::as_ptr() const {
-    //     auto casted = std::dynamic_pointer_cast<T>(resource);
-    //     if (!casted) {
-    //         throw std::bad_cast();
-    //     }
-    //     // Wrap the Rc<T> in a shared_ptr
-    //     return std::make_shared<Rc<T>>(casted, component_users, resource_users);
-    // }
 } // namespace wrld

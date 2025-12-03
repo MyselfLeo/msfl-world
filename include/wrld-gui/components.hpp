@@ -7,7 +7,7 @@
 #include <wrld/World.hpp>
 #include <wrld/components/Camera3D.hpp>
 #include <wrld/components/DirectionalLight.hpp>
-#include <wrld/components/Environment.hpp>
+#include <wrld/components/Environment3D.hpp>
 #include <wrld/components/FPSControl.hpp>
 #include <wrld/components/Orbiter.hpp>
 #include <wrld/components/PointLight.hpp>
@@ -98,8 +98,8 @@ namespace wrld::gui {
     }
 
     template<>
-    inline void component_menu<cpt::Environment>(World &world, const EntityID &entity) {
-        const auto &cpt = world.get_component<cpt::Environment>(entity);
+    inline void component_menu<cpt::Environment3D>(World &world, const EntityID &entity) {
+        const auto &cpt = world.get_component<cpt::Environment3D>(entity);
         if (ImGui::TreeNode(cpt->get_type().c_str())) {
             // Default behavior for any component type
             ImGui::Text("Environment");
@@ -237,7 +237,7 @@ namespace wrld::gui {
     static const std::map<std::type_index, ComponentMenuFunction> COMPONENT_FUNCTIONS = {
             {typeid(cpt::Camera3D), &component_menu<cpt::Camera3D>},
             {typeid(cpt::DirectionalLight), &component_menu<cpt::DirectionalLight>},
-            {typeid(cpt::Environment), &component_menu<cpt::Environment>},
+            {typeid(cpt::Environment3D), &component_menu<cpt::Environment3D>},
             {typeid(cpt::FPSControl), &component_menu<cpt::FPSControl>},
             {typeid(cpt::Orbiter), &component_menu<cpt::Orbiter>},
             {typeid(cpt::PointLight), &component_menu<cpt::PointLight>},

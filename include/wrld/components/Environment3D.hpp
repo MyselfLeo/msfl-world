@@ -8,6 +8,8 @@
 #include "glm/vec3.hpp"
 #include "glm/vec4.hpp"
 #include <wrld/resources/CubemapTexture.hpp>
+#include <wrld/components/Camera3D.hpp>
+
 
 #include <optional>
 
@@ -23,17 +25,18 @@ namespace wrld::cpt {
 
     /// Represent a rendering context for an environment.
     /// Specifies ambiant light, cubemap, etc.
-    /// Must be attached to an Entity with a Camera component.
-    class Environment final : public Component {
+    class Environment3D final : public Component {
     public:
-        Environment(EntityID entity_id, World &world, AmbiantLight ambiant_light = {});
+        using required_components = std::tuple<Camera3D>;
 
-        Environment(EntityID entity_id, World &world, const Rc<rsc::CubemapTexture> &cubemap,
+        Environment3D(EntityID entity_id, World &world, AmbiantLight ambiant_light = {});
+
+        Environment3D(EntityID entity_id, World &world, const Rc<rsc::CubemapTexture> &cubemap,
                     AmbiantLight ambiant_light = {});
 
-        Environment(Environment &&other) noexcept;
+        Environment3D(Environment3D &&other) noexcept;
 
-        Environment &operator=(Environment &&other) noexcept = delete;
+        Environment3D &operator=(Environment3D &&other) noexcept = delete;
 
         // [[nodiscard]] bool has_cubemap() const;
 
@@ -46,9 +49,9 @@ namespace wrld::cpt {
 
         [[nodiscard]] GLuint get_vao() const;
 
-        ~Environment() override;
+        ~Environment3D() override;
 
-        std::string get_type() override { return "Environment"; }
+        static std::string get_type() { return "Environment"; }
 
     private:
         GLuint vao; // Required even with no data inside

@@ -7,7 +7,7 @@
 #include <wrld/System.hpp>
 #include "GLFW/glfw3.h"
 #include <wrld/components/Camera3D.hpp>
-#include <wrld/components/Environment.hpp>
+#include <wrld/components/Environment3D.hpp>
 #include <wrld/resources/CubemapTexture.hpp>
 #include <wrld/resources/Model.hpp>
 #include <wrld/resources/Program.hpp>
@@ -57,6 +57,12 @@ namespace wrld {
         GLFWwindow *window;
 
         Rc<rsc::Program> skybox_program;
+        Rc<rsc::Program> frustum_culling_program;
+
+        // fixme: Use a proper structure
+        GLuint model_matrices_buffer = 0;
+        GLuint aabb_buffer = 0;
+        GLuint result_buffer = 0;
 
         /// Amount of visible models on the active camera.
         unsigned hidden_models = 0;

@@ -16,6 +16,8 @@
 
 #include <utility>
 
+#include "wrld/systems/NewRenderSystem.hpp"
+
 namespace wrld {
     // Default Main values
     World Main::world;
@@ -30,17 +32,17 @@ namespace wrld {
     std::unordered_map<std::string, std::string> Main::statistics = {};
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
-        wrldInfo("msfl-world");
+        wrldInfo("msfl-world 0.0.0");
 
         switch (get_platform()) {
             case Platform::Clang: {
-                wrldInfo("Platform: CLANG");
+                wrldInfo("Compiler: CLANG");
             } break;
             case Platform::GCC: {
-                wrldInfo("Platform: GCC");
+                wrldInfo("Compiler: GCC");
             } break;
             case Platform::MSVC: {
-                wrldInfo("Platform: MSVC");
+                wrldInfo("Compiler: MSVC");
             } break;
         }
 
@@ -50,9 +52,7 @@ namespace wrld {
 
         world = World();
 
-        // Create systems
-        wrldInfo("Initialising systems");
-
+        NewRenderSystem::init(world);
         std::unique_ptr<RendererSystem> renderer;
 
         // todo: make RendererSystem abstract, implement
@@ -64,6 +64,9 @@ namespace wrld {
 
         wrldInfo("Initializing app");
         app.init(world);
+
+        // todo: move that to when a new Model is loaded
+        NewRenderSystem::reload_resources(world);
 
         wrldInfo("Starting main loop");
         while (!should_close) {
@@ -160,6 +163,7 @@ namespace wrld {
 
     GLFWwindow *Main::init_gl(const int width, const int height) {
         wrldInfo("Initialising OpenGL context");
+
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -169,7 +173,6 @@ namespace wrld {
         const float main_scale =
                 ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
 
-        wrldInfo("Creating window");
         window = glfwCreateWindow(width, height,
                                   std::format("{} :: msfl-world", window_title).c_str(),
                                   nullptr, nullptr);
@@ -186,6 +189,23 @@ namespace wrld {
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
             throw std::runtime_error("Failed to initialize GLAD");
         }
+
+        auto gl_version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        wrldInfo(std::format("Using OpenGL {}", gl_version));
+
+        // Check required extensions
+        wrldInfo("Checking required extensions");
+        bool ok = true;
+        if(GLAD_GL_ARB_indirect_parameters) {
+            wrldInfo("ARB Indirect Parameters: YES");
+        }
+        else {
+            ok = false;
+            wrldInfo("ARB Indirect Parameters: NO");
+        }
+
+        if (!ok)
+            throw std::runtime_error("Unable to load all required extensions");
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -226,6 +246,9 @@ namespace wrld {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr,
                                   GL_TRUE);
         }
+
+        set_statistic("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS", std::to_string(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS));
+
         return window;
     }
 

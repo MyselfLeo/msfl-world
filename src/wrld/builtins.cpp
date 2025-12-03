@@ -133,7 +133,7 @@ namespace wrld::builtins {
                                               Main::get_window_viewport(),
                                               world.get_default<rsc::Program>());
 
-        const auto &env = world.attach_component<cpt::Environment>(flyover);
+        const auto &env = world.attach_component<cpt::Environment3D>(flyover);
         env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0}, 1.0});
 
         return flyover;

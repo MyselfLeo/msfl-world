@@ -11,12 +11,16 @@ namespace wrld::cpt {
 
     class CameraShader final : public Component {
     public:
+        using required_components = std::tuple<>;
+
         explicit CameraShader(EntityID entity_id, World &world, const std::shared_ptr<rsc::WindowFramebuffer> &viewport,
                               const Rc<rsc::Program> &program);
 
         [[nodiscard]] Rc<rsc::Program> get_program() const;
 
         void set_program(const Rc<rsc::Program> &program);
+
+        static std::string get_type() { return "CameraShader"; }
 
     private:
         std::shared_ptr<rsc::WindowFramebuffer> framebuffer;

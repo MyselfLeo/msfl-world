@@ -101,4 +101,12 @@ namespace wrld {
     };
 } // namespace wrld
 
+/// This allows Rc to be used as a hashed key.
+template <wrld::ResourceConcept R>
+struct std::hash<wrld::Rc<R>> {
+    std::size_t operator()(const wrld::Rc<R>& k) const {
+        return std::hash<std::uintptr_t>{}(reinterpret_cast<std::uintptr_t>(k.get_ptr().get()));
+    }
+};
+
 #include <wrld/resources/Rc.tpp>

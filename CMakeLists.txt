@@ -42,7 +42,7 @@ set(HEADERS
         include/wrld/components/PointLight.hpp
         include/wrld/components/DirectionalLight.hpp
         include/wrld/components/FPSControl.hpp
-        include/wrld/components/Environment.hpp
+        include/wrld/components/Environment3D.hpp
         include/wrld/components/Orbiter.hpp
 
         include/wrld/resources/Program.hpp
@@ -58,6 +58,13 @@ set(HEADERS
         include/wrld/resources/Rc.hpp
         include/wrld/resources/Rc.tpp
 
+        include/wrld/shaders/skybox_shader.hpp
+        include/wrld/shaders/deferred_pass2_shader.hpp
+        include/wrld/shaders/vertex/default_shader.hpp
+        include/wrld/shaders/fragment/default_shader.hpp
+        include/wrld/shaders/fragment/deferred_pass1_shader.hpp
+        include/wrld/shaders/compute/frustum_culling.hpp
+
         include/wrld/objects/geometry/Mesh.hpp
         include/wrld/objects/geometry/MeshGroup.hpp
         include/wrld/objects/geometry/Box.hpp
@@ -69,6 +76,7 @@ set(HEADERS
 
         include/wrld/systems/RendererSystem.hpp
         include/wrld/systems/DeferredRendererSystem.hpp
+        include/wrld/systems/NewRenderSystem.hpp
 
         include/wrld/tools/ModelTool.hpp
         include/wrld/tools/Geometry.hpp
@@ -93,7 +101,7 @@ set(SOURCE
         src/wrld/components/PointLight.cpp
         src/wrld/components/DirectionalLight.cpp
         src/wrld/components/FPSControl.cpp
-        src/wrld/components/Environment.cpp
+        src/wrld/components/Environment3D.cpp
         src/wrld/components/Orbiter.cpp
 
         src/wrld/resources/Program.cpp
@@ -118,6 +126,7 @@ set(SOURCE
 
         src/wrld/systems/RendererSystem.cpp
         src/wrld/systems/DeferredRendererSystem.cpp
+        src/wrld/systems/NewRenderSystem.cpp
 
         src/wrld/tools/ModelTool.cpp
         src/wrld/tools/Geometry.cpp

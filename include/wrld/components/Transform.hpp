@@ -12,6 +12,8 @@ namespace wrld::cpt {
     /// Gives an Entity a position, a rotation and a scale.
     class Transform final : public Component {
     public:
+        using required_components = std::tuple<>;
+
         // The constructor cannot take other parameters than that
         Transform(EntityID entity_id, World &world,
                   const glm::vec3 &position = glm::vec3(0.0f),
@@ -42,7 +44,7 @@ namespace wrld::cpt {
         [[nodiscard]] glm::mat4x4 rotation_matrix() const;
         [[nodiscard]] glm::mat4x4 scale_matrix() const;
 
-        std::string get_type() override { return "Transform"; }
+        static std::string get_type() { return "Transform"; }
 
     private:
         glm::vec3 position;

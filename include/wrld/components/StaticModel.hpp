@@ -5,6 +5,7 @@
 #pragma once
 
 #include <wrld/components/Component.hpp>
+#include <wrld/components/Transform.hpp>
 #include <wrld/resources/Model.hpp>
 
 namespace wrld::cpt {
@@ -12,12 +13,14 @@ namespace wrld::cpt {
     /// This model will be used to render the entity in the virtual world.
     class StaticModel final : public Component {
     public:
+        using required_components = std::tuple<Transform>;
+
         StaticModel(EntityID entity_id, World &world, const Rc<rsc::Model> &model);
 
         [[nodiscard]] Rc<rsc::Model> get_model() const;
         void set_model(const Rc<rsc::Model> &model);
 
-        std::string get_type() override { return "StaticModel"; }
+        static std::string get_type() { return "StaticModel"; }
 
     private:
         // std::shared_ptr<const rsc::Model> model;
