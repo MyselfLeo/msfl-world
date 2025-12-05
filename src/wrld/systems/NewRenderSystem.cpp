@@ -15,8 +15,6 @@
 #include "wrld/shaders/vertex/default_shader.hpp"
 
 namespace wrld::sys {
-    NewRenderSystem *NewRenderSystem::singleton = nullptr;
-
     NewRenderSystem *NewRenderSystem::get() {
         if (singleton == nullptr) {
             singleton = new NewRenderSystem();
@@ -119,9 +117,13 @@ namespace wrld::sys {
                     const GLuint vao_start = elements.size();
                     const GLuint vao_count = mesh.get_element_count();
 
-                    // Those functions exist despite CLion telling they don't
+                    const obj::VertexID offset = vertices.size();
+
                     vertices.insert(vertices.end(), mesh.get_vertices().begin(), mesh.get_vertices().end());
-                    elements.insert(elements.end(), mesh.get_elements().begin(), mesh.get_elements().end());
+
+                    for (const auto &new_el: mesh.get_elements()) {
+                        elements.push_back(new_el + offset);
+                    }
 
                     mesh_data.emplace_back(
                         obj::get_primitive_gl_enum(mesh.get_primitive_type()),
@@ -206,7 +208,9 @@ namespace wrld::sys {
         glEnableVertexAttribArray(3);
         glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(obj::Vertex),
                               reinterpret_cast<void *>(offsetof(obj::Vertex, texcoords)));
+
         glBindVertexArray(0);
+
 
         ///////////////// Compute shader information
 
@@ -232,12 +236,13 @@ namespace wrld::sys {
         }
     }
 
+    NewRenderSystem *NewRenderSystem::singleton = nullptr;
+
     void NewRenderSystem::render_camera(World &world, const cpt::Camera3D &camera, const LightCollection &lights) {
         // todo: In the future, a camera should always be attached to a framebuffer, and get rendered
         // on this framebuffer. (a "Viewport" ?)
 
-        compute_draw_commands(world, camera);
-        //const GLuint max = compute_draw_commands(world, camera);
+        const GLuint max = compute_draw_commands(world, camera);
 
         const auto [ambiant_light, skybox, vao] = get_environment(world, camera);
 
@@ -253,10 +258,12 @@ namespace wrld::sys {
         Main::get_window_viewport()->use();
 
         // Actual draw call
-        // glBindBuffer(GL_DRAW_INDIRECT_BUFFER, triangles_indirect_draw_buffer);
-        // glBindBuffer(GL_PARAMETER_BUFFER_ARB, arb_counter_buffer);
-        // glMultiDrawArraysIndirectCountARB(GL_TRIANGLES, nullptr, 2 * sizeof(GLsizei),
-        //                                   /*max*/ 4, 0);
+        glBindVertexArray(static_models_vao);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, triangles_indirect_draw_buffer);
+        glBindBuffer(GL_PARAMETER_BUFFER_ARB, arb_counter_buffer);
+        glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, 2 * sizeof(GLsizei),
+                                            max, 0);
+        glBindVertexArray(0);
     }
 
     GLuint NewRenderSystem::compute_draw_commands(World &world, const cpt::Camera3D &camera) {
@@ -306,26 +313,27 @@ namespace wrld::sys {
 
         // Allocate memory for the draw_buffers & the arb_data_buffers based on
         // the max count computed at the previous step.
-        static constexpr unsigned ElementsParamSize = 6 * sizeof(GLuint);
-        static constexpr unsigned ARBDataSize = 2 * sizeof(GLuint);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, ElementsParamSize * max_point_mesh, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_point_mesh, nullptr,
+                     GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, lines_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, ElementsParamSize * max_line_mesh, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_line_mesh, nullptr,
+                     GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangles_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, ElementsParamSize * max_triangle_mesh, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_triangle_mesh, nullptr,
+                     GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_arb_data_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, ARBDataSize * max_point_mesh, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_point_mesh, nullptr, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, lines_arb_data_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, ARBDataSize * max_line_mesh, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_line_mesh, nullptr, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangles_arb_data_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, ARBDataSize * max_triangle_mesh, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_triangle_mesh, nullptr, GL_DYNAMIC_DRAW);
 
         // Prepare the dispatch
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, model_data_buffer);
@@ -338,9 +346,14 @@ namespace wrld::sys {
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, arb_counter_buffer);
 
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, points_arb_data_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, lines_arb_data_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, triangles_arb_data_buffer);
+
+
         std::array<GLuint, 3> counter{0, 0, 0};
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 3, counter.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * counter.size(), counter.data(), GL_DYNAMIC_DRAW);
 
         visibility_program->use();
         visibility_program->set_uniform("view_matrix", camera.get_view_matrix());
@@ -349,13 +362,20 @@ namespace wrld::sys {
         // Execute the compute shader
         static constexpr unsigned GROUP_SIZE_X = 256; // Should be the same than GPU side
         glDispatchCompute((renderables.size() + GROUP_SIZE_X - 1) / GROUP_SIZE_X, 1, 1);
-        glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
 
-        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, counter.size(), counter.data());
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
+        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint) * counter.size(), counter.data());
 
         Main::set_statistic("ARB Frustum POINT count", std::to_string(counter[0]));
         Main::set_statistic("ARB Frustum LINE count", std::to_string(counter[1]));
         Main::set_statistic("ARB Frustum TRIANGLE count", std::to_string(counter[2]));
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        for (int i = 0; i < 10; i++)
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0);
+
 
         return std::max(max_point_mesh, std::max(max_line_mesh, max_triangle_mesh));
     }
@@ -418,6 +438,7 @@ namespace wrld::sys {
         glBindBuffer(GL_UNIFORM_BUFFER, materials_buffer);
         glBufferData(GL_UNIFORM_BUFFER, sizeof(MaterialData) * material_data.size(), material_data.data(),
                      GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
     NewRenderSystem::EnvironmentData NewRenderSystem::get_environment(World &world, const cpt::Camera3D &camera) {
@@ -430,7 +451,8 @@ namespace wrld::sys {
         };
     }
 
-    void NewRenderSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera, GLuint vao) {
+    void NewRenderSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera,
+                                      GLuint vao) const {
         skybox_program->use();
 
         const auto inv_matrix =
@@ -530,7 +552,7 @@ namespace wrld::sys {
         program->set_uniform("projection", projection_matrix);
     }
 
-    void NewRenderSystem::bind_uniform_buffers(const obj::PrimitiveType primitive_type) {
+    void NewRenderSystem::bind_uniform_buffers(const obj::PrimitiveType primitive_type) const {
         switch (primitive_type) {
             case obj::PrimitiveType::Points:
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, points_arb_data_buffer);

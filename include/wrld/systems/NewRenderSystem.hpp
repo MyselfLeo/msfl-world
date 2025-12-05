@@ -113,6 +113,14 @@ namespace wrld::sys {
             GLuint draw_command_idx; // We can retrieve the model_matrix from draw_command_buffer
         };
 
+        struct alignas(16) DrawArraysIndirectCommand {
+            GLuint index_count;
+            GLuint instance_count;
+            GLuint first_index;
+            GLuint vertex_base;
+            GLuint instance_base;
+        };
+
         struct PointLightData {
             glm::vec3 position;
             glm::vec3 color;
@@ -154,34 +162,34 @@ namespace wrld::sys {
 
         /// Return the environment attached to the camera, or a default one if not
         /// provided.
-        [[nodiscard]] EnvironmentData get_environment(World &world, const cpt::Camera3D &camera);
+        static EnvironmentData get_environment(World &world, const cpt::Camera3D &camera);
 
         /// Draw skybox onto the current framebuffer.
         void draw_skybox(const rsc::CubemapTexture &cubemap,
-                         const cpt::Camera3D &camera, GLuint vao);
+                         const cpt::Camera3D &camera, GLuint vao) const;
 
         /// Return data of all PointLights in the world.
-               /// Won't return more than MAX_LIGHTS. The vector is resized before
-               /// being returned.
-        [[nodiscard]] std::vector<PointLightData> get_point_lights(World &world);
+        /// Won't return more than MAX_LIGHTS. The vector is resized before
+        /// being returned.
+        static std::vector<PointLightData> get_point_lights(World &world);
 
         /// Return data of all DirectionalLights in the world.
         /// Won't return more than MAX_LIGHTS. The vector is resized before
         /// being returned.
-        [[nodiscard]] std::vector<DirectionalLightData> get_directional_lights(World &world);
+        static std::vector<DirectionalLightData> get_directional_lights(World &world);
 
         /// Add scene-related uniforms to the given program (Notably light data).
-        void set_scene_uniforms(const Rc<rsc::Program> &program,
-                                const cpt::AmbiantLight &ambiant_light, const LightCollection &lights);
+        static void set_scene_uniforms(const Rc<rsc::Program> &program,
+                                       const cpt::AmbiantLight &ambiant_light, const LightCollection &lights);
 
         /// Add camera-related uniforms to the given program.
-        void set_camera_uniforms(const Rc<rsc::Program> &program, const cpt::Camera3D &camera);
+        static void set_camera_uniforms(const Rc<rsc::Program> &program, const cpt::Camera3D &camera);
 
         /// Bind to the given program the following buffers :
         /// - The ARB Data buffer related to the primitive type (binding 0)
         /// - The material buffer (binding 1)
         /// - The DrawCommands buffer (binding 2)
-        void bind_uniform_buffers(obj::PrimitiveType primitive_type);
+        void bind_uniform_buffers(obj::PrimitiveType primitive_type) const;
 
         // ------------------ Parameters ------------------ //
 
