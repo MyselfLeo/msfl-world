@@ -22,6 +22,9 @@ namespace wrld {
         // [[nodiscard]] GLFWwindow *get_window() const;
 
     private:
+        int previous_width;
+        int previous_heigth;
+
         GLuint vao;
 
         Rc<rsc::Program> pass1_program;

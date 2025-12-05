@@ -5,15 +5,13 @@
 #pragma once
 
 #include <wrld/components/Component.hpp>
-#include "glm/vec3.hpp"
-#include "glm/vec4.hpp"
 #include <wrld/resources/CubemapTexture.hpp>
-#include <wrld/components/Camera3D.hpp>
-
 
 #include <optional>
 
 namespace wrld::cpt {
+    class Camera3D;
+
     /// intensity - Value from 0 to 1.
     struct AmbiantLight {
         AmbiantLight();

@@ -169,26 +169,7 @@ namespace wrld::rsc {
     }
 
     void Program::reload() {
-        wrldInfo(std::format("Reloading shaders for program {}", gl_program));
-
-        constexpr std::array SHADER_TYPES = {ShaderType::Vertex, ShaderType::Fragment,
-                                             ShaderType::Compute};
-
-        std::unordered_map<ShaderType, std::string> final_sources;
-
-        // Collect raw sources
-        for (const auto st: SHADER_TYPES) {
-            if (shader_paths.contains(st) && !shader_sources.contains(st)) {
-                wrldInfo(std::format("{}: from {}", get_type_name(st),
-                                     shader_paths.at(st)));
-
-                final_sources[st] = read_file(shader_paths.at(st));
-            } else if (shader_sources.contains(st)) {
-                wrldInfo(std::format("{}: from source", get_type_name(st)));
-
-                final_sources[st] = shader_sources.at(st);
-            }
-        }
+        wrldInfo(std::format("Recompiling shaders for program '{}'", get_name()));
 
         // Create the Program if required
         if (gl_program == 0) {
@@ -198,9 +179,25 @@ namespace wrld::rsc {
             }
         }
 
-        // Compile all the shaders
-        int i = 1;
-        for (const auto &[st, src]: final_sources) {
+        constexpr std::array SHADER_TYPES = {ShaderType::Vertex, ShaderType::Fragment,
+                                             ShaderType::Compute};
+
+        std::unordered_map<ShaderType, std::string> final_sources;
+
+        // Compile each shader one by one
+        for (const auto st: SHADER_TYPES) {
+            std::string source;
+            if (shader_paths.contains(st) && !shader_sources.contains(st)) {
+                wrldInfo(std::format("\tCompiling {} from '{}'", get_type_name(st),
+                                     shader_paths.at(st)));
+                source = read_file(shader_paths.at(st));
+            } else if (shader_sources.contains(st)) {
+                wrldInfo(std::format("\tCompiling {} from source", get_type_name(st)));
+                source = shader_sources.at(st);
+            } else {
+                continue;
+            }
+
             if (!gl_shaders.contains(st)) {
                 gl_shaders[st] = glCreateShader(get_gl_type(st));
                 if (gl_shaders[st] == 0) {
@@ -208,18 +205,12 @@ namespace wrld::rsc {
                             "Unable to create OpenGL vertex shader object");
                 }
             }
-            wrldInfo(std::format("Compiling shader {}/{}", i, final_sources.size()));
-            compile_shader(gl_shaders[st], preprocess_source(src, st));
-            i += 1;
-        }
 
-        // Attach the shaders on the program
-        for (const auto shader: gl_shaders | std::views::values) {
-            glAttachShader(gl_program, shader);
+            compile_shader(gl_shaders[st], preprocess_source(source, st));
+            glAttachShader(gl_program, gl_shaders[st]);
         }
 
         glLinkProgram(gl_program);
-
         compiled_once = true;
     }
 

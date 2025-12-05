@@ -24,21 +24,21 @@
 
 namespace wrld {
     PointLightData::PointLightData(const glm::vec3 position, const glm::vec3 color,
-                                   const float intensity) :
-        position(position), color(color), intensity(intensity) {}
+                                   const float intensity) : position(position), color(color), intensity(intensity) {
+    }
 
     DirectionalLightData::DirectionalLightData(const glm::vec3 direction,
                                                const glm::vec3 color,
-                                               const float intensity) :
-        direction(direction), color(color), intensity(intensity) {}
+                                               const float intensity) : direction(direction), color(color),
+                                                                        intensity(intensity) {
+    }
 
     EnvironmentData::EnvironmentData(const cpt::AmbiantLight ambiant_light,
-                                     const std::optional<Rc<rsc::CubemapTexture>> &skybox,
-                                     const GLuint vao) :
-        vao(vao), ambiant_light(ambiant_light), skybox(skybox) {}
+                                     const std::optional<Rc<rsc::CubemapTexture> > &skybox,
+                                     const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {
+    }
 
-    RendererSystem::RendererSystem(World &world, GLFWwindow *window) :
-        System(world), window(window) {
+    RendererSystem::RendererSystem(World &world, GLFWwindow *window) : System(world), window(window) {
         skybox_program = world.create_resource<rsc::Program>("skybox_program");
         skybox_program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
         skybox_program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
@@ -65,7 +65,6 @@ namespace wrld {
             !cameras.empty()) {
             const auto camera = world.get_component<cpt::Camera3D>(cameras[0]);
             render_camera(*camera);
-            NewRenderSystem::render_camera(world, *camera);
         }
     }
 
@@ -79,7 +78,7 @@ namespace wrld {
         return glm::mat4x4(1.0);
     }
 
-    std::optional<std::shared_ptr<const cpt::Camera3D>>
+    std::optional<std::shared_ptr<const cpt::Camera3D> >
     RendererSystem::get_camera() const {
         if (const std::vector camera_entities =
                     world.get_entities_with_component<cpt::Camera3D>();
@@ -102,12 +101,6 @@ namespace wrld {
 
     void RendererSystem::render_camera(const cpt::Camera3D &camera) {
         const auto program = camera.get_program();
-
-        // Todo: In the future, a camera should be attached to a viewport
-        // of a given size. We should get this viewport size instead of the window size.
-        // Of course, one of those viewports could be the window !
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
 
         const EnvironmentData environment_data = get_environment(camera);
 
@@ -189,11 +182,13 @@ namespace wrld {
         const EntityID camera_entity = camera.get_entity();
 
         if (const auto env_cpnt_opt =
-                    world.get_component_opt<cpt::Environment3D>(camera_entity)) {
+                world.get_component_opt<cpt::Environment3D>(camera_entity)) {
             const auto &env_cpnt = env_cpnt_opt.value();
 
-            return EnvironmentData{env_cpnt->get_ambiant_light(), env_cpnt->get_cubemap(),
-                                   env_cpnt->get_vao()};
+            return EnvironmentData{
+                env_cpnt->get_ambiant_light(), env_cpnt->get_cubemap(),
+                env_cpnt->get_vao()
+            };
         }
 
         return EnvironmentData{cpt::AmbiantLight{}, std::nullopt, 0};
@@ -251,7 +246,7 @@ namespace wrld {
     }
 
     void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap,
-                                     const cpt::Camera3D &camera, GLuint vao) const {
+                                     const cpt::Camera3D &camera, const GLuint vao) const {
         skybox_program->use();
 
         const auto inv_matrix =
@@ -306,13 +301,16 @@ namespace wrld {
                 switch (pt) {
                     case obj::PrimitiveType::Points: {
                         primitive_type = GL_POINTS;
-                    } break;
+                    }
+                    break;
                     case obj::PrimitiveType::Lines: {
                         primitive_type = GL_LINES;
-                    } break;
+                    }
+                    break;
                     case obj::PrimitiveType::Triangles: {
                         primitive_type = GL_TRIANGLES;
-                    } break;
+                    }
+                    break;
                     default:
                         std::unreachable();
                 }
@@ -320,8 +318,7 @@ namespace wrld {
                 for (const auto [count, start]: meshes) {
                     mat_starts.push_back(start * sizeof(GLuint));
                     mat_sizes.push_back(count);
-                }
-                {
+                } {
                     glBindVertexArray(model.get_vao());
                     if (material->get_polygon_mode() & rsc::WrldPolyFill) {
                         program.set_uniform("polygon_mode", 0);
@@ -331,9 +328,9 @@ namespace wrld {
                         glBindVertexArray(model.get_vao());
 
                         glMultiDrawElements(
-                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
-                                reinterpret_cast<const void **>(mat_starts.data()),
-                                meshes.size());
+                            primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                            reinterpret_cast<const void **>(mat_starts.data()),
+                            meshes.size());
                         glBindVertexArray(0);
 
                         glDepthMask(GL_FALSE);
@@ -348,9 +345,9 @@ namespace wrld {
                         // glActiveTexture(GL_TEXTURE0);
                         glBindVertexArray(model.get_vao());
                         glMultiDrawElements(
-                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
-                                reinterpret_cast<const void **>(mat_starts.data()),
-                                meshes.size());
+                            primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                            reinterpret_cast<const void **>(mat_starts.data()),
+                            meshes.size());
                         glBindVertexArray(0);
 
                         glDepthMask(GL_FALSE);
@@ -365,9 +362,9 @@ namespace wrld {
                         // glActiveTexture(GL_TEXTURE0);
                         glBindVertexArray(model.get_vao());
                         glMultiDrawElements(
-                                primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
-                                reinterpret_cast<const void **>(mat_starts.data()),
-                                meshes.size());
+                            primitive_type, mat_sizes.data(), GL_UNSIGNED_INT,
+                            reinterpret_cast<const void **>(mat_starts.data()),
+                            meshes.size());
                         glBindVertexArray(0);
                     }
 

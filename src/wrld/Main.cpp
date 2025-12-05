@@ -37,13 +37,16 @@ namespace wrld {
         switch (get_platform()) {
             case Platform::Clang: {
                 wrldInfo("Compiler: CLANG");
-            } break;
+            }
+            break;
             case Platform::GCC: {
                 wrldInfo("Compiler: GCC");
-            } break;
+            }
+            break;
             case Platform::MSVC: {
                 wrldInfo("Compiler: MSVC");
-            } break;
+            }
+            break;
         }
 
         init_gl(width, height);
@@ -52,21 +55,21 @@ namespace wrld {
 
         world = World();
 
-        NewRenderSystem::init(world);
-        std::unique_ptr<RendererSystem> renderer;
+        sys::NewRenderSystem::get()->init(world);
+        // std::unique_ptr<RendererSystem> renderer;
 
         // todo: make RendererSystem abstract, implement
         // ForwardRendererSystem (which replace RendererSystem) and
         // NoRendererSystem (doesn't render anything).
-        if (renderer_type != RendererType::NoRenderer) {
-            renderer = get_renderer();
-        }
+        // if (renderer_type != RendererType::NoRenderer) {
+        //     renderer = get_renderer();
+        // }
 
         wrldInfo("Initializing app");
         app.init(world);
 
         // todo: move that to when a new Model is loaded
-        NewRenderSystem::reload_resources(world);
+        sys::NewRenderSystem::get()->reload_resources(world);
 
         wrldInfo("Starting main loop");
         while (!should_close) {
@@ -84,7 +87,8 @@ namespace wrld {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-                renderer->exec(delta_time);
+                sys::NewRenderSystem::get()->render(world);
+                //renderer->exec(delta_time);
 
                 // Render UI using ImGUI
                 {
@@ -181,8 +185,8 @@ namespace wrld {
             const char *error = nullptr;
             int code = glfwGetError(&error);
             throw std::runtime_error(
-                    std::format("Failed to create GLFW window with error code {:0X}: {}",
-                                code, error));
+                std::format("Failed to create GLFW window with error code {:0X}: {}",
+                            code, error));
         }
 
         glfwMakeContextCurrent(window);
@@ -190,20 +194,25 @@ namespace wrld {
             throw std::runtime_error("Failed to initialize GLAD");
         }
 
-        auto gl_version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        auto gl_version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
         wrldInfo(std::format("Using OpenGL {}", gl_version));
+
+        auto gl_vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
+        wrldInfo(std::format("Vendor: {}", gl_vendor));
+
+        std::array required_extensions = {
+            std::make_pair<std::string, int &>("ARB Indirect Parameters", GLAD_GL_ARB_indirect_parameters),
+            std::make_pair<std::string, int &>("ARB Shader Draw Parameters", GLAD_GL_ARB_shader_draw_parameters),
+        };
 
         // Check required extensions
         wrldInfo("Checking required extensions");
         bool ok = true;
-        if(GLAD_GL_ARB_indirect_parameters) {
-            wrldInfo("ARB Indirect Parameters: YES");
+        for (const auto &[name, v]: required_extensions) {
+            wrldInfo(std::format("\t{}: {}", name, v ? "YES" : "NO"));
+            if (!v)
+                ok = false;
         }
-        else {
-            ok = false;
-            wrldInfo("ARB Indirect Parameters: NO");
-        }
-
         if (!ok)
             throw std::runtime_error("Unable to load all required extensions");
 
@@ -213,7 +222,7 @@ namespace wrld {
         ImGuiIO &io = ImGui::GetIO();
         (void) io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -222,10 +231,10 @@ namespace wrld {
         // Setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
         style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a
-                                         // solution for dynamic style
+        // solution for dynamic style
         // scaling, changing this requires resetting Style + calling this again)
         style.FontScaleDpi = main_scale; // Set initial font scale. (using
-                                         // io.ConfigDpiScaleFonts=true makes this
+        // io.ConfigDpiScaleFonts=true makes this
         // unnecessary. We leave both here for documentation purpose)
 
         ImGui_ImplOpenGL3_Init();
@@ -254,10 +263,10 @@ namespace wrld {
 
     void Main::window_resize_callback(GLFWwindow *window, int width, int height) {
         glViewport(0, 0, width, height);
-        // window_viewport->set_size(width, height);
+        window_viewport->set_size(width, height);
     }
 
-#ifndef NDEBUG
+    #ifndef NDEBUG
     void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
                                       GLenum severity, GLsizei length,
                                       const char *message, const void *userParam) {
@@ -291,10 +300,10 @@ namespace wrld {
 
         std::cout << message << std::endl;
     }
-#else
+    #else
     void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
                                       GLenum severity, GLsizei length,
-                                      const char *message, const void *userParam) {}
-#endif
-
+                                      const char *message, const void *userParam) {
+    }
+    #endif
 } // namespace wrld

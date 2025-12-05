@@ -38,12 +38,13 @@ namespace wrld {
         pass1_program->reload();
         pass2_program->reload();
 
-        int w, h;
-        glfwGetWindowSize(window, &w, &h);
-        const auto fb =
+        const int width = Main::get_window_viewport()->get_width();
+        const int height = Main::get_window_viewport()->get_height();
+        previous_width = width;
+        previous_heigth = height;
+        framebuffer =
                 world.create_resource<rsc::DeferredFramebuffer>("render_framebuffer");
-        fb->set_size(w, h);
-        framebuffer = fb;
+        framebuffer->set_size(width, height);
         framebuffer->recreate();
     }
 
@@ -51,6 +52,17 @@ namespace wrld {
 
     void DeferredRendererSystem::render_camera(const cpt::Camera3D &camera) {
         //  FIRST PASS
+
+        // Resize buffer is size is updated
+        const int width = Main::get_window_viewport()->get_width();
+        const int height = Main::get_window_viewport()->get_height();
+
+        if (width != previous_width || height != previous_heigth) {
+            previous_width = width;
+            previous_heigth = height;
+            framebuffer->set_size(width, height);
+            framebuffer->recreate();
+        }
 
         const glm::mat4x4 view_matrix = camera.get_view_matrix();
         const glm::mat4x4 projection_matrix = camera.get_projection_matrix();

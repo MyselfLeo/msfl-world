@@ -12,6 +12,8 @@
 #include <glm/mat4x4.hpp>
 #include <wrld/objects/geometry/Box.hpp>
 
+#include "Environment3D.hpp"
+
 namespace wrld::cpt {
     enum class ProjectionMode {
         Perspective,
