@@ -63,7 +63,10 @@ set(HEADERS
         include/wrld/shaders/vertex/default_shader.hpp
         include/wrld/shaders/fragment/default_shader.hpp
         include/wrld/shaders/fragment/deferred_pass1_shader.hpp
-        include/wrld/shaders/compute/frustum_culling.hpp
+        include/wrld/shaders/compute/visibility_check.comp.hpp
+        include/wrld/shaders/compute/draw_call_gen.comp.hpp
+        include/wrld/shaders/vertex/forward.vert.hpp
+        include/wrld/shaders/fragment/forward.frag.hpp
 
         include/wrld/objects/geometry/Mesh.hpp
         include/wrld/objects/geometry/MeshGroup.hpp
@@ -74,8 +77,8 @@ set(HEADERS
         include/wrld/objects/geometry/Ray.hpp
         include/wrld/objects/geometry/Triangle.hpp
 
-        include/wrld/systems/RendererSystem.hpp
-        include/wrld/systems/DeferredRendererSystem.hpp
+        # include/wrld/systems/RendererSystem.hpp
+        # include/wrld/systems/DeferredRendererSystem.hpp
         include/wrld/systems/NewRenderSystem.hpp
 
         include/wrld/tools/ModelTool.hpp
@@ -124,8 +127,8 @@ set(SOURCE
         src/wrld/objects/geometry/GeoRequestable.cpp
         src/wrld/objects/geometry/Triangle.cpp
 
-        src/wrld/systems/RendererSystem.cpp
-        src/wrld/systems/DeferredRendererSystem.cpp
+        # src/wrld/systems/RendererSystem.cpp
+        # src/wrld/systems/DeferredRendererSystem.cpp
         src/wrld/systems/NewRenderSystem.cpp
 
         src/wrld/tools/ModelTool.cpp

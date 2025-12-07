@@ -11,8 +11,8 @@
 #include <wrld/Main.hpp>
 
 #include <wrld/logs.hpp>
-#include <wrld/systems/DeferredRendererSystem.hpp>
-#include <wrld/systems/RendererSystem.hpp>
+// #include <wrld/systems/DeferredRendererSystem.hpp>
+// #include <wrld/systems/RendererSystem.hpp>
 
 #include <utility>
 
@@ -148,18 +148,18 @@ namespace wrld {
         return statistics;
     }
 
-    std::unique_ptr<RendererSystem> Main::get_renderer() {
-        switch (renderer_type) {
-            case RendererType::ForwardRenderer:
-                wrldInfo("Using forward renderer");
-                return std::make_unique<RendererSystem>(world, window);
-            case RendererType::DeferredRenderer:
-                wrldInfo("Using deferred renderer");
-                return std::make_unique<DeferredRendererSystem>(world, window);
-            default:
-                std::unreachable();
-        }
-    }
+    // std::unique_ptr<RendererSystem> Main::get_renderer() {
+    //     switch (renderer_type) {
+    //         case RendererType::ForwardRenderer:
+    //             wrldInfo("Using forward renderer");
+    //             return std::make_unique<RendererSystem>(world, window);
+    //         case RendererType::DeferredRenderer:
+    //             wrldInfo("Using deferred renderer");
+    //             return std::make_unique<DeferredRendererSystem>(world, window);
+    //         default:
+    //             std::unreachable();
+    //     }
+    // }
 
     void Main::update_window_title() {
         glfwSetWindowTitle(window, std::format("{} :: msfl-world", window_title).c_str());

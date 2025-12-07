@@ -1,21 +1,21 @@
 //
-// Created by leo on 11/27/25.
+// Created by leo on 12/7/25.
 //
 
 #pragma once
 
 #include <string>
 
-namespace wrld::shader {
-    inline std::string FRUSTUM_CULLING = R"(
-#version 430
-
-/* Compute the visibility of each object based on the camera
- * settings.
- * The test is the same as wrld::tools::is_visible.
- */
+namespace wrld::shader::comp {
+    /// Compute the visibility of each object (Renderable)
+    /// based on the camera settings. The result (1 bool for each
+    /// renderable) is placed in the visiblity_buffer.
+    /// The test is the same as wrld::tools::is_visible.
+    inline std::string VISIBILITY_CHECK = R"(
+#version 460
 
 /* ---------- Data structures & functions ------------ */
+/*       See RenderSystem.hpp for informations.        */
 
 // Axis-Aligned bounding box
 struct AABoundingBox {
@@ -26,6 +26,18 @@ struct AABoundingBox {
 // 8 corners of a box.
 struct Box {
     vec4 corners[8];
+};
+
+struct StaticModelData {
+    AABoundingBox bounding_box;
+    uint mesh_start;
+    uint mesh_count;
+};
+
+// Specifies that the given model should be drawn with the given transform.
+struct Renderable {
+    mat4 model_matrix;
+    uint model_idx;
 };
 
 // Return as a box the axis-aligned bounding box,
@@ -95,55 +107,44 @@ bool may_collide(AABoundingBox aligned, Box other) {
     return true;
 }
 
-
 /* ---------- IO ------------ */
 
-// Local -> World transform matrix of each object
-layout(std430, binding = 0) readonly buffer model_matrices_buffer {
-    mat4 matrices[];
+// Input data
+layout (std430, binding = 0) readonly buffer model_data_buffer {
+    StaticModelData model_data[];
+};
+layout (std430, binding = 1) readonly buffer renderable_buffer {
+    Renderable renderables[];
 };
 
-// Local space AABB of each object
-layout(std430, binding = 1) readonly buffer aabb_buffer {
-    AABoundingBox bounding_boxes[];
-};
-
-// Result buffer
-layout(std430, binding = 2) writeonly buffer result_buffer {
-    bool visible[];
+// Output data
+layout (std430, binding = 2) writeonly buffer visibility_buffer {
+    bool visibility[];
 };
 
 // Camera settings
+// fixme: Move to uniform buffer ?
 uniform mat4 view_matrix;
 uniform mat4 proj_matrix;
 
-
 /* ---------- Main function ------------ */
+
 const AABoundingBox proj_frustum = AABoundingBox(vec4(-1, -1, -1, 1), vec4(1, 1, 1, 1));
 
-layout(local_size_x = 256) in; // Test up to 256 objects at once
+layout (local_size_x = 256) in; // Test up to 256 renderables at once
 void main() {
     uint id = gl_GlobalInvocationID.x;
 
-    if (id < matrices.length()) {
-        mat4 transform_matrix = proj_matrix * view_matrix * matrices[id];
+    if (id < renderables.length()) {
+        StaticModelData model = model_data[renderables[id].model_idx];
+        mat4 transform_matrix = proj_matrix * view_matrix * renderables[id].model_matrix;
 
-        AABoundingBox local_object = bounding_boxes[id];
+        AABoundingBox local_object = model.bounding_box;
         Box proj_object = transform(local_object, transform_matrix);
         Box local_frustum = transform(proj_frustum, inverse(transform_matrix));
 
-        // First pass : in projective space
-        if (!may_collide(proj_frustum, proj_object)) {
-            visible[id] = false;
-        }
-        // Second pass : in local space
-        else if (!may_collide(local_object, local_frustum)) {
-            visible[id] = false;
-        } else {
-            visible[id] = true;
-        }
+        visibility[id] = may_collide(proj_frustum, proj_object) && may_collide(local_object, local_frustum);
     }
 }
 )";
-
 }

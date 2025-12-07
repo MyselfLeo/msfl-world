@@ -11,8 +11,10 @@
 #include "wrld/components/StaticModel.hpp"
 #include "wrld/shaders/deferred_pass2_shader.hpp"
 #include "wrld/shaders/skybox_shader.hpp"
-#include "wrld/shaders/fragment/deferred_pass1_shader.hpp"
-#include "wrld/shaders/vertex/default_shader.hpp"
+#include "wrld/shaders/compute/visibility_check.comp.hpp"
+#include "wrld/shaders/compute/draw_call_gen.comp.hpp"
+#include "wrld/shaders/fragment/forward.frag.hpp"
+#include "wrld/shaders/vertex/forward.vert.hpp"
 
 namespace wrld::sys {
     NewRenderSystem *NewRenderSystem::get() {
@@ -25,14 +27,11 @@ namespace wrld::sys {
     void NewRenderSystem::init(World &world) {
         // Load the shaders
         visibility_program = world.create_resource<rsc::Program>("Visiblity Compute Shader");
-        // todo: put this compute in a .hpp
-        visibility_program->shader_path(rsc::ShaderType::Compute,
-                                        "/mnt/Projects/mif-si3D/rungholt/data/compute/visibility_check.comp");
+        visibility_program->shader_source(rsc::ShaderType::Compute, shader::comp::VISIBILITY_CHECK);
         visibility_program->reload();
 
         draw_call_generator_program = world.create_resource<rsc::Program>("Draw call generator Compute Shader");
-        draw_call_generator_program->shader_path(rsc::ShaderType::Compute,
-                                                 "/mnt/Projects/mif-si3D/rungholt/data/compute/draw_call_gen.comp");
+        draw_call_generator_program->shader_source(rsc::ShaderType::Compute, shader::comp::DRAW_CALL_GEN);
         draw_call_generator_program->reload();
 
         skybox_program = world.create_resource<rsc::Program>("Skybox Shader");
@@ -41,10 +40,8 @@ namespace wrld::sys {
         skybox_program->reload();
 
         forward_program = world.create_resource<rsc::Program>("Forward Shader");
-        forward_program->shader_path(rsc::ShaderType::Vertex,
-                                     "/mnt/Projects/mif-si3D/rungholt/data/compute/gpu_vertex.vert");
-        forward_program->shader_path(rsc::ShaderType::Fragment,
-                                     "/mnt/Projects/mif-si3D/rungholt/data/compute/gpu_fragment.frag");
+        forward_program->shader_source(rsc::ShaderType::Vertex, shader::vert::FORWARD);
+        forward_program->shader_source(rsc::ShaderType::Fragment, shader::frag::FORWARD);
         forward_program->reload();
 
         // deferred_first_pass = world.create_resource<rsc::Program>("Deferred first pass");

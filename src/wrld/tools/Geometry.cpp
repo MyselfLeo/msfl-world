@@ -51,12 +51,7 @@ namespace wrld::tools {
             return true;
         };
 
-        const auto &model_opt = world.get_component_opt<cpt::Transform>(entity);
-
-        // todo: once Components have dependencies, we can remove this test
-        const auto model_transform = model_opt.has_value()
-                                             ? model_opt.value()->model_matrix()
-                                             : glm::mat4x4(1.0);
+        const auto model_transform = world.get_component<cpt::Transform>(entity)->model_matrix();
 
         const auto &entity_model = world.get_component<cpt::StaticModel>(entity);
         const auto &camera_cpt = world.get_component<cpt::Camera3D>(camera);

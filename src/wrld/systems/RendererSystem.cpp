@@ -19,7 +19,6 @@
 #include <wrld/Main.hpp>
 #include <wrld/tools/Geometry.hpp>
 
-#include "wrld/shaders/compute/frustum_culling.hpp"
 #include "wrld/systems/NewRenderSystem.hpp"
 
 namespace wrld {
