@@ -40,7 +40,7 @@ namespace wrld::sys {
 
         /// Reload loaded meshes, models & materials. All the data
         /// is sent to the GPU.
-        void reload_resources(World &world);
+        void reload_resources(const World &world);
 
         /// Render all the cameras in the world.
         void render(World &world);
@@ -78,30 +78,30 @@ namespace wrld::sys {
             GLuint mesh_count = 0;
         };
 
-        // Fixme: It might be a good idea to reduce the size
-        // of this struct.
-        // Some possibilities :
-        // - Combine all booleans into 1 GLuint and use bitwise
-        //   operations
-        // - If diffuse_color.w is not used, store the specular_intensity
-        //   in it instead.
-        // - diffuse_map and specular_map, if used, will have values between 0 and 31,
-        //   so we can use a special value (-1, 100, 42, idc) to denote "not used".
-        struct alignas(16) MaterialData {
-            glm::vec4 diffuse_color;
-            GLfloat specular_intensity;
-            GLboolean use_diffuse_map;
-            GLboolean use_specular_map;
-            GLint diffuse_map;  // Value not relevant if use_diffuse_map is false
-            GLint specular_map; // Idem
-            GLuint shininess;
-            GLboolean use_vertex_color;
-            GLboolean do_lighting;
-        };
+        // // Fixme: It might be a good idea to reduce the size
+        // // of this struct.
+        // // Some possibilities :
+        // // - Combine all booleans into 1 GLuint and use bitwise
+        // //   operations
+        // // - If diffuse_color.w is not used, store the specular_intensity
+        // //   in it instead.
+        // // - diffuse_map and specular_map, if used, will have values between 0 and 31,
+        // //   so we can use a special value (-1, 100, 42, idc) to denote "not used".
+        // struct alignas(16) MaterialData {
+        //     glm::vec4 diffuse_color;
+        //     GLfloat specular_intensity;
+        //     GLboolean use_diffuse_map;
+        //     GLboolean use_specular_map;
+        //     GLint diffuse_map;  // Value not relevant if use_diffuse_map is false
+        //     GLint specular_map; // Idem
+        //     GLuint shininess;
+        //     GLboolean use_vertex_color;
+        //     GLboolean do_lighting;
+        // };
 
         /// Tells the compute shader that the model_idx should be rendered
         /// using the transform matrix.
-        struct alignas(16) DrawCommand {
+        struct alignas(16) Renderable {
             glm::mat4x4 transform;
             GLuint model_idx;
         };
@@ -113,7 +113,7 @@ namespace wrld::sys {
             GLuint draw_command_idx; // We can retrieve the model_matrix from draw_command_buffer
         };
 
-        struct alignas(16) DrawArraysIndirectCommand {
+        struct alignas(16) DrawElementsIndirectCommand {
             GLuint index_count;
             GLuint instance_count;
             GLuint first_index;
@@ -150,10 +150,21 @@ namespace wrld::sys {
         void render_camera(World &world, const cpt::Camera3D &camera,
                            const LightCollection &lights);
 
-        /// Fill the draw buffers & arb data buffers with visibility information
-        /// for the given camera.
-        /// Return the maximum draw count.
-        GLuint compute_draw_commands(World &world, const cpt::Camera3D &camera);
+        /// This function will :
+        /// - Fill the "renderables" buffer with information about every renderable object
+        /// - Fill the "visibility" buffer with a boolean for each renderable. This is done with
+        ///   a compute shader.
+        ///   Returns the max mesh count for each primitive type (point, line, triangle).
+        void compute_renderables_visiblity(
+            World &world, const cpt::Camera3D &camera);
+
+        void compute_draw_calls_for_material(
+            unsigned material_idx) const;
+
+        // /// Fill the draw buffers & arb data buffers with visibility information
+        // /// for the given camera.
+        // /// Return the maximum draw count.
+        // GLuint compute_draw_commands(World &world, const cpt::Camera3D &camera);
 
         /// Updates already loaded materials.
         /// Materiald are updated each time on the GPU. This may not be the best solution
@@ -197,9 +208,14 @@ namespace wrld::sys {
 
         // ------------------ Resources ------------------ //
 
-        /// Compute shader that fills draw buffers & arb data buffers based
-        /// on the visiblity of models passed using DrawCommand.
+        /// This compute shader takes a list of renderables and fill the
+        /// visiblity buffer with a boolean for each renderable telling if
+        /// it is visible or not.
         Rc<rsc::Program> visibility_program;
+
+        /// This compute shader takes the visibility data from visibility_program,
+        /// a material index, and fills the ARB buffers with the correct information.
+        Rc<rsc::Program> draw_call_generator_program;
 
         /// Vertex + Fragment that draws the skybox.
         Rc<rsc::Program> skybox_program;
@@ -238,9 +254,9 @@ namespace wrld::sys {
 
         GLuint model_data_buffer = 0;
         GLuint mesh_data_buffer = 0;
-        GLuint draw_command_buffer = 0;
 
-        GLuint materials_buffer = 0;
+        GLuint renderable_buffer = 0;
+        GLuint visibility_buffer = 0; // Tells for each draw command if it is visible or not
 
         // todo: maybe use a vector instead
         GLuint points_indirect_draw_buffer = 0;
@@ -249,8 +265,16 @@ namespace wrld::sys {
 
         GLuint arb_counter_buffer = 0;
 
-        GLuint points_arb_data_buffer = 0;
-        GLuint lines_arb_data_buffer = 0;
-        GLuint triangles_arb_data_buffer = 0;
+        GLuint point_mesh_trsfm_buffer = 0;
+        GLuint line_mesh_trsfm_buffer = 0;
+        GLuint triangle_mesh_trsfm_buffer = 0;
+
+        // ------------------ Misc. ------------------ //
+        // Number of renderable objects for the current render iteration.
+        unsigned renderable_count = 0;
+
+        // Max mesh count for each primitive type (point, line, triangle) for the current
+        // render iteration.
+        std::tuple<unsigned, unsigned, unsigned> max_mesh_count{0, 0, 0};
     };
 } // wrld

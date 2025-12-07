@@ -256,8 +256,6 @@ namespace wrld {
                                   GL_TRUE);
         }
 
-        set_statistic("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS", std::to_string(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS));
-
         return window;
     }
 

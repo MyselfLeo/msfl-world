@@ -13,8 +13,8 @@
 
 namespace wrld::rsc {
     enum PolygonMode {
-        WrldPolyFill = 1 << 0,
-        WrldPolyLine = 1 << 1,
+        WrldPolyFill  = 1 << 0,
+        WrldPolyLine  = 1 << 1,
         WrldPolyPoint = 1 << 2,
     };
 
@@ -42,9 +42,9 @@ namespace wrld::rsc {
 
         void remove_specular_map();
 
-        [[nodiscard]] std::optional<Rc<Texture>> get_diffuse_map() const;
+        [[nodiscard]] std::optional<Rc<Texture> > get_diffuse_map() const;
 
-        [[nodiscard]] std::optional<Rc<Texture>> get_specular_map() const;
+        [[nodiscard]] std::optional<Rc<Texture> > get_specular_map() const;
 
         Material &set_diffuse_color(const glm::vec4 &color);
 
@@ -54,9 +54,9 @@ namespace wrld::rsc {
 
         [[nodiscard]] float get_specular_intensity() const;
 
-        Material &set_shininess(float shininess);
+        Material &set_shininess(unsigned shininess);
 
-        [[nodiscard]] float get_shininess() const;
+        [[nodiscard]] unsigned get_shininess() const;
 
         /// If no diffuse map is specified, specify
         /// if we use Material::diffuse_color or the
@@ -97,8 +97,8 @@ namespace wrld::rsc {
         float specular_intensity = 0.5;
 
         // Maps
-        std::optional<Rc<Texture>> diffuse_map; // Diffuse color
-        std::optional<Rc<Texture>> specular_map; // Specular intensity
+        std::optional<Rc<Texture> > diffuse_map;  // Diffuse color
+        std::optional<Rc<Texture> > specular_map; // Specular intensity
 
         // todo: parameters that should be in the material
         // - depth mask (enable/disable)
@@ -113,7 +113,7 @@ namespace wrld::rsc {
         // others...
 
         // Physical values
-        float shininess = 32;
+        unsigned shininess = 32;
 
         // Config
         bool _use_mesh_color = true;

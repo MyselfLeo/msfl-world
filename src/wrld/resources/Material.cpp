@@ -5,8 +5,9 @@
 #include <wrld/resources/Material.hpp>
 
 namespace wrld::rsc {
-    Material::Material(std::string name, World &world /*, Rc<Resource> *rc*/) :
-        Resource(std::move(name), world /*, rc*/) {}
+    Material::Material(std::string name, World &world /*, Rc<Resource> *rc*/) : Resource(
+        std::move(name), world /*, rc*/) {
+    }
 
     Material &Material::set_diffuse_map(const Rc<Texture> &diffuse_map) {
         this->diffuse_map = diffuse_map;
@@ -22,11 +23,11 @@ namespace wrld::rsc {
 
     void Material::remove_specular_map() { this->specular_map = std::nullopt; }
 
-    std::optional<Rc<Texture>> Material::get_diffuse_map() const {
+    std::optional<Rc<Texture> > Material::get_diffuse_map() const {
         return this->diffuse_map;
     }
 
-    std::optional<Rc<Texture>> Material::get_specular_map() const {
+    std::optional<Rc<Texture> > Material::get_specular_map() const {
         return this->specular_map;
     }
 
@@ -44,12 +45,12 @@ namespace wrld::rsc {
 
     float Material::get_specular_intensity() const { return this->specular_intensity; }
 
-    Material &Material::set_shininess(const float shininess) {
+    Material &Material::set_shininess(const unsigned shininess) {
         this->shininess = shininess;
         return *this;
     }
 
-    float Material::get_shininess() const { return this->shininess; }
+    unsigned Material::get_shininess() const { return this->shininess; }
 
     void Material::use_mesh_color(const bool use) { this->_use_mesh_color = use; }
 

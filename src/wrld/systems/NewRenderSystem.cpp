@@ -27,36 +27,58 @@ namespace wrld::sys {
         visibility_program = world.create_resource<rsc::Program>("Visiblity Compute Shader");
         // todo: put this compute in a .hpp
         visibility_program->shader_path(rsc::ShaderType::Compute,
-                                        "/mnt/Projects/mif-si3D/rungholt/data/compute/frustum_culling_v2.comp");
+                                        "/mnt/Projects/mif-si3D/rungholt/data/compute/visibility_check.comp");
         visibility_program->reload();
 
-        skybox_program = world.create_resource<rsc::Program>("Skybox");
+        draw_call_generator_program = world.create_resource<rsc::Program>("Draw call generator Compute Shader");
+        draw_call_generator_program->shader_path(rsc::ShaderType::Compute,
+                                                 "/mnt/Projects/mif-si3D/rungholt/data/compute/draw_call_gen.comp");
+        draw_call_generator_program->reload();
+
+        skybox_program = world.create_resource<rsc::Program>("Skybox Shader");
         skybox_program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
         skybox_program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
         skybox_program->reload();
 
-        forward_program = world.create_resource<rsc::Program>("Forward");
+        forward_program = world.create_resource<rsc::Program>("Forward Shader");
         forward_program->shader_path(rsc::ShaderType::Vertex,
                                      "/mnt/Projects/mif-si3D/rungholt/data/compute/gpu_vertex.vert");
         forward_program->shader_path(rsc::ShaderType::Fragment,
                                      "/mnt/Projects/mif-si3D/rungholt/data/compute/gpu_fragment.frag");
         forward_program->reload();
 
-        deferred_first_pass = world.create_resource<rsc::Program>("Deferred first pass");
-        deferred_first_pass->shader_source(rsc::ShaderType::Vertex, shader::DEFAULT_VERTEX);
-        deferred_first_pass->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_PASS1);
-        deferred_first_pass->reload();
+        // deferred_first_pass = world.create_resource<rsc::Program>("Deferred first pass");
+        // deferred_first_pass->shader_source(rsc::ShaderType::Vertex, shader::DEFAULT_VERTEX);
+        // deferred_first_pass->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_PASS1);
+        // deferred_first_pass->reload();
+        //
+        // deferred_second_pass = world.create_resource<rsc::Program>("Deferred second pass");
+        // deferred_second_pass->shader_source(rsc::ShaderType::Vertex, shader::DEFERRED_PASS2);
+        // deferred_second_pass->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_PASS2);
+        // deferred_second_pass->reload();
 
-        deferred_second_pass = world.create_resource<rsc::Program>("Deferred second pass");
-        deferred_second_pass->shader_source(rsc::ShaderType::Vertex, shader::DEFERRED_PASS2);
-        deferred_second_pass->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_PASS2);
-        deferred_second_pass->reload();
-
-        // ARB counter buffer, 3 uint (point, line, triangle)
+        // Generate the buffers
+        glGenVertexArrays(1, &static_models_vao);
+        glGenBuffers(1, &static_models_vbo);
+        glGenBuffers(1, &static_models_ebo);
+        glGenBuffers(1, &model_data_buffer);
+        glGenBuffers(1, &mesh_data_buffer);
+        glGenBuffers(1, &renderable_buffer);
+        glGenBuffers(1, &visibility_buffer);
+        glGenBuffers(1, &points_indirect_draw_buffer);
+        glGenBuffers(1, &lines_indirect_draw_buffer);
+        glGenBuffers(1, &triangles_indirect_draw_buffer);
+        glGenBuffers(1, &point_mesh_trsfm_buffer);
+        glGenBuffers(1, &line_mesh_trsfm_buffer);
+        glGenBuffers(1, &triangle_mesh_trsfm_buffer);
         glGenBuffers(1, &arb_counter_buffer);
+
+        constexpr std::array<GLuint, 3> zeros{0, 0, 0};
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * zeros.size(), zeros.data(), GL_DYNAMIC_DRAW);
     }
 
-    void NewRenderSystem::reload_resources(World &world) {
+    void NewRenderSystem::reload_resources(const World &world) {
         model_indices.clear();
         materials.clear();
 
@@ -147,40 +169,10 @@ namespace wrld::sys {
             );
         }
 
-        Main::set_statistic("StaticModelData count", std::to_string(model_data.size()));
-        Main::set_statistic("StaticMeshData count", std::to_string(mesh_data.size()));
-
         // Send data to the GPU.
         // First we send the geometry data (for vertex & fragment shaders),
         // then the information required by the compute shader,
         // then the materials.
-
-        // If the buffers were not created yet
-        if (static_models_vao == 0)
-            glGenVertexArrays(1, &static_models_vao);
-        if (static_models_vbo == 0)
-            glGenBuffers(1, &static_models_vbo);
-        if (static_models_ebo == 0)
-            glGenBuffers(1, &static_models_ebo);
-        if (model_data_buffer == 0)
-            glGenBuffers(1, &model_data_buffer);
-        if (mesh_data_buffer == 0)
-            glGenBuffers(1, &mesh_data_buffer);
-        if (draw_command_buffer == 0)
-            glGenBuffers(1, &draw_command_buffer);
-        if (points_indirect_draw_buffer == 0)
-            glGenBuffers(1, &points_indirect_draw_buffer);
-        if (lines_indirect_draw_buffer == 0)
-            glGenBuffers(1, &lines_indirect_draw_buffer);
-        if (triangles_indirect_draw_buffer == 0)
-            glGenBuffers(1, &triangles_indirect_draw_buffer);
-        if (points_arb_data_buffer == 0)
-            glGenBuffers(1, &points_arb_data_buffer);
-        if (lines_arb_data_buffer == 0)
-            glGenBuffers(1, &lines_arb_data_buffer);
-        if (triangles_arb_data_buffer == 0)
-            glGenBuffers(1, &triangles_arb_data_buffer);
-
 
         ///////////////// Geometry data
 
@@ -211,16 +203,11 @@ namespace wrld::sys {
 
         glBindVertexArray(0);
 
-
-        ///////////////// Compute shader information
-
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, model_data_buffer);
         glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(StaticModelData) * model_data.size(), model_data.data(), 0);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mesh_data_buffer);
         glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(StaticMeshData) * mesh_data.size(), mesh_data.data(), 0);
-
-        reload_materials(world);
     }
 
     void NewRenderSystem::render(World &world) {
@@ -241,119 +228,112 @@ namespace wrld::sys {
     void NewRenderSystem::render_camera(World &world, const cpt::Camera3D &camera, const LightCollection &lights) {
         // todo: In the future, a camera should always be attached to a framebuffer, and get rendered
         // on this framebuffer. (a "Viewport" ?)
-
-        const GLuint max = compute_draw_commands(world, camera);
-
+        // Draw skybox if there is one
         const auto [ambiant_light, skybox, vao] = get_environment(world, camera);
-
         if (skybox.has_value()) {
             draw_skybox(skybox.value().get_ref(), camera,
                         vao);
         }
 
+        // Compute visibility of each object
+        compute_renderables_visiblity(world, camera);
+
+        // Todo: we have to adapt here based on if we do forward or deferred
         set_scene_uniforms(forward_program, ambiant_light, lights);
         set_camera_uniforms(forward_program, camera);
         bind_uniform_buffers(obj::PrimitiveType::Triangles);
 
-        Main::get_window_viewport()->use();
-
-        // Actual draw call
-        glBindVertexArray(static_models_vao);
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, triangles_indirect_draw_buffer);
         glBindBuffer(GL_PARAMETER_BUFFER_ARB, arb_counter_buffer);
-        glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, 2 * sizeof(GLsizei),
-                                            max, 0);
+        glBindVertexArray(static_models_vao);
+
+        // For each material, we fill the ARB buffer and we do a render pass
+        for (const auto &[mat_idx, mat]: materials | std::views::enumerate) {
+            compute_draw_calls_for_material(mat_idx);
+
+            forward_program->use();
+            forward_program->set_uniform("material", mat);
+
+            Main::get_window_viewport()->use();
+
+            glDepthMask(mat->is_doing_depth_mask());
+
+            // Actual draw calls (point, line, triangle)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            forward_program->set_uniform("polygon_mode", 0);
+
+            glBindBuffer(GL_DRAW_INDIRECT_BUFFER, triangles_indirect_draw_buffer);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangle_mesh_trsfm_buffer);
+            glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, 2 * sizeof(GLsizei),
+                                                std::get<2>(max_mesh_count), 0);
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            forward_program->set_uniform("polygon_mode", 1);
+            glLineWidth(mat->get_line_width());
+
+            glBindBuffer(GL_DRAW_INDIRECT_BUFFER, lines_indirect_draw_buffer);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lines_indirect_draw_buffer);
+            glMultiDrawElementsIndirectCountARB(GL_LINES, GL_UNSIGNED_INT, nullptr, 1 * sizeof(GLsizei),
+                                                std::get<1>(max_mesh_count), 0);
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+            forward_program->set_uniform("polygon_mode", 2);
+            glPointSize(mat->get_point_size());
+
+            glBindBuffer(GL_DRAW_INDIRECT_BUFFER, points_indirect_draw_buffer);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, point_mesh_trsfm_buffer);
+            glMultiDrawElementsIndirectCountARB(GL_POINTS, GL_UNSIGNED_INT, nullptr, 0 * sizeof(GLsizei),
+                                                std::get<0>(max_mesh_count), 0);
+        }
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
         glBindVertexArray(0);
     }
 
-    GLuint NewRenderSystem::compute_draw_commands(World &world, const cpt::Camera3D &camera) {
-        reload_materials(world);
-
+    void NewRenderSystem::compute_renderables_visiblity(World &world, const cpt::Camera3D &camera) {
         // Find all entities that should be rendered
-        const std::vector<EntityID> renderables = world.get_entities_with_component<cpt::StaticModel>();
+        const std::vector<EntityID> visible_objects = world.get_entities_with_component<cpt::StaticModel>();
+        std::vector<Renderable> renderables;
+        renderables.reserve(visible_objects.size());
+        renderable_count = visible_objects.size();
 
-        Main::set_statistic("Renderables", std::to_string(renderables.size()));
+        max_mesh_count = {0, 0, 0};
 
-        std::vector<DrawCommand> commands;
-        commands.reserve(renderables.size());
-
-        unsigned max_point_mesh = 0;
-        unsigned max_line_mesh = 0;
-        unsigned max_triangle_mesh = 0;
-
-        for (const auto entity: renderables) {
+        for (const auto entity: visible_objects) {
             const auto transform_cpt = world.get_component<cpt::Transform>(entity);
             const auto model_cpt = world.get_component<cpt::StaticModel>(entity);
             const auto model = model_cpt->get_model();
 
+            renderables.emplace_back(transform_cpt->model_matrix(), model_indices[model]);
+
             for (const auto &mg: model->get_mesh_groups() | std::views::keys) {
                 switch (mg.get_primitive_type()) {
                     case obj::PrimitiveType::Points:
-                        max_point_mesh += mg.get_mesh_count();
+                        std::get<0>(max_mesh_count) += mg.get_mesh_count();
                         break;
                     case obj::PrimitiveType::Lines:
-                        max_line_mesh += mg.get_mesh_count();
+                        std::get<1>(max_mesh_count) += mg.get_mesh_count();
                         break;
                     case obj::PrimitiveType::Triangles:
-                        max_triangle_mesh += mg.get_mesh_count();
+                        std::get<2>(max_mesh_count) += mg.get_mesh_count();
                         break;
                 }
             }
-
-            commands.emplace_back(transform_cpt->model_matrix(), model_indices[model]);
         }
 
-        Main::set_statistic("Max point meshes", std::to_string(max_point_mesh));
-        Main::set_statistic("Max line meshes", std::to_string(max_line_mesh));
-        Main::set_statistic("Max triangle meshes", std::to_string(max_triangle_mesh));
-
         // Send data to GPU
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, draw_command_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawCommand) * commands.size(), commands.data(), GL_DYNAMIC_DRAW);
-
-        // Allocate memory for the draw_buffers & the arb_data_buffers based on
-        // the max count computed at the previous step.
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_point_mesh, nullptr,
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, renderable_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Renderable) * renderable_count, renderables.data(),
                      GL_DYNAMIC_DRAW);
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, lines_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_line_mesh, nullptr,
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, visibility_buffer);
+        // Can't use GLboolean as it's 1 byte, not 4 like on GPU
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * renderable_count, nullptr,
                      GL_DYNAMIC_DRAW);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangles_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_triangle_mesh, nullptr,
-                     GL_DYNAMIC_DRAW);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_arb_data_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_point_mesh, nullptr, GL_DYNAMIC_DRAW);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, lines_arb_data_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_line_mesh, nullptr, GL_DYNAMIC_DRAW);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangles_arb_data_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_triangle_mesh, nullptr, GL_DYNAMIC_DRAW);
 
         // Prepare the dispatch
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, model_data_buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh_data_buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, draw_command_buffer);
-
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, points_indirect_draw_buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, lines_indirect_draw_buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, triangles_indirect_draw_buffer);
-
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, arb_counter_buffer);
-
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, points_arb_data_buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, lines_arb_data_buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, triangles_arb_data_buffer);
-
-
-        std::array<GLuint, 3> counter{0, 0, 0};
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * counter.size(), counter.data(), GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, renderable_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, visibility_buffer);
 
         visibility_program->use();
         visibility_program->set_uniform("view_matrix", camera.get_view_matrix());
@@ -361,85 +341,254 @@ namespace wrld::sys {
 
         // Execute the compute shader
         static constexpr unsigned GROUP_SIZE_X = 256; // Should be the same than GPU side
-        glDispatchCompute((renderables.size() + GROUP_SIZE_X - 1) / GROUP_SIZE_X, 1, 1);
+        glDispatchCompute((renderable_count + GROUP_SIZE_X - 1) / GROUP_SIZE_X, 1, 1);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+
+        // Debug
+        std::vector<unsigned> visibility(renderable_count);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, visibility_buffer);
+        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(unsigned) * renderable_count, visibility.data());
+        unsigned count = 0;
+        for (const auto b: visibility)
+            if (b) count += 1;
+
+        Main::set_statistic("Visible renderable", std::to_string(count));
+    }
+
+    void NewRenderSystem::compute_draw_calls_for_material(const unsigned material_idx) const {
+        // Input
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, model_data_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh_data_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, renderable_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, visibility_buffer);
+
+        // Output of the shader, this is what we have to fill beforehand
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, arb_counter_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, points_indirect_draw_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, lines_indirect_draw_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, triangles_indirect_draw_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, point_mesh_trsfm_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, line_mesh_trsfm_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, triangle_mesh_trsfm_buffer);
+
+        // Send data to the GPU
+        std::array<GLuint, 3> counter{0, 0, 0};
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint) * counter.size(), counter.data());
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_indirect_draw_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * std::get<0>(max_mesh_count),
+                     nullptr,
+                     GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, lines_indirect_draw_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * std::get<1>(max_mesh_count),
+                     nullptr,
+                     GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangles_indirect_draw_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * std::get<2>(max_mesh_count),
+                     nullptr,
+                     GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, point_mesh_trsfm_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * std::get<0>(max_mesh_count), nullptr,
+                     GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, line_mesh_trsfm_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * std::get<1>(max_mesh_count), nullptr,
+                     GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangle_mesh_trsfm_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * std::get<2>(max_mesh_count), nullptr,
+                     GL_DYNAMIC_DRAW);
+
+        draw_call_generator_program->use();
+        draw_call_generator_program->set_uniform("material_idx", material_idx);
+
+        // Execute the compute shader
+        static constexpr unsigned GROUP_SIZE_X = 256; // Should be the same than GPU side
+        glDispatchCompute((renderable_count + GROUP_SIZE_X - 1) / GROUP_SIZE_X, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
         glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint) * counter.size(), counter.data());
 
-        Main::set_statistic("ARB Frustum POINT count", std::to_string(counter[0]));
-        Main::set_statistic("ARB Frustum LINE count", std::to_string(counter[1]));
-        Main::set_statistic("ARB Frustum TRIANGLE count", std::to_string(counter[2]));
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 11; i++)
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0);
-
-
-        return std::max(max_point_mesh, std::max(max_line_mesh, max_triangle_mesh));
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
 
-    void NewRenderSystem::reload_materials(World &world) {
-        textures.clear();
+    // GLuint NewRenderSystem::compute_draw_commands(World &world, const cpt::Camera3D &camera) {
+    //     reload_materials(world);
+    //
+    //     // Find all entities that should be rendered
+    //     const std::vector<EntityID> renderables = world.get_entities_with_component<cpt::StaticModel>();
+    //
+    //     std::vector<DrawCommand> commands;
+    //     commands.reserve(renderables.size());
+    //
+    //     unsigned max_point_mesh = 0;
+    //     unsigned max_line_mesh = 0;
+    //     unsigned max_triangle_mesh = 0;
+    //
+    //     for (const auto entity: renderables) {
+    //         const auto transform_cpt = world.get_component<cpt::Transform>(entity);
+    //         const auto model_cpt = world.get_component<cpt::StaticModel>(entity);
+    //         const auto model = model_cpt->get_model();
+    //
+    //         for (const auto &mg: model->get_mesh_groups() | std::views::keys) {
+    //             switch (mg.get_primitive_type()) {
+    //                 case obj::PrimitiveType::Points:
+    //                     max_point_mesh += mg.get_mesh_count();
+    //                     break;
+    //                 case obj::PrimitiveType::Lines:
+    //                     max_line_mesh += mg.get_mesh_count();
+    //                     break;
+    //                 case obj::PrimitiveType::Triangles:
+    //                     max_triangle_mesh += mg.get_mesh_count();
+    //                     break;
+    //             }
+    //         }
+    //
+    //         commands.emplace_back(transform_cpt->model_matrix(), model_indices[model]);
+    //     }
+    //     // Send data to GPU
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, renderable_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawCommand) * commands.size(), commands.data(), GL_DYNAMIC_DRAW);
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, visibility_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLboolean) * commands.size(), nullptr, GL_DYNAMIC_DRAW);
+    //
+    //     // Allocate memory for the draw_buffers & the arb_data_buffers based on
+    //     // the max count computed at the previous step.
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_indirect_draw_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_point_mesh, nullptr,
+    //                  GL_DYNAMIC_DRAW);
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lines_indirect_draw_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_line_mesh, nullptr,
+    //                  GL_DYNAMIC_DRAW);
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangles_indirect_draw_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawArraysIndirectCommand) * max_triangle_mesh, nullptr,
+    //                  GL_DYNAMIC_DRAW);
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, point_mesh_trsfm_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_point_mesh, nullptr, GL_DYNAMIC_DRAW);
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, line_mesh_trsfm_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_line_mesh, nullptr, GL_DYNAMIC_DRAW);
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangle_mesh_trsfm_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ARBData) * max_triangle_mesh, nullptr, GL_DYNAMIC_DRAW);
+    //
+    //     // Prepare the dispatch
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, model_data_buffer);
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh_data_buffer);
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, renderable_buffer);
+    //
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, points_indirect_draw_buffer);
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, lines_indirect_draw_buffer);
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, triangles_indirect_draw_buffer);
+    //
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, arb_counter_buffer);
+    //
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, point_mesh_trsfm_buffer);
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, line_mesh_trsfm_buffer);
+    //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, triangle_mesh_trsfm_buffer);
+    //
+    //
+    //     std::array<GLuint, 3> counter{0, 0, 0};
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
+    //     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * counter.size(), counter.data(), GL_DYNAMIC_DRAW);
+    //
+    //     visibility_program->use();
+    //     visibility_program->set_uniform("view_matrix", camera.get_view_matrix());
+    //     visibility_program->set_uniform("proj_matrix", camera.get_projection_matrix());
+    //
+    //     // Execute the compute shader
+    //     static constexpr unsigned GROUP_SIZE_X = 256; // Should be the same than GPU side
+    //     glDispatchCompute((renderables.size() + GROUP_SIZE_X - 1) / GROUP_SIZE_X, 1, 1);
+    //     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
+    //     glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint) * counter.size(), counter.data());
+    //
+    //     Main::set_statistic("Visible point meshes", std::to_string(counter[0]));
+    //     Main::set_statistic("Visible line meshes", std::to_string(counter[1]));
+    //     Main::set_statistic("Visible triangle meshes", std::to_string(counter[2]));
+    //
+    //     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    //
+    //     for (int i = 0; i < 10; i++)
+    //         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0);
+    //
+    //
+    //     return std::max(max_point_mesh, std::max(max_line_mesh, max_triangle_mesh));
+    // }
 
-        std::vector<MaterialData> material_data;
-
-        for (const auto &mat: materials) {
-            // Check if the texture is already listed as "to be active", if yes then
-            // just give its attributed active position, else add it if there is still
-            // space for it. If not we raise a warning and just give it texture 0.
-            GLint diffuse_map = 0, specular_map = 0;
-            if (mat->get_diffuse_map().has_value()) {
-                const auto texture = mat->get_diffuse_map().value();
-                if (auto j = std::ranges::find(textures, texture); j != textures.end()) {
-                    diffuse_map = j - textures.begin();
-                } else {
-                    if (textures.size() == 32) {
-                        wrldInfo("Failed to load more than 32 active textures. Sorry !");
-                    } else {
-                        diffuse_map = textures.size();
-                        textures.push_back(texture);
-                    }
-                }
-            }
-            if (mat->get_specular_map().has_value()) {
-                const auto texture = mat->get_specular_map().value();
-                if (auto j = std::ranges::find(textures, texture); j != textures.end()) {
-                    specular_map = j - textures.begin();
-                } else {
-                    if (textures.size() == 32) {
-                        wrldInfo("Failed to load more than 32 active textures. Sorry !");
-                    } else {
-                        specular_map = textures.size();
-                        textures.push_back(texture);
-                    }
-                }
-            }
-
-            material_data.emplace_back(
-                mat->get_diffuse_color(),
-                mat->get_specular_intensity(),
-                mat->get_diffuse_map().has_value(),
-                mat->get_specular_map().has_value(),
-                diffuse_map,
-                specular_map,
-                mat->get_shininess(),
-                mat->is_using_mesh_color(),
-                mat->is_doing_lighting()
-            );
-        }
-
-        ///////////////// Materials
-
-        if (materials_buffer == 0)
-            glGenBuffers(1, &materials_buffer);
-
-        glBindBuffer(GL_UNIFORM_BUFFER, materials_buffer);
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(MaterialData) * material_data.size(), material_data.data(),
-                     GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    }
+    // void NewRenderSystem::reload_materials(World &world) {
+    //     textures.clear();
+    //
+    //     // std::vector<MaterialData> material_data;
+    //
+    //     for (const auto &mat: materials) {
+    //         // Check if the texture is already listed as "to be active", if yes then
+    //         // just give its attributed active position, else add it if there is still
+    //         // space for it. If not we raise a warning and just give it texture 0.
+    //         GLint diffuse_map = 0, specular_map = 0;
+    //         if (mat->get_diffuse_map().has_value()) {
+    //             const auto texture = mat->get_diffuse_map().value();
+    //             if (auto j = std::ranges::find(textures, texture); j != textures.end()) {
+    //                 diffuse_map = j - textures.begin();
+    //             } else {
+    //                 if (textures.size() == 32) {
+    //                     wrldInfo("Failed to load more than 32 active textures. Sorry !");
+    //                 } else {
+    //                     diffuse_map = textures.size();
+    //                     textures.push_back(texture);
+    //                 }
+    //             }
+    //         }
+    //         if (mat->get_specular_map().has_value()) {
+    //             const auto texture = mat->get_specular_map().value();
+    //             if (auto j = std::ranges::find(textures, texture); j != textures.end()) {
+    //                 specular_map = j - textures.begin();
+    //             } else {
+    //                 if (textures.size() == 32) {
+    //                     wrldInfo("Failed to load more than 32 active textures. Sorry !");
+    //                 } else {
+    //                     specular_map = textures.size();
+    //                     textures.push_back(texture);
+    //                 }
+    //             }
+    //         }
+    //
+    //         material_data.emplace_back(
+    //             mat->get_diffuse_color(),
+    //             mat->get_specular_intensity(),
+    //             mat->get_diffuse_map().has_value(),
+    //             mat->get_specular_map().has_value(),
+    //             diffuse_map,
+    //             specular_map,
+    //             mat->get_shininess(),
+    //             mat->is_using_mesh_color(),
+    //             mat->is_doing_lighting()
+    //         );
+    //     }
+    //
+    //     ///////////////// Materials
+    //
+    //     if (materials_buffer == 0)
+    //         glGenBuffers(1, &materials_buffer);
+    //
+    //     glBindBuffer(GL_UNIFORM_BUFFER, materials_buffer);
+    //     glBufferData(GL_UNIFORM_BUFFER, sizeof(MaterialData) * material_data.size(), material_data.data(),
+    //                  GL_DYNAMIC_DRAW);
+    //     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // }
 
     NewRenderSystem::EnvironmentData NewRenderSystem::get_environment(World &world, const cpt::Camera3D &camera) {
         const EntityID camera_entity = camera.get_entity();
@@ -452,7 +601,7 @@ namespace wrld::sys {
     }
 
     void NewRenderSystem::draw_skybox(const rsc::CubemapTexture &cubemap, const cpt::Camera3D &camera,
-                                      GLuint vao) const {
+                                      const GLuint vao) const {
         skybox_program->use();
 
         const auto inv_matrix =
@@ -555,17 +704,17 @@ namespace wrld::sys {
     void NewRenderSystem::bind_uniform_buffers(const obj::PrimitiveType primitive_type) const {
         switch (primitive_type) {
             case obj::PrimitiveType::Points:
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, points_arb_data_buffer);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, point_mesh_trsfm_buffer);
                 break;
             case obj::PrimitiveType::Lines:
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lines_arb_data_buffer);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, line_mesh_trsfm_buffer);
                 break;
             case obj::PrimitiveType::Triangles:
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangles_arb_data_buffer);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangle_mesh_trsfm_buffer);
                 break;
         }
 
-        glBindBufferBase(GL_UNIFORM_BUFFER, 1, materials_buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, draw_command_buffer);
+        // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, materials_buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, renderable_buffer);
     }
 } // wrld
