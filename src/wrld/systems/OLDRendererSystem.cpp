@@ -5,7 +5,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <wrld/systems/RendererSystem.hpp>
+#include <wrld/systems/OLDRendererSystem.hpp>
 #include <wrld/components/Camera3D.hpp>
 #include <wrld/components/DirectionalLight.hpp>
 #include <wrld/components/StaticModel.hpp>
@@ -37,7 +37,7 @@ namespace wrld {
                                      const GLuint vao) : vao(vao), ambiant_light(ambiant_light), skybox(skybox) {
     }
 
-    RendererSystem::RendererSystem(World &world, GLFWwindow *window) : System(world), window(window) {
+    OLDRendererSystem::OLDRendererSystem(World &world, GLFWwindow *window) : System(world), window(window) {
         skybox_program = world.create_resource<rsc::Program>("skybox_program");
         skybox_program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
         skybox_program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
@@ -52,9 +52,9 @@ namespace wrld {
         glGenBuffers(1, &result_buffer);
     }
 
-    RendererSystem::~RendererSystem() = default;
+    OLDRendererSystem::~OLDRendererSystem() = default;
 
-    void RendererSystem::exec(const double delta_time) {
+    void OLDRendererSystem::exec(const double delta_time) {
         // Find the first camera in the world. It will be the render
         // one.
         // todo: in the future, each camera will be attached to a Viewport.
@@ -67,18 +67,18 @@ namespace wrld {
         }
     }
 
-    GLFWwindow *RendererSystem::get_window() const { return window; }
+    GLFWwindow *OLDRendererSystem::get_window() const { return window; }
 
-    unsigned RendererSystem::get_visible_models() const { return hidden_models; }
+    unsigned OLDRendererSystem::get_visible_models() const { return hidden_models; }
 
-    glm::mat4x4 RendererSystem::get_entity_transform(const EntityID id) const {
+    glm::mat4x4 OLDRendererSystem::get_entity_transform(const EntityID id) const {
         if (const auto transform_cmpnt = world.get_component_opt<cpt::Transform>(id))
             return transform_cmpnt.value()->model_matrix();
         return glm::mat4x4(1.0);
     }
 
     std::optional<std::shared_ptr<const cpt::Camera3D> >
-    RendererSystem::get_camera() const {
+    OLDRendererSystem::get_camera() const {
         if (const std::vector camera_entities =
                     world.get_entities_with_component<cpt::Camera3D>();
             !camera_entities.empty())
@@ -86,7 +86,7 @@ namespace wrld {
         return std::nullopt;
     }
 
-    Rc<rsc::Model> RendererSystem::get_entity_model(const EntityID id) const {
+    Rc<rsc::Model> OLDRendererSystem::get_entity_model(const EntityID id) const {
         return world.get_component<cpt::StaticModel>(id)->get_model();
     }
 
@@ -98,7 +98,7 @@ namespace wrld {
         return shdr.value()->get_program();
     }*/
 
-    void RendererSystem::render_camera(const cpt::Camera3D &camera) {
+    void OLDRendererSystem::render_camera(const cpt::Camera3D &camera) {
         const auto program = camera.get_program();
 
         const EnvironmentData environment_data = get_environment(camera);
@@ -177,7 +177,7 @@ namespace wrld {
                             std::format("{}/{}", visible_models, total_models));
     }
 
-    EnvironmentData RendererSystem::get_environment(const cpt::Camera3D &camera) const {
+    EnvironmentData OLDRendererSystem::get_environment(const cpt::Camera3D &camera) const {
         const EntityID camera_entity = camera.get_entity();
 
         if (const auto env_cpnt_opt =
@@ -193,7 +193,7 @@ namespace wrld {
         return EnvironmentData{cpt::AmbiantLight{}, std::nullopt, 0};
     }
 
-    std::vector<PointLightData> RendererSystem::get_point_lights() const {
+    std::vector<PointLightData> OLDRendererSystem::get_point_lights() const {
         std::vector<PointLightData> res;
 
         // Query each PointLight components in world
@@ -218,7 +218,7 @@ namespace wrld {
         return res;
     }
 
-    std::vector<DirectionalLightData> RendererSystem::get_directional_lights() const {
+    std::vector<DirectionalLightData> OLDRendererSystem::get_directional_lights() const {
         std::vector<DirectionalLightData> res;
 
         // Query each DirectionalLight components in world
@@ -244,7 +244,7 @@ namespace wrld {
         return res;
     }
 
-    void RendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap,
+    void OLDRendererSystem::draw_skybox(const rsc::CubemapTexture &cubemap,
                                      const cpt::Camera3D &camera, const GLuint vao) const {
         skybox_program->use();
 
@@ -267,7 +267,7 @@ namespace wrld {
         glDepthMask(GL_TRUE);
     }
 
-    void RendererSystem::draw_model(const rsc::Model &model,
+    void OLDRendererSystem::draw_model(const rsc::Model &model,
                                     const glm::mat4x4 &model_matrix,
                                     const rsc::Program &program) {
         glEnable(GL_DEPTH_TEST);

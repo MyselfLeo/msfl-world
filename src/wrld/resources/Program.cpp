@@ -3,8 +3,8 @@
 //
 
 #include <wrld/resources/Program.hpp>
-#include <wrld/shaders/vertex/default_shader.hpp>
-#include <wrld/shaders/fragment/default_shader.hpp>
+#include <../../../include/wrld/shaders/old/vert_default_shader.hpp>
+#include <../../../include/wrld/shaders/old/default_shader.hpp>
 
 #include <wrld/resources/Rc.hpp>
 #include <wrld/logs.hpp>

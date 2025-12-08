@@ -38,13 +38,13 @@ namespace wrld {
         std::optional<Rc<rsc::CubemapTexture>> skybox;
     };
 
-    class RendererSystem : public System {
+    class OLDRendererSystem : public System {
     public:
         static constexpr unsigned MAX_LIGHTS = 100;
 
-        RendererSystem(World &world, GLFWwindow *window);
+        OLDRendererSystem(World &world, GLFWwindow *window);
 
-        ~RendererSystem() override;
+        ~OLDRendererSystem() override;
 
         void exec(double delta_time) override;
 

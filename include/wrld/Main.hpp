@@ -12,7 +12,7 @@
 #include <wrld/App.hpp>
 #include <wrld/World.hpp>
 #include <wrld/resources/WindowFramebuffer.hpp>
-#include <wrld/systems/RendererSystem.hpp>
+#include <wrld/systems/OLDRendererSystem.hpp>
 
 namespace wrld {
     enum class RendererType {
@@ -89,7 +89,7 @@ namespace wrld {
 
         static std::unordered_map<std::string, std::string> statistics;
 
-        static std::unique_ptr<RendererSystem> get_renderer();
+        static std::unique_ptr<OLDRendererSystem> get_renderer();
 
         static void update_window_title();
 

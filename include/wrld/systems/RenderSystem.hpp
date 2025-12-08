@@ -1,61 +1,39 @@
 //
-// Created by leo on 11/28/25.
+// Created by leo on 12/8/25.
 //
 
 #pragma once
+#include "../Singleton.hpp"
 
 #include "glad/glad.h"
-#include "glm/mat4x4.hpp"
 
-#include <wrld/resources/Rc.hpp>
-#include <wrld/resources/Material.hpp>
-
-#include "wrld/components/Camera3D.hpp"
+#include "wrld/World.hpp"
 #include "wrld/components/Environment3D.hpp"
 #include "wrld/resources/Model.hpp"
 
 namespace wrld::sys {
-    enum class RenderingType {
-        Forward,
-        Deferred,
-    };
-
-    /// This system manages :
-    /// - Allocation of geometry to the GPU
-    /// - Rendering pipeline (GPU culling -> Vertex shader -> Fragment shader)
-    class NewRenderSystem {
+    class RenderSystem {
     public:
-        static NewRenderSystem *get();
-
-        NewRenderSystem() = default;
-
-        NewRenderSystem(NewRenderSystem &other) = delete;
-
-        void operator=(const NewRenderSystem &) = delete;
-
         static constexpr unsigned MAX_LIGHTS = 100;
 
+        virtual ~RenderSystem() = default;
+
         /// Initialize the system, compiles required shaders...
-        void init(World &world);
+        virtual void init(World &world) = 0;
+
+        /// Render all the cameras in the world.
+        virtual void render(World &world) = 0;
 
         /// Reload loaded meshes, models & materials. All the data
         /// is sent to the GPU.
         void reload_resources(const World &world);
 
-        /// Render all the cameras in the world.
-        void render(World &world);
-
-    private:
-        // ------------------ Singleton pattern ------------------ //
-        static NewRenderSystem *singleton;
-
-        // ------------------ Private data structures ------------------ //
-
+    protected:
         /// For each mesh we give :
-        /// - Its primitive type. The compute shader will use it
-        ///   to put the draw command in the correct Indirect Buffer.
-        /// - The material it uses
-        /// - Its position in the VAO
+/// - Its primitive type. The compute shader will use it
+///   to put the draw command in the correct Indirect Buffer.
+/// - The material it uses
+/// - Its position in the VAO
         struct alignas(16) StaticMeshData {
             GLenum primitive_type;
             GLuint material_idx;
@@ -77,27 +55,6 @@ namespace wrld::sys {
             GLuint mesh_start = 0;
             GLuint mesh_count = 0;
         };
-
-        // // Fixme: It might be a good idea to reduce the size
-        // // of this struct.
-        // // Some possibilities :
-        // // - Combine all booleans into 1 GLuint and use bitwise
-        // //   operations
-        // // - If diffuse_color.w is not used, store the specular_intensity
-        // //   in it instead.
-        // // - diffuse_map and specular_map, if used, will have values between 0 and 31,
-        // //   so we can use a special value (-1, 100, 42, idc) to denote "not used".
-        // struct alignas(16) MaterialData {
-        //     glm::vec4 diffuse_color;
-        //     GLfloat specular_intensity;
-        //     GLboolean use_diffuse_map;
-        //     GLboolean use_specular_map;
-        //     GLint diffuse_map;  // Value not relevant if use_diffuse_map is false
-        //     GLint specular_map; // Idem
-        //     GLuint shininess;
-        //     GLboolean use_vertex_color;
-        //     GLboolean do_lighting;
-        // };
 
         /// Tells the compute shader that the model_idx should be rendered
         /// using the transform matrix.
@@ -144,12 +101,6 @@ namespace wrld::sys {
             std::vector<PointLightData> point_lights;
         };
 
-        // ------------------ Private functions ------------------ //
-
-        /// Render the given camera.
-        void render_camera(World &world, const cpt::Camera3D &camera,
-                           const LightCollection &lights);
-
         /// This function will :
         /// - Fill the "renderables" buffer with information about every renderable object
         /// - Fill the "visibility" buffer with a boolean for each renderable. This is done with
@@ -160,16 +111,6 @@ namespace wrld::sys {
 
         void compute_draw_calls_for_material(
             unsigned material_idx) const;
-
-        // /// Fill the draw buffers & arb data buffers with visibility information
-        // /// for the given camera.
-        // /// Return the maximum draw count.
-        // GLuint compute_draw_commands(World &world, const cpt::Camera3D &camera);
-
-        /// Updates already loaded materials.
-        /// Materiald are updated each time on the GPU. This may not be the best solution
-        /// and I might do StaticMaterial & DynamicMaterial.
-        void reload_materials(World &world);
 
         /// Return the environment attached to the camera, or a default one if not
         /// provided.
@@ -196,15 +137,7 @@ namespace wrld::sys {
         /// Add camera-related uniforms to the given program.
         static void set_camera_uniforms(const Rc<rsc::Program> &program, const cpt::Camera3D &camera);
 
-        /// Bind to the given program the following buffers :
-        /// - The ARB Data buffer related to the primitive type (binding 0)
-        /// - The material buffer (binding 1)
-        /// - The DrawCommands buffer (binding 2)
-        void bind_uniform_buffers(obj::PrimitiveType primitive_type) const;
-
-        // ------------------ Parameters ------------------ //
-
-        RenderingType rendering_type = RenderingType::Forward;
+        void bind_trsfm_buffer(obj::PrimitiveType primitive_type) const;
 
         // ------------------ Resources ------------------ //
 
@@ -220,31 +153,10 @@ namespace wrld::sys {
         /// Vertex + Fragment that draws the skybox.
         Rc<rsc::Program> skybox_program;
 
-        /// Forward program.
-        /// todo: Use the camera's program instead.
-        Rc<rsc::Program> forward_program;
-
-        /// First step of the deferred rendering process (Vertex + Fragment).
-        /// This program will write relevant data into a DeferredFramebuffer.
-        Rc<rsc::Program> deferred_first_pass;
-
-        /// Second step of the deferred rendering process (Vertex + Fragment).
-        /// This program takes the data from the previous Framebuffer and renders
-        /// it correctly with all the materials applied.
-        Rc<rsc::Program> deferred_second_pass;
-
         /// Tells for each rsc::Model its position in StaticModelData.
         std::unordered_map<Rc<rsc::Model>, GLuint> model_indices;
 
         std::vector<Rc<rsc::Material> > materials;
-
-        // Textures used in the models.
-        // We are sadly limited to 32 active textures (for now ? Maybe if we split draw calls...).
-        // Before the draw call we have to do textures[i]->use(i).
-        // Why : While we can give the materials to the fragment shader in storage buffers, we
-        //       can't give textures as buffers. We can set 32 active textures and we have to do
-        //       that manually before the draw calls (as they might have changed).
-        std::vector<Rc<rsc::Texture> > textures;
 
         // ------------------ Buffers ------------------ //
 
@@ -277,4 +189,4 @@ namespace wrld::sys {
         // render iteration.
         std::tuple<unsigned, unsigned, unsigned> max_mesh_count{0, 0, 0};
     };
-} // wrld
+}

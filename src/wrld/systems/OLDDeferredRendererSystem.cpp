@@ -8,12 +8,12 @@
 #include <iostream>
 #include <wrld/shaders/vertex/default_shader.hpp>
 #include <wrld/shaders/fragment/deferred_pass1_shader.hpp>
-#include <wrld/shaders/deferred_pass2_shader.hpp>
+#include <wrld/shaders/deferred_second_pass.glsl.hpp>
 
 
 #include <wrld/Main.hpp>
-#include <wrld/systems/DeferredRendererSystem.hpp>
-#include <wrld/systems/RendererSystem.hpp>
+#include <wrld/systems/OLDDeferredRendererSystem.hpp>
+#include <wrld/systems/OLDRendererSystem.hpp>
 #include <wrld/components/Camera3D.hpp>
 #include <wrld/components/StaticModel.hpp>
 
@@ -21,8 +21,8 @@
 #include <wrld/tools/Geometry.hpp>
 
 namespace wrld {
-    DeferredRendererSystem::DeferredRendererSystem(World &world, GLFWwindow *window) :
-        RendererSystem(world, window), vao(0) {
+    OLDDeferredRendererSystem::OLDDeferredRendererSystem(World &world, GLFWwindow *window) : OLDRendererSystem(
+            world, window), vao(0) {
         glGenVertexArrays(1, &vao);
 
         const auto pass1 = world.create_resource<rsc::Program>("pass1_program");
@@ -48,9 +48,11 @@ namespace wrld {
         framebuffer->recreate();
     }
 
-    DeferredRendererSystem::~DeferredRendererSystem() { glDeleteVertexArrays(1, &vao); }
+    OLDDeferredRendererSystem::~OLDDeferredRendererSystem() {
+        glDeleteVertexArrays(1, &vao);
+    }
 
-    void DeferredRendererSystem::render_camera(const cpt::Camera3D &camera) {
+    void OLDDeferredRendererSystem::render_camera(const cpt::Camera3D &camera) {
         //  FIRST PASS
 
         // Resize buffer is size is updated
@@ -105,7 +107,7 @@ namespace wrld {
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(AABB) * count, bounding_boxes.data(), GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, result_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER,  sizeof(GLint) * count, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLint) * count, nullptr, GL_DYNAMIC_DRAW);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, model_matrices_buffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, aabb_buffer);

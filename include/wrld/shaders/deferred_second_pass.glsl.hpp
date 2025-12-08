@@ -7,7 +7,7 @@
 #include <string>
 
 namespace wrld::shader {
-    inline std::string DEFERRED_PASS2 = R"(
+    inline std::string DEFERRED_SECOND_PASS = R"(
 #version 460 core
 
 #ifdef VERTEX_SHADER
@@ -164,5 +164,4 @@ void main()
 
 #endif
 )";
-
 }

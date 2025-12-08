@@ -58,15 +58,14 @@ set(HEADERS
         include/wrld/resources/Rc.hpp
         include/wrld/resources/Rc.tpp
 
-        include/wrld/shaders/skybox_shader.hpp
-        include/wrld/shaders/deferred_pass2_shader.hpp
-        include/wrld/shaders/vertex/default_shader.hpp
-        include/wrld/shaders/fragment/default_shader.hpp
-        include/wrld/shaders/fragment/deferred_pass1_shader.hpp
+        include/wrld/shaders/skybox_shader.glsl.hpp
+        include/wrld/shaders/deferred_second_pass.glsl.hpp
         include/wrld/shaders/compute/visibility_check.comp.hpp
         include/wrld/shaders/compute/draw_call_gen.comp.hpp
         include/wrld/shaders/vertex/forward.vert.hpp
+        include/wrld/shaders/vertex/deferred.vert.hpp
         include/wrld/shaders/fragment/forward.frag.hpp
+        include/wrld/shaders/fragment/deferred.frag.hpp
 
         include/wrld/objects/geometry/Mesh.hpp
         include/wrld/objects/geometry/MeshGroup.hpp
@@ -77,14 +76,15 @@ set(HEADERS
         include/wrld/objects/geometry/Ray.hpp
         include/wrld/objects/geometry/Triangle.hpp
 
-        # include/wrld/systems/RendererSystem.hpp
-        # include/wrld/systems/DeferredRendererSystem.hpp
-        include/wrld/systems/NewRenderSystem.hpp
+        include/wrld/systems/RenderSystem.hpp
+        include/wrld/systems/ForwardRenderSystem.hpp
+        include/wrld/systems/DeferredRenderSystem.hpp
 
         include/wrld/tools/ModelTool.hpp
         include/wrld/tools/Geometry.hpp
 
         include/wrld/macros.hpp
+        include/wrld/Singleton.hpp
 
         include/wrld-gui/components.hpp
         include/wrld-gui/resources.hpp
@@ -127,9 +127,9 @@ set(SOURCE
         src/wrld/objects/geometry/GeoRequestable.cpp
         src/wrld/objects/geometry/Triangle.cpp
 
-        # src/wrld/systems/RendererSystem.cpp
-        # src/wrld/systems/DeferredRendererSystem.cpp
-        src/wrld/systems/NewRenderSystem.cpp
+        src/wrld/systems/RenderSystem.cpp
+        src/wrld/systems/ForwardRenderSystem.cpp
+        src/wrld/systems/DeferredRenderSystem.cpp
 
         src/wrld/tools/ModelTool.cpp
         src/wrld/tools/Geometry.cpp

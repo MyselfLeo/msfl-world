@@ -16,7 +16,7 @@
 
 #include <utility>
 
-#include "wrld/systems/NewRenderSystem.hpp"
+#include "wrld/systems/ForwardRenderSystem.hpp"
 
 namespace wrld {
     // Default Main values
@@ -55,7 +55,7 @@ namespace wrld {
 
         world = World();
 
-        sys::NewRenderSystem::get()->init(world);
+        sys::ForwardRenderSystem::get().init(world);
         // std::unique_ptr<RendererSystem> renderer;
 
         // todo: make RendererSystem abstract, implement
@@ -69,7 +69,7 @@ namespace wrld {
         app.init(world);
 
         // todo: move that to when a new Model is loaded
-        sys::NewRenderSystem::get()->reload_resources(world);
+        sys::ForwardRenderSystem::get().reload_resources(world);
 
         wrldInfo("Starting main loop");
         while (!should_close) {
@@ -87,7 +87,7 @@ namespace wrld {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-                sys::NewRenderSystem::get()->render(world);
+                sys::ForwardRenderSystem::get().render(world);
                 //renderer->exec(delta_time);
 
                 // Render UI using ImGUI
