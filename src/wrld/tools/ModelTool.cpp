@@ -30,7 +30,7 @@ namespace wrld::tools {
         std::vector<std::vector<obj::MeshGroup>> mesh_groups(grid_data.cell_count);
         std::vector<std::vector<Rc<rsc::Material>>> materials(grid_data.cell_count);
 
-        const auto src_meshgroups = source_model->get_mesh_groups();
+        const auto src_meshgroups = source_model->get_mesh_groups_and_materials();
         const auto src_materials = source_model->get_materials();
 
         for (const auto &[mg, mat]: src_meshgroups) {

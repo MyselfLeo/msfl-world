@@ -52,21 +52,15 @@ namespace wrld {
 
         world = World();
 
-        sys::DeferredRenderSystem::get().init(world);
-        // std::unique_ptr<RendererSystem> renderer;
+        auto &renderer = sys::ForwardRenderSystem::get();
 
-        // todo: make RendererSystem abstract, implement
-        // ForwardRendererSystem (which replace RendererSystem) and
-        // NoRendererSystem (doesn't render anything).
-        // if (renderer_type != RendererType::NoRenderer) {
-        //     renderer = get_renderer();
-        // }
+        renderer.init(world);
 
         wrldInfo("Initializing app");
         app.init(world);
 
         // todo: move that to when a new Model is loaded
-        sys::DeferredRenderSystem::get().reload_resources(world);
+        renderer.reload_resources(world);
 
         wrldInfo("Starting main loop");
         while (!should_close) {
@@ -82,11 +76,9 @@ namespace wrld {
                 // todo: move this to the camera
                 get_window_viewport()->use();
                 glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
-                //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                sys::DeferredRenderSystem::get().render(world);
-                //renderer->exec(delta_time);
+                renderer.render(world);
 
                 // Render UI using ImGUI
                 {

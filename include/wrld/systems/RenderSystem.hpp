@@ -185,8 +185,8 @@ namespace wrld::sys {
         // Number of renderable objects for the current render iteration.
         unsigned renderable_count = 0;
 
-        // Max mesh count for each primitive type (point, line, triangle) for the current
+        // Max number of mesh rendered at once for the current
         // render iteration.
-        std::tuple<unsigned, unsigned, unsigned> max_mesh_count{0, 0, 0};
+        unsigned max_mesh_count = 0;
     };
 }

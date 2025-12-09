@@ -42,14 +42,12 @@ namespace wrld::sys {
     }
 
     void ForwardRenderSystem::render_camera(World &world, const cpt::Camera3D &camera, const LightCollection &lights) {
+        Main::get_window_viewport()->use();
+
         // todo: In the future, a camera should always be attached to a framebuffer, and get rendered
         // on this framebuffer. (a "Viewport" ?)
         // Draw skybox if there is one
         const auto [ambiant_light, skybox, vao] = get_environment(world, camera);
-        if (skybox.has_value()) {
-            draw_skybox(skybox.value().get_ref(), camera,
-                        vao);
-        }
 
         // Compute visibility of each object
         compute_renderables_visiblity(world, camera);
@@ -59,8 +57,6 @@ namespace wrld::sys {
 
         glBindBuffer(GL_PARAMETER_BUFFER_ARB, arb_counter_buffer);
         glBindVertexArray(static_models_vao);
-
-        Main::get_window_viewport()->use();
 
         // For each material, we fill the ARB buffer and we do a render pass
         for (const auto &[mat_idx, mat]: materials | std::views::enumerate) {
@@ -78,7 +74,7 @@ namespace wrld::sys {
             glBindBuffer(GL_DRAW_INDIRECT_BUFFER, triangles_indirect_draw_buffer);
             bind_trsfm_buffer(obj::PrimitiveType::Triangles);
             glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, 2 * sizeof(GLsizei),
-                                                std::get<2>(max_mesh_count), 0);
+                                                max_mesh_count, 0);
 
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             forward_program->set_uniform("polygon_mode", 1);
@@ -87,7 +83,7 @@ namespace wrld::sys {
             glBindBuffer(GL_DRAW_INDIRECT_BUFFER, lines_indirect_draw_buffer);
             bind_trsfm_buffer(obj::PrimitiveType::Lines);
             glMultiDrawElementsIndirectCountARB(GL_LINES, GL_UNSIGNED_INT, nullptr, 1 * sizeof(GLsizei),
-                                                std::get<1>(max_mesh_count), 0);
+                                                max_mesh_count, 0);
 
             glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
             forward_program->set_uniform("polygon_mode", 2);
@@ -96,10 +92,17 @@ namespace wrld::sys {
             glBindBuffer(GL_DRAW_INDIRECT_BUFFER, points_indirect_draw_buffer);
             bind_trsfm_buffer(obj::PrimitiveType::Points);
             glMultiDrawElementsIndirectCountARB(GL_POINTS, GL_UNSIGNED_INT, nullptr, 0 * sizeof(GLsizei),
-                                                std::get<0>(max_mesh_count), 0);
+                                                max_mesh_count, 0);
         }
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
         glBindVertexArray(0);
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        if (skybox.has_value()) {
+            draw_skybox(skybox.value().get_ref(), camera,
+                        vao);
+        }
     }
 } // wrld

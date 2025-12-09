@@ -2,6 +2,8 @@
 // Created by leo on 12/8/25.
 //
 
+#include <chrono>
+
 #include <wrld/systems/RenderSystem.hpp>
 
 #include "wrld/Main.hpp"
@@ -22,6 +24,7 @@ namespace wrld::sys {
 
         draw_call_generator_program = world.create_resource<rsc::Program>("Draw call generator Compute Shader");
         draw_call_generator_program->shader_source(rsc::ShaderType::Compute, shader::comp::DRAW_CALL_GEN);
+        //draw_call_generator_program->shader_path(rsc::ShaderType::Compute, "data/compute/draw_call_gen.comp");
         draw_call_generator_program->reload();
 
         skybox_program = world.create_resource<rsc::Program>("Skybox Shader");
@@ -70,7 +73,7 @@ namespace wrld::sys {
         size_t total_mesh_count = 0;
         for (const auto &raw_model: static_models) {
             const auto &model = raw_model.as<rsc::Model>();
-            for (const auto &[mg, _]: model->get_mesh_groups()) {
+            for (const auto &[mg, _]: model->get_mesh_groups_and_materials()) {
                 for (const auto &mesh: mg.get_meshes()) {
                     total_mesh_count += 1;
                     vertex_count += mesh.get_vertex_count();
@@ -93,7 +96,7 @@ namespace wrld::sys {
             const GLuint mesh_start = mesh_data.size();
             GLuint mesh_count = 0;
 
-            for (const auto &[mg, mat_id]: model->get_mesh_groups()) {
+            for (const auto &[mg, mat_id]: model->get_mesh_groups_and_materials()) {
                 // Material & textures
                 const auto &mat = model->get_materials()[mat_id];
                 unsigned global_material_index;
@@ -285,7 +288,9 @@ namespace wrld::sys {
         renderables.reserve(visible_objects.size());
         renderable_count = visible_objects.size();
 
-        max_mesh_count = {0, 0, 0};
+        max_mesh_count = 0;
+
+        const auto t0 = std::chrono::high_resolution_clock::now();
 
         for (const auto entity: visible_objects) {
             const auto transform_cpt = world.get_component<cpt::Transform>(entity);
@@ -294,20 +299,18 @@ namespace wrld::sys {
 
             renderables.emplace_back(transform_cpt->model_matrix(), model_indices[model]);
 
-            for (const auto &mg: model->get_mesh_groups() | std::views::keys) {
-                switch (mg.get_primitive_type()) {
-                    case obj::PrimitiveType::Points:
-                        std::get<0>(max_mesh_count) += mg.get_mesh_count();
-                        break;
-                    case obj::PrimitiveType::Lines:
-                        std::get<1>(max_mesh_count) += mg.get_mesh_count();
-                        break;
-                    case obj::PrimitiveType::Triangles:
-                        std::get<2>(max_mesh_count) += mg.get_mesh_count();
-                        break;
-                }
+            for (const auto &mg: model->get_mesh_groups()) {
+                max_mesh_count += mg.get_mesh_count();
             }
         }
+
+        Main::set_statistic("Max mesh count", std::to_string(max_mesh_count));
+
+        const auto t1 = std::chrono::high_resolution_clock::now();
+
+        double aggregation_duration = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        Main::set_statistic("Renderable Aggregate exec.", std::format("{} ms", aggregation_duration));
+
 
         // Send data to GPU
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, renderable_buffer);
@@ -324,14 +327,18 @@ namespace wrld::sys {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, renderable_buffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, visibility_buffer);
 
+        glm::mat4 view_proj = camera.get_projection_matrix() * camera.get_view_matrix();
+
         visibility_program->use();
-        visibility_program->set_uniform("view_matrix", camera.get_view_matrix());
-        visibility_program->set_uniform("proj_matrix", camera.get_projection_matrix());
+        visibility_program->set_uniform("view_proj", view_proj);
+        visibility_program->set_uniform("inv_view_proj", glm::inverse(view_proj));
 
         // Execute the compute shader
+        const auto t2 = std::chrono::high_resolution_clock::now();
         static constexpr unsigned GROUP_SIZE_X = 256; // Should be the same than GPU side
         glDispatchCompute((renderable_count + GROUP_SIZE_X - 1) / GROUP_SIZE_X, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+        const auto t3 = std::chrono::high_resolution_clock::now();
 
         // Debug
         std::vector<unsigned> visibility(renderable_count);
@@ -341,7 +348,10 @@ namespace wrld::sys {
         for (const auto b: visibility)
             if (b) count += 1;
 
-        Main::set_statistic("Visible renderable", std::to_string(count));
+        Main::set_statistic("Visible renderable", std::format("{}/{}", count, renderable_count));
+
+        double shader_duration = std::chrono::duration<double, std::milli>(t3 - t2).count();
+        Main::set_statistic("Visibility Shader exec.", std::format("{} ms", shader_duration));
     }
 
     void RenderSystem::compute_draw_calls_for_material(const unsigned material_idx) const {
@@ -366,46 +376,52 @@ namespace wrld::sys {
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint) * counter.size(), counter.data());
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * std::get<0>(max_mesh_count),
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * max_mesh_count,
                      nullptr,
                      GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, lines_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * std::get<1>(max_mesh_count),
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * max_mesh_count,
                      nullptr,
                      GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangles_indirect_draw_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * std::get<2>(max_mesh_count),
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DrawElementsIndirectCommand) * max_mesh_count,
                      nullptr,
                      GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, point_mesh_trsfm_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * std::get<0>(max_mesh_count), nullptr,
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * max_mesh_count, nullptr,
                      GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, line_mesh_trsfm_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * std::get<1>(max_mesh_count), nullptr,
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * max_mesh_count, nullptr,
                      GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangle_mesh_trsfm_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * std::get<2>(max_mesh_count), nullptr,
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4x4) * max_mesh_count, nullptr,
                      GL_DYNAMIC_DRAW);
 
         draw_call_generator_program->use();
         draw_call_generator_program->set_uniform("material_idx", material_idx);
 
         // Execute the compute shader
+        const auto t0 = std::chrono::high_resolution_clock::now();
         static constexpr unsigned GROUP_SIZE_X = 256; // Should be the same than GPU side
         glDispatchCompute((renderable_count + GROUP_SIZE_X - 1) / GROUP_SIZE_X, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+        const auto t1 = std::chrono::high_resolution_clock::now();
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
         glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint) * counter.size(), counter.data());
 
-        for (int i = 0; i < 11; i++)
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        // for (int i = 0; i < 11; i++)
+        //     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0);
+        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        double duration = std::chrono::duration<double, std::milli>(t1 - t0).count();
+
+        Main::set_statistic("Draw Call Shader exec.", std::format("{} ms", duration));
     }
 
     RenderSystem::EnvironmentData

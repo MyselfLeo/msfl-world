@@ -17,8 +17,8 @@
 #include <wrld/objects/geometry/Triangle.hpp>
 
 namespace wrld::rsc {
-    Model::Model(std::string name, World &world) :
-        Resource(std::move(name), world), vao(0), vbo(0), ebo(0) {}
+    Model::Model(std::string name, World &world) : Resource(std::move(name), world), vao(0), vbo(0), ebo(0) {
+    }
 
     GeometryUsage Model::get_geometry_usage() const { return usage; }
 
@@ -30,10 +30,14 @@ namespace wrld::rsc {
         return res;
     }
 
-    const std::vector<Rc<Material>> &Model::get_materials() const { return materials; }
+    const std::vector<Rc<Material> > &Model::get_materials() const { return materials; }
 
-    std::vector<std::pair<obj::MeshGroup, int>> Model::get_mesh_groups() const {
-        std::vector<std::pair<obj::MeshGroup, int>> res;
+    const std::vector<obj::MeshGroup> &Model::get_mesh_groups() const {
+        return groups;
+    }
+
+    std::vector<std::pair<obj::MeshGroup, int> > Model::get_mesh_groups_and_materials() const {
+        std::vector<std::pair<obj::MeshGroup, int> > res;
         res.reserve(groups.size());
 
         for (int i = 0; i < groups.size(); i++) {
@@ -71,7 +75,7 @@ namespace wrld::rsc {
     }
 
     Model &Model::from_mesh_groups(const std::vector<obj::MeshGroup> &meshgroups,
-                                   const std::vector<Rc<Material>> &groups_materials) {
+                                   const std::vector<Rc<Material> > &groups_materials) {
         if (meshgroups.size() != groups_materials.size()) {
             throw std::runtime_error("meshgroups.size() != groups_materials.size()");
         }
@@ -98,7 +102,7 @@ namespace wrld::rsc {
 
     Model &Model::from_file(const std::string &model_path, unsigned ai_flags,
                             bool flip_textures,
-                            const std::optional<Rc<Material>> &custom_material) {
+                            const std::optional<Rc<Material> > &custom_material) {
         wrldInfo(std::format("Loading model from {}", model_path).c_str());
 
         clear();
@@ -139,7 +143,7 @@ namespace wrld::rsc {
                 primitive_type = obj::PrimitiveType::Triangles;
             else {
                 wrldError(
-                        std::format("Primitive type unspported in mesh {}", model_path));
+                    std::format("Primitive type unspported in mesh {}", model_path));
                 continue;
             }
 
@@ -154,11 +158,11 @@ namespace wrld::rsc {
                 const aiVector3D &vertex_pos = mesh->mVertices[i];
                 const aiVector3D &vertex_normal = mesh->mNormals[i];
                 const aiVector3D &vertex_texcoords = mesh->mTextureCoords[0]
-                                                             ? mesh->mTextureCoords[0][i]
-                                                             : aiVector3D{0, 0, 0};
+                                                         ? mesh->mTextureCoords[0][i]
+                                                         : aiVector3D{0, 0, 0};
                 const aiColor4D &vertex_color = mesh->mColors[0]
-                                                        ? mesh->mColors[0][i]
-                                                        : aiColor4D{1.0, 1.0, 1.0, 1.0};
+                                                    ? mesh->mColors[0][i]
+                                                    : aiColor4D{1.0, 1.0, 1.0, 1.0};
 
                 vertex.position = {vertex_pos.x, vertex_pos.y, vertex_pos.z};
                 vertex.normal = {vertex_normal.x, vertex_normal.y, vertex_normal.z};
@@ -183,7 +187,7 @@ namespace wrld::rsc {
             // Add the meshgroup along with the material indice
             groups.push_back(new_meshgroup);
             material_of_group.push_back(
-                    custom_material.has_value() ? 0 : mesh->mMaterialIndex);
+                custom_material.has_value() ? 0 : mesh->mMaterialIndex);
         }
         update();
         return *this;
@@ -227,7 +231,7 @@ namespace wrld::rsc {
 
             if (!mesh_ebo_data.contains(type)) {
                 mesh_ebo_data.insert_or_assign(
-                        type, std::unordered_map<int, std::vector<MeshEBOData>>{});
+                    type, std::unordered_map<int, std::vector<MeshEBOData> >{});
             }
             if (!mesh_ebo_data.at(type).contains(mat)) {
                 mesh_ebo_data.at(type).insert_or_assign(mat, std::vector<MeshEBOData>{});
@@ -249,10 +253,12 @@ namespace wrld::rsc {
         switch (usage) {
             case GeometryUsage::Static: {
                 gl_usage = GL_STATIC_DRAW;
-            } break;
+            }
+            break;
             case GeometryUsage::Dynamic: {
                 gl_usage = GL_DYNAMIC_DRAW;
-            } break;
+            }
+            break;
             default: {
                 std::unreachable();
             }
@@ -298,7 +304,7 @@ namespace wrld::rsc {
                     continue;
 
                 triangle_count += m.get_element_count() /
-                                  obj::get_primitive_size(obj::PrimitiveType::Triangles);
+                        obj::get_primitive_size(obj::PrimitiveType::Triangles);
             }
         }
 
@@ -436,7 +442,7 @@ namespace wrld::rsc {
     }
 
     const std::unordered_map<obj::PrimitiveType,
-                             std::unordered_map<int, std::vector<MeshEBOData>>> &
+        std::unordered_map<int, std::vector<MeshEBOData> > > &
     Model::get_mesh_ebo_data() const {
         return mesh_ebo_data;
     }
@@ -483,6 +489,4 @@ namespace wrld::rsc {
     //
     //     return res;
     // }
-
-
 } // namespace wrld::rsc

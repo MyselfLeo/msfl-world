@@ -43,7 +43,7 @@ namespace wrld::rsc {
         Model &
         from_file(const std::string &model_path, unsigned ai_flags = 0,
                   bool flip_textures = false,
-                  const std::optional<Rc<Material>> &custom_material = std::nullopt);
+                  const std::optional<Rc<Material> > &custom_material = std::nullopt);
 
         /// Loads the model with a single Mesh. You must give the material of this mesh.
         Model &from_mesh(const obj::Mesh &mesh, const Rc<Material> &material);
@@ -55,7 +55,7 @@ namespace wrld::rsc {
 
         /// Loads the model with multiple MeshGroups and their associated materials.
         Model &from_mesh_groups(const std::vector<obj::MeshGroup> &meshgroups,
-                                const std::vector<Rc<Material>> &groups_materials);
+                                const std::vector<Rc<Material> > &groups_materials);
 
         /// Return the number of meshes in this model.
         [[nodiscard]] size_t get_mesh_count() const;
@@ -71,10 +71,13 @@ namespace wrld::rsc {
         unsigned add_material(const Rc<Material> &material);
 
         /// Return all the materials used in this model.
-        const std::vector<Rc<Material>> &get_materials() const;
+        const std::vector<Rc<Material> > &get_materials() const;
+
+        /// Return the mesh groups of this Model
+        const std::vector<obj::MeshGroup> &get_mesh_groups() const;
 
         /// Return the mesh groups of this Model alongside the index of their material.
-        std::vector<std::pair<obj::MeshGroup, int>> get_mesh_groups() const;
+        std::vector<std::pair<obj::MeshGroup, int> > get_mesh_groups_and_materials() const;
 
         /// Update the model's data :
         /// - Mesh data is collected & sent to the GPU
@@ -95,7 +98,7 @@ namespace wrld::rsc {
                                                     unsigned group_size = 20) const;
 
         [[nodiscard]] const std::unordered_map<
-                obj::PrimitiveType, std::unordered_map<int, std::vector<MeshEBOData>>> &
+            obj::PrimitiveType, std::unordered_map<int, std::vector<MeshEBOData> > > &
         get_mesh_ebo_data() const;
 
         [[nodiscard]] GLuint get_vao() const;
@@ -133,8 +136,8 @@ namespace wrld::rsc {
         /// Might or might not be used by the driver.
         GeometryUsage usage = GeometryUsage::Static;
 
-        std::unordered_map<std::string, Rc<Texture>> textures;
-        std::vector<Rc<Material>> materials;
+        std::unordered_map<std::string, Rc<Texture> > textures;
+        std::vector<Rc<Material> > materials;
         std::vector<obj::MeshGroup> groups;
 
         /// Tells for each MeshGroup which material to use.
@@ -143,8 +146,8 @@ namespace wrld::rsc {
         /// For each (material, primitive type) couple, lists
         /// memory data of each meshgroup using it.
         std::unordered_map<obj::PrimitiveType,
-                           std::unordered_map<int, std::vector<MeshEBOData>>>
-                mesh_ebo_data;
+            std::unordered_map<int, std::vector<MeshEBOData> > >
+        mesh_ebo_data;
 
         GLuint vao, vbo, ebo;
 

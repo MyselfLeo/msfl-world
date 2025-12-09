@@ -119,13 +119,13 @@ layout (std430, binding = 1) readonly buffer renderable_buffer {
 
 // Output data
 layout (std430, binding = 2) writeonly buffer visibility_buffer {
-    bool visibility[];
+    uint visibility[];
 };
 
 // Camera settings
 // fixme: Move to uniform buffer ?
-uniform mat4 view_matrix;
-uniform mat4 proj_matrix;
+uniform mat4 view_proj;
+uniform mat4 inv_view_proj;
 
 /* ---------- Main function ------------ */
 
@@ -137,13 +137,14 @@ void main() {
 
     if (id < renderables.length()) {
         StaticModelData model = model_data[renderables[id].model_idx];
-        mat4 transform_matrix = proj_matrix * view_matrix * renderables[id].model_matrix;
+        mat4 transform_matrix = view_proj * renderables[id].model_matrix;
+        mat4 inv_transform_matrix = inv_view_proj * inverse(renderables[id].model_matrix);
 
         AABoundingBox local_object = model.bounding_box;
         Box proj_object = transform(local_object, transform_matrix);
-        Box local_frustum = transform(proj_frustum, inverse(transform_matrix));
+        Box local_frustum = transform(proj_frustum, inv_transform_matrix);
 
-        visibility[id] = may_collide(proj_frustum, proj_object) && may_collide(local_object, local_frustum);
+        visibility[id] = (may_collide(proj_frustum, proj_object) && may_collide(proj_frustum, proj_object)) ? 1u : 0u;
     }
 }
 )";
