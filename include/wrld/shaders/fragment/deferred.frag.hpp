@@ -81,15 +81,15 @@ float sample_specular() {
 void main() {
     if (sample_diffuse().a < 0.01) discard;
 
+    out_frag_pos = frag_pos;
+    out_frag_normal = frag_normal;
+
     if (material.do_lighting) {
         out_do_lighting = 1;
     }
     else {
         out_do_lighting = 0;
     }
-
-    out_frag_pos = frag_pos;
-    out_frag_normal = frag_normal;
 
     // Why 1 - specular :
     // The texture will initially be (0, 0, 0, 1).

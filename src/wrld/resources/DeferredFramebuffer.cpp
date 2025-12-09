@@ -8,10 +8,13 @@
 #include <format>
 
 namespace wrld::rsc {
-    DeferredFramebuffer::DeferredFramebuffer(std::string name, World &world) :
-        Resource(std::move(name), world), fbo(0), position_texture(0), normal_texture(0),
-        diffuse_texture(0), do_lighting_texture(0), depth_texture(0), width(0),
-        height(0) {}
+    DeferredFramebuffer::DeferredFramebuffer(std::string name, World &world) : Resource(std::move(name), world), fbo(0),
+                                                                               position_texture(0), normal_texture(0),
+                                                                               diffuse_texture(0),
+                                                                               do_lighting_texture(0), depth_texture(0),
+                                                                               width(0),
+                                                                               height(0) {
+    }
 
     DeferredFramebuffer::~DeferredFramebuffer() {
         if (fbo != 0) {
@@ -41,29 +44,10 @@ namespace wrld::rsc {
     // we need to be able to specify each texture type
     // possibly just give the texture directly
     void DeferredFramebuffer::recreate() {
-        // Clear previously defined OpenGL objects
-        if (fbo != 0) {
-            glDeleteFramebuffers(1, &fbo);
-        }
-        if (position_texture != 0) {
-            glDeleteTextures(1, &position_texture);
-        }
-        if (normal_texture != 0) {
-            glDeleteTextures(1, &normal_texture);
-        }
-        if (diffuse_texture != 0) {
-            glDeleteTextures(1, &diffuse_texture);
-        }
-        if (do_lighting_texture != 0) {
-            glDeleteTextures(1, &do_lighting_texture);
-        }
-        if (depth_texture != 0) {
-            glDeleteTextures(1, &depth_texture);
-        }
-
         // Generate new framebuffer & textures
         glGenFramebuffers(1, &fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
         // position texture
         glGenTextures(1, &position_texture);
         glBindTexture(GL_TEXTURE_2D, position_texture);
@@ -110,22 +94,24 @@ namespace wrld::rsc {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // Attach textures to framebuffer
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, position_texture,
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, position_texture,
                              0);
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, normal_texture,
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, normal_texture,
                              0);
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, diffuse_texture,
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, diffuse_texture,
                              0);
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3,
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3,
                              do_lighting_texture, 0);
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture, 0);
 
         // Link program output to textures
-        constexpr GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
-                                      GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        constexpr GLenum buffers[] = {
+            GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+            GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
+        };
         glDrawBuffers(4, buffers);
 
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     GLuint DeferredFramebuffer::get_position_texture() const { return position_texture; }

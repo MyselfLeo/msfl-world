@@ -20,44 +20,12 @@
 
 namespace wrld::sys {
     void ForwardRenderSystem::init(World &world) {
-        // Load the shaders
-        visibility_program = world.create_resource<rsc::Program>("Visiblity Compute Shader");
-        visibility_program->shader_source(rsc::ShaderType::Compute, shader::comp::VISIBILITY_CHECK);
-        visibility_program->reload();
-
-        draw_call_generator_program = world.create_resource<rsc::Program>("Draw call generator Compute Shader");
-        draw_call_generator_program->shader_source(rsc::ShaderType::Compute, shader::comp::DRAW_CALL_GEN);
-        draw_call_generator_program->reload();
-
-        skybox_program = world.create_resource<rsc::Program>("Skybox Shader");
-        skybox_program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
-        skybox_program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
-        skybox_program->reload();
+        RenderSystem::init(world);
 
         forward_program = world.create_resource<rsc::Program>("Forward Shader");
         forward_program->shader_source(rsc::ShaderType::Vertex, shader::vert::FORWARD);
         forward_program->shader_source(rsc::ShaderType::Fragment, shader::frag::FORWARD);
         forward_program->reload();
-
-        // Generate the buffers
-        glGenVertexArrays(1, &static_models_vao);
-        glGenBuffers(1, &static_models_vbo);
-        glGenBuffers(1, &static_models_ebo);
-        glGenBuffers(1, &model_data_buffer);
-        glGenBuffers(1, &mesh_data_buffer);
-        glGenBuffers(1, &renderable_buffer);
-        glGenBuffers(1, &visibility_buffer);
-        glGenBuffers(1, &points_indirect_draw_buffer);
-        glGenBuffers(1, &lines_indirect_draw_buffer);
-        glGenBuffers(1, &triangles_indirect_draw_buffer);
-        glGenBuffers(1, &point_mesh_trsfm_buffer);
-        glGenBuffers(1, &line_mesh_trsfm_buffer);
-        glGenBuffers(1, &triangle_mesh_trsfm_buffer);
-        glGenBuffers(1, &arb_counter_buffer);
-
-        constexpr std::array<GLuint, 3> zeros{0, 0, 0};
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * zeros.size(), zeros.data(), GL_DYNAMIC_DRAW);
     }
 
     void ForwardRenderSystem::render(World &world) {
@@ -86,13 +54,13 @@ namespace wrld::sys {
         // Compute visibility of each object
         compute_renderables_visiblity(world, camera);
 
-        // Todo: we have to adapt here based on if we do forward or deferred
         set_scene_uniforms(forward_program, ambiant_light, lights);
         set_camera_uniforms(forward_program, camera);
-        bind_trsfm_buffer(obj::PrimitiveType::Triangles);
 
         glBindBuffer(GL_PARAMETER_BUFFER_ARB, arb_counter_buffer);
         glBindVertexArray(static_models_vao);
+
+        Main::get_window_viewport()->use();
 
         // For each material, we fill the ARB buffer and we do a render pass
         for (const auto &[mat_idx, mat]: materials | std::views::enumerate) {
@@ -101,8 +69,6 @@ namespace wrld::sys {
             forward_program->use();
             forward_program->set_uniform("material", mat);
 
-            Main::get_window_viewport()->use();
-
             glDepthMask(mat->is_doing_depth_mask());
 
             // Actual draw calls (point, line, triangle)
@@ -110,7 +76,7 @@ namespace wrld::sys {
             forward_program->set_uniform("polygon_mode", 0);
 
             glBindBuffer(GL_DRAW_INDIRECT_BUFFER, triangles_indirect_draw_buffer);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangle_mesh_trsfm_buffer);
+            bind_trsfm_buffer(obj::PrimitiveType::Triangles);
             glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, 2 * sizeof(GLsizei),
                                                 std::get<2>(max_mesh_count), 0);
 
@@ -119,7 +85,7 @@ namespace wrld::sys {
             glLineWidth(mat->get_line_width());
 
             glBindBuffer(GL_DRAW_INDIRECT_BUFFER, lines_indirect_draw_buffer);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lines_indirect_draw_buffer);
+            bind_trsfm_buffer(obj::PrimitiveType::Lines);
             glMultiDrawElementsIndirectCountARB(GL_LINES, GL_UNSIGNED_INT, nullptr, 1 * sizeof(GLsizei),
                                                 std::get<1>(max_mesh_count), 0);
 
@@ -128,7 +94,7 @@ namespace wrld::sys {
             glPointSize(mat->get_point_size());
 
             glBindBuffer(GL_DRAW_INDIRECT_BUFFER, points_indirect_draw_buffer);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, point_mesh_trsfm_buffer);
+            bind_trsfm_buffer(obj::PrimitiveType::Points);
             glMultiDrawElementsIndirectCountARB(GL_POINTS, GL_UNSIGNED_INT, nullptr, 0 * sizeof(GLsizei),
                                                 std::get<0>(max_mesh_count), 0);
         }

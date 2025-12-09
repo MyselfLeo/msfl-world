@@ -9,8 +9,47 @@
 #include "wrld/components/DirectionalLight.hpp"
 #include "wrld/components/PointLight.hpp"
 #include "wrld/components/StaticModel.hpp"
+#include "wrld/shaders/skybox_shader.glsl.hpp"
+#include "wrld/shaders/compute/draw_call_gen.comp.hpp"
+#include "wrld/shaders/compute/visibility_check.comp.hpp"
 
 namespace wrld::sys {
+    void RenderSystem::init(World &world) {
+        // Load the shaders
+        visibility_program = world.create_resource<rsc::Program>("Visiblity Compute Shader");
+        visibility_program->shader_source(rsc::ShaderType::Compute, shader::comp::VISIBILITY_CHECK);
+        visibility_program->reload();
+
+        draw_call_generator_program = world.create_resource<rsc::Program>("Draw call generator Compute Shader");
+        draw_call_generator_program->shader_source(rsc::ShaderType::Compute, shader::comp::DRAW_CALL_GEN);
+        draw_call_generator_program->reload();
+
+        skybox_program = world.create_resource<rsc::Program>("Skybox Shader");
+        skybox_program->shader_source(rsc::ShaderType::Vertex, shader::SKYBOX);
+        skybox_program->shader_source(rsc::ShaderType::Fragment, shader::SKYBOX);
+        skybox_program->reload();
+
+        // Generate the buffers
+        glGenVertexArrays(1, &static_models_vao);
+        glGenBuffers(1, &static_models_vbo);
+        glGenBuffers(1, &static_models_ebo);
+        glGenBuffers(1, &model_data_buffer);
+        glGenBuffers(1, &mesh_data_buffer);
+        glGenBuffers(1, &renderable_buffer);
+        glGenBuffers(1, &visibility_buffer);
+        glGenBuffers(1, &points_indirect_draw_buffer);
+        glGenBuffers(1, &lines_indirect_draw_buffer);
+        glGenBuffers(1, &triangles_indirect_draw_buffer);
+        glGenBuffers(1, &point_mesh_trsfm_buffer);
+        glGenBuffers(1, &line_mesh_trsfm_buffer);
+        glGenBuffers(1, &triangle_mesh_trsfm_buffer);
+        glGenBuffers(1, &arb_counter_buffer);
+
+        constexpr std::array<GLuint, 3> zeros{0, 0, 0};
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, arb_counter_buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * zeros.size(), zeros.data(), GL_DYNAMIC_DRAW);
+    }
+
     void RenderSystem::reload_resources(const World &world) {
         model_indices.clear();
         materials.clear();
@@ -189,12 +228,15 @@ namespace wrld::sys {
     void RenderSystem::bind_trsfm_buffer(const obj::PrimitiveType primitive_type) const {
         switch (primitive_type) {
             case obj::PrimitiveType::Points:
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, point_mesh_trsfm_buffer);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, point_mesh_trsfm_buffer);
                 break;
             case obj::PrimitiveType::Lines:
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, line_mesh_trsfm_buffer);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, line_mesh_trsfm_buffer);
                 break;
             case obj::PrimitiveType::Triangles:
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangle_mesh_trsfm_buffer);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangle_mesh_trsfm_buffer);
                 break;
         }

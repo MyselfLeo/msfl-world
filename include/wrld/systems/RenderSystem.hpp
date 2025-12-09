@@ -19,7 +19,7 @@ namespace wrld::sys {
         virtual ~RenderSystem() = default;
 
         /// Initialize the system, compiles required shaders...
-        virtual void init(World &world) = 0;
+        virtual void init(World &world);
 
         /// Render all the cameras in the world.
         virtual void render(World &world) = 0;
@@ -30,10 +30,10 @@ namespace wrld::sys {
 
     protected:
         /// For each mesh we give :
-/// - Its primitive type. The compute shader will use it
-///   to put the draw command in the correct Indirect Buffer.
-/// - The material it uses
-/// - Its position in the VAO
+        /// - Its primitive type. The compute shader will use it
+        ///   to put the draw command in the correct Indirect Buffer.
+        /// - The material it uses
+        /// - Its position in the VAO
         struct alignas(16) StaticMeshData {
             GLenum primitive_type;
             GLuint material_idx;

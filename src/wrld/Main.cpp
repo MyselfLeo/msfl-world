@@ -16,7 +16,7 @@
 
 #include <utility>
 
-#include "wrld/systems/ForwardRenderSystem.hpp"
+#include "wrld/systems/DeferredRenderSystem.hpp"
 
 namespace wrld {
     // Default Main values
@@ -55,7 +55,7 @@ namespace wrld {
 
         world = World();
 
-        sys::ForwardRenderSystem::get().init(world);
+        sys::DeferredRenderSystem::get().init(world);
         // std::unique_ptr<RendererSystem> renderer;
 
         // todo: make RendererSystem abstract, implement
@@ -69,7 +69,7 @@ namespace wrld {
         app.init(world);
 
         // todo: move that to when a new Model is loaded
-        sys::ForwardRenderSystem::get().reload_resources(world);
+        sys::DeferredRenderSystem::get().reload_resources(world);
 
         wrldInfo("Starting main loop");
         while (!should_close) {
@@ -83,11 +83,12 @@ namespace wrld {
 
             if (renderer_type != RendererType::NoRenderer) {
                 // todo: move this to the camera
+                get_window_viewport()->use();
                 glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-                sys::ForwardRenderSystem::get().render(world);
+                sys::DeferredRenderSystem::get().render(world);
                 //renderer->exec(delta_time);
 
                 // Render UI using ImGUI

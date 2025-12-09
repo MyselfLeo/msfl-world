@@ -13,15 +13,6 @@ namespace wrld::shader::vert {
 #version 460 core
 #extension GL_ARB_shader_draw_parameters: require
 
-/* ---------- Data structures & functions ------------ */
-/*       See RenderSystem.hpp for informations.        */
-
-// Specifies that the given model should be drawn with the given transform.
-struct Renderable {
-    mat4 model_matrix;
-    uint model_idx;
-};
-
 /* ---------- IO ------------ */
 
 // VAO data
