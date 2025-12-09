@@ -3,8 +3,6 @@
 //
 
 #include <wrld/resources/Program.hpp>
-#include <../../../include/wrld/shaders/old/vert_default_shader.hpp>
-#include <../../../include/wrld/shaders/old/default_shader.hpp>
 
 #include <wrld/resources/Rc.hpp>
 #include <wrld/logs.hpp>
@@ -18,6 +16,9 @@
 #include <sstream>
 #include <glm/gtc/type_ptr.inl>
 #include <wrld/Main.hpp>
+
+#include "wrld/shaders/fragment/forward.frag.hpp"
+#include "wrld/shaders/vertex/forward.vert.hpp"
 
 namespace wrld::rsc {
     std::string get_type_name(const ShaderType type) {
@@ -51,8 +52,8 @@ namespace wrld::rsc {
     }
 
     Program &Program::from_default() {
-        shader_source(ShaderType::Vertex, shader::DEFAULT_VERTEX);
-        shader_source(ShaderType::Fragment, shader::DEFAULT_FRAGMENT);
+        shader_source(ShaderType::Vertex, shader::vert::FORWARD);
+        shader_source(ShaderType::Fragment, shader::frag::FORWARD);
         reload();
         return *this;
     }

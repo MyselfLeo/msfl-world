@@ -124,7 +124,7 @@ namespace wrld::sys {
         glBlitFramebuffer(0, 0, previous_width, previous_height,
                           0, 0, previous_width, previous_height,
                           GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        // glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         Main::get_window_viewport()->use();
         deferred_second_pass->use();

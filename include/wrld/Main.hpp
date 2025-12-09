@@ -12,7 +12,6 @@
 #include <wrld/App.hpp>
 #include <wrld/World.hpp>
 #include <wrld/resources/WindowFramebuffer.hpp>
-#include <wrld/systems/OLDRendererSystem.hpp>
 
 namespace wrld {
     enum class RendererType {
@@ -60,13 +59,13 @@ namespace wrld {
         /// Return the platform used to compile the program.
         /// Can be used at compile-time (constexpr).
         static constexpr Platform get_platform() {
-#if defined(__clang__)
+            #if defined(__clang__)
             return Platform::Clang;
-#elif defined(__GNUC__) || defined(__GNUG__)
+            #elif defined(__GNUC__) || defined(__GNUG__)
             return Platform::GCC;
-#elif defined(_MSC_VER)
+            #elif defined(_MSC_VER)
             return Platform::MSVC;
-#endif
+            #endif
         }
 
     private:
@@ -88,8 +87,6 @@ namespace wrld {
         static std::string window_title;
 
         static std::unordered_map<std::string, std::string> statistics;
-
-        static std::unique_ptr<OLDRendererSystem> get_renderer();
 
         static void update_window_title();
 

@@ -11,12 +11,9 @@
 #include <wrld/Main.hpp>
 
 #include <wrld/logs.hpp>
-// #include <wrld/systems/DeferredRendererSystem.hpp>
-// #include <wrld/systems/RendererSystem.hpp>
+#include <wrld/systems/DeferredRenderSystem.hpp>
 
 #include <utility>
-
-#include "wrld/systems/DeferredRenderSystem.hpp"
 
 namespace wrld {
     // Default Main values
