@@ -41,10 +41,16 @@ Remove Meshgroup ! a Model should only have a list of meshes. (we're back at the
   We can build a transform tree with that.
 
 # Materials :
+
 - Maybe add StaticMaterial & DynamicMaterial. Materials are updated each frame on the GPU but for most
   of them it may not be necessary (thus we'd use StaticMaterial).
 
 # Camera3D & Environment3D:
+
 - Camera3D requires Environment3D
 - Environment3D requires Camera3D
-=> They should not be separated components.
+  => They should not be separated components.
+
+# Components:
+
+- Instead of failing, attach required components automatically
