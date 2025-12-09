@@ -17,8 +17,8 @@ public:
 
     Singleton &operator=(const Singleton &) = delete;
 
-    static T &get() {
+    static T *get() {
         static T instance;
-        return instance;
+        return &instance;
     }
 };

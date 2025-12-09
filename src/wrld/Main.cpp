@@ -52,15 +52,28 @@ namespace wrld {
 
         world = World();
 
-        auto &renderer = sys::ForwardRenderSystem::get();
+        sys::RenderSystem *renderer;
+        switch (renderer_type) {
+            case RendererType::ForwardRenderer:
+                wrldInfo("Using Forward pipeline");
+                renderer = sys::ForwardRenderSystem::get();
+                break;
+            case RendererType::DeferredRenderer:
+                wrldInfo("Using Deferred pipeline");
+                renderer = sys::DeferredRenderSystem::get();
+                break;
+            case RendererType::NoRenderer:
+                throw std::runtime_error("NoRenderer is not implemented yet");
+            default: std::unreachable();
+        }
 
-        renderer.init(world);
+        renderer->init(world);
 
         wrldInfo("Initializing app");
         app.init(world);
 
         // todo: move that to when a new Model is loaded
-        renderer.reload_resources(world);
+        renderer->reload_resources(world);
 
         wrldInfo("Starting main loop");
         while (!should_close) {
@@ -78,7 +91,7 @@ namespace wrld {
                 glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                renderer.render(world);
+                renderer->render(world);
 
                 // Render UI using ImGUI
                 {
