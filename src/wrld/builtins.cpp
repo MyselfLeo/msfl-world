@@ -139,5 +139,72 @@ namespace wrld::builtins {
         return flyover;
     }
 
+    obj::Mesh cube() {
+        obj::Mesh mesh(obj::PrimitiveType::Triangles);
 
+        // Common colors (White)
+        glm::vec3 c_white(1.f, 1.f, 1.f);
+
+        // Define the 6 faces (Position, Normal, UVs)
+        // Order: Front, Back, Right, Left, Top, Bottom
+        const std::vector<obj::Vertex> vertices = {
+                // -- Front Face (Normal +Z) --
+                {{-0.5, -0.5, 0.5}, {0, 0, 1}, {0, 0}, c_white}, // Bottom-Left
+                {{0.5, -0.5, 0.5}, {0, 0, 1}, {1, 0}, c_white}, // Bottom-Right
+                {{0.5, 0.5, 0.5}, {0, 0, 1}, {1, 1}, c_white}, // Top-Right
+                {{-0.5, 0.5, 0.5}, {0, 0, 1}, {0, 1}, c_white}, // Top-Left
+
+                // -- Back Face (Normal -Z) --
+                {{0.5, -0.5, -0.5},
+                 {0, 0, -1},
+                 {0, 0},
+                 c_white}, // Bottom-Left (relative to back view)
+                {{-0.5, -0.5, -0.5}, {0, 0, -1}, {1, 0}, c_white}, // Bottom-Right
+                {{-0.5, 0.5, -0.5}, {0, 0, -1}, {1, 1}, c_white}, // Top-Right
+                {{0.5, 0.5, -0.5}, {0, 0, -1}, {0, 1}, c_white}, // Top-Left
+
+                // -- Right Face (Normal +X) --
+                {{0.5, -0.5, 0.5}, {1, 0, 0}, {0, 0}, c_white},
+                {{0.5, -0.5, -0.5}, {1, 0, 0}, {1, 0}, c_white},
+                {{0.5, 0.5, -0.5}, {1, 0, 0}, {1, 1}, c_white},
+                {{0.5, 0.5, 0.5}, {1, 0, 0}, {0, 1}, c_white},
+
+                // -- Left Face (Normal -X) --
+                {{-0.5, -0.5, -0.5}, {-1, 0, 0}, {0, 0}, c_white},
+                {{-0.5, -0.5, 0.5}, {-1, 0, 0}, {1, 0}, c_white},
+                {{-0.5, 0.5, 0.5}, {-1, 0, 0}, {1, 1}, c_white},
+                {{-0.5, 0.5, -0.5}, {-1, 0, 0}, {0, 1}, c_white},
+
+                // -- Top Face (Normal +Y) --
+                {{-0.5, 0.5, 0.5}, {0, 1, 0}, {0, 0}, c_white},
+                {{0.5, 0.5, 0.5}, {0, 1, 0}, {1, 0}, c_white},
+                {{0.5, 0.5, -0.5}, {0, 1, 0}, {1, 1}, c_white},
+                {{-0.5, 0.5, -0.5}, {0, 1, 0}, {0, 1}, c_white},
+
+                // -- Bottom Face (Normal -Y) --
+                {{-0.5, -0.5, -0.5}, {0, -1, 0}, {0, 0}, c_white},
+                {{0.5, -0.5, -0.5}, {0, -1, 0}, {1, 0}, c_white},
+                {{0.5, -0.5, 0.5}, {0, -1, 0}, {1, 1}, c_white},
+                {{-0.5, -0.5, 0.5}, {0, -1, 0}, {0, 1}, c_white}};
+
+        std::vector<obj::VertexID> indices;
+        indices.reserve(36);
+
+        for (int i = 0; i < 6; ++i) {
+            const obj::VertexID offset = i * 4;
+            // First Triangle
+            indices.push_back(offset + 0);
+            indices.push_back(offset + 1);
+            indices.push_back(offset + 2);
+            // Second Triangle
+            indices.push_back(offset + 2);
+            indices.push_back(offset + 3);
+            indices.push_back(offset + 0);
+        }
+
+        mesh.set_vertices(vertices);
+        mesh.set_elements(indices);
+
+        return mesh;
+    }
 } // namespace wrld::builtins
