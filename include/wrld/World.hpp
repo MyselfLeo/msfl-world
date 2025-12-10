@@ -22,12 +22,12 @@
 namespace wrld {
     typedef size_t EntityID;
     typedef std::unordered_map<std::type_index,
-                               std::unordered_map<std::string, Rc<Resource>>>
-            ResourcePool;
-    typedef std::unordered_map<std::type_index, Rc<Resource>> DefaultResourcePool;
+                               std::unordered_map<std::string, Rc<Resource> > >
+    ResourcePool;
+    typedef std::unordered_map<std::type_index, Rc<Resource> > DefaultResourcePool;
     typedef std::unordered_map<std::type_index,
-                               std::unordered_map<EntityID, std::shared_ptr<Component>>>
-            ComponentPool;
+                               std::unordered_map<EntityID, std::shared_ptr<Component> > >
+    ComponentPool;
 
     class World {
     public:
@@ -47,7 +47,7 @@ namespace wrld {
         /// Attach a new component of the given type to the entity,
         /// returning a reference to it.
         template<ComponentConcept C, typename... Args>
-        std::shared_ptr<C> attach_component(const EntityID id, Args &&...args) {
+        std::shared_ptr<C> attach_component(const EntityID id, Args &&... args) {
             if (!entity_exists(id))
                 throw std::runtime_error("Creating a Component on inexisting Entity");
 
@@ -71,7 +71,7 @@ namespace wrld {
         /// Returns an optional pointer to the component of the given type
         /// attached to the given object.
         template<ComponentConcept C>
-        std::optional<std::shared_ptr<C>> get_component_opt(const EntityID id) {
+        std::optional<std::shared_ptr<C> > get_component_opt(const EntityID id) {
             if (!components.contains(std::type_index(typeid(C))))
                 return std::nullopt;
             if (!components[std::type_index(typeid(C))].contains(id))
@@ -111,6 +111,9 @@ namespace wrld {
         /// of component attached to them.
         template<ComponentConcept C>
         std::vector<EntityID> get_entities_with_component() const {
+            if (!components.contains(std::type_index(typeid(C))))
+                return {};
+
             std::vector<EntityID> res;
             res.reserve(components.at(std::type_index(typeid(C))).size());
 
@@ -146,7 +149,7 @@ namespace wrld {
             }
 
             resources.at(std::type_index(typeid(R)))
-                    .insert_or_assign(new_name, new_ressource.template as<Resource>());
+                     .insert_or_assign(new_name, new_ressource.template as<Resource>());
             return new_ressource;
         }
 
@@ -193,18 +196,27 @@ namespace wrld {
         friend class System;
 
         template<typename C, std::size_t... Is>
-        void check_required_components_impl(EntityID id, std::index_sequence<Is...>) const {
+        void check_required_components_impl(EntityID id,
+                                            std::index_sequence<Is...>) const {
             std::vector<std::string> missing;
             // Use fold expression to check each required component
-            (void)std::initializer_list<int>{
-                (has_component<std::tuple_element_t<Is, typename C::required_components>>(id) ? 0 :
-                 (missing.emplace_back(std::tuple_element_t<Is, typename C::required_components>::get_type()), 0))...
+            (void) std::initializer_list<int>{
+                    (has_component<std::tuple_element_t<
+                         Is, typename C::required_components> >(id)
+                         ? 0
+                         : (missing.emplace_back(
+                                    std::tuple_element_t<
+                                        Is, typename C::required_components>::get_type()),
+                            0))...
             };
 
             if (!missing.empty()) {
-                std::string error_msg = std::format("Unable to attach component {} to '{}': Missing required component(s) ", C::get_type(), get_entity_name(id));
+                std::string error_msg = std::format(
+                        "Unable to attach component {} to '{}': Missing required component(s) ",
+                        C::get_type(), get_entity_name(id));
                 for (size_t i = 0; i < missing.size(); ++i) {
-                    if (i > 0) error_msg += ", ";
+                    if (i > 0)
+                        error_msg += ", ";
                     error_msg += missing[i];
                 }
                 throw std::runtime_error(error_msg);
