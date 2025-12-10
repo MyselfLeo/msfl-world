@@ -5,6 +5,7 @@
 #pragma once
 
 #include <wrld/World.hpp>
+#include <wrld/objects/geometry/Mesh.hpp>
 #include <wrld/resources/Material.hpp>
 
 namespace wrld::builtins {
@@ -19,4 +20,7 @@ namespace wrld::builtins {
 
     /// Create an Entity with a Camera3D, a FPSControl, and an Env componant.
     EntityID flyover(World &world);
+
+    /// Return a cube mesh of size 1.
+    obj::Mesh cube();
 } // namespace wrld::builtins
