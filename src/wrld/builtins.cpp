@@ -75,8 +75,8 @@ namespace wrld::builtins {
 
         // Create entity
         const EntityID entity = world.create_entity("Grid");
-        world.attach_component<cpt::StaticModel>(entity, model);
         world.attach_component<cpt::Transform>(entity);
+        world.attach_component<cpt::StaticModel>(entity, model);
 
         return entity;
     }
@@ -118,8 +118,8 @@ namespace wrld::builtins {
 
         // Create entity
         const EntityID entity = world.create_entity("Axis");
-        world.attach_component<cpt::StaticModel>(entity, model);
         world.attach_component<cpt::Transform>(entity);
+        world.attach_component<cpt::StaticModel>(entity, model);
 
         return entity;
     }
