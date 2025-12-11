@@ -22,9 +22,22 @@ namespace wrld {
     class Component : public std::enable_shared_from_this<Component> {
     public:
         virtual ~Component() = default;
+
         Component(EntityID entity_id, World &world);
 
         [[nodiscard]] EntityID get_entity() const;
+
+        // /// Return a pointer to the component of the given type
+        // /// attached to the same object as this component.
+        // /// Throws std::runtime_error if no component of this type
+        // /// is attached to the object.
+        // template<ComponentConcept C>
+        // std::shared_ptr<C> get_component();
+        //
+        // /// Return an optional pointer to the component of the given type
+        // /// attached to the same object as this component.
+        // template<ComponentConcept C>
+        // std::optional<std::shared_ptr<C> > get_component_opt();
 
         static std::string get_type() { return "Component"; }
 
@@ -45,7 +58,7 @@ namespace wrld {
 
         bool has_resource(const std::string &unique_name) const;
 
-        std::unordered_map<std::string, Rc<Resource>> attached_resources;
+        std::unordered_map<std::string, Rc<Resource> > attached_resources;
     };
 } // namespace wrld
 

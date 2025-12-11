@@ -1,15 +1,28 @@
 #pragma once
 
 #include <typeindex>
+#include <wrld/World.hpp>
 #include <wrld/components/Component.hpp>
 #include <wrld/resources/Rc.hpp>
 
 namespace wrld {
 
+    // template<ComponentConcept C>
+    // std::shared_ptr<C> Component::get_component() {
+    //     return world.get_component<C>(entity_id);
+    // }
+    //
+    // template<ComponentConcept C>
+    // std::optional<std::shared_ptr<C> > Component::get_component_opt() {
+    //     return world.get_component_opt<C>(entity_id);
+    // }
+
     template<ResourceConcept R>
-    void Component::attach_resource(const std::string &unique_name, const Rc<R> &resource) {
+    void Component::attach_resource(const std::string &unique_name,
+                                    const Rc<R> &resource) {
         if (attached_resources.contains(unique_name)) {
-            attached_resources[unique_name].detach_component_user(std::type_index(typeid(*this)), get_entity());
+            attached_resources[unique_name].detach_component_user(
+                    std::type_index(typeid(*this)), get_entity());
         }
         resource.attach_component_user(std::type_index(typeid(*this)), get_entity());
         attached_resources[unique_name] = resource.template as<Resource>();
@@ -18,7 +31,8 @@ namespace wrld {
     template<ResourceConcept R>
     Rc<R> Component::get_resource(const std::string &unique_name) const {
         if (!attached_resources.contains(unique_name)) {
-            throw std::runtime_error(std::format("Tried to access unbound resource {}", unique_name));
+            throw std::runtime_error(
+                    std::format("Tried to access unbound resource {}", unique_name));
         }
         return attached_resources.at(unique_name).as<R>();
     }
