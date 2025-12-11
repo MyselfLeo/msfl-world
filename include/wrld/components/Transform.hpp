@@ -21,17 +21,26 @@ namespace wrld::cpt {
                   const glm::vec3 &scale = glm::vec3(1.0f));
 
         [[nodiscard]] glm::vec3 get_position() const;
+
         [[nodiscard]] glm::quat get_rotation() const;
+
         [[nodiscard]] glm::vec3 get_scale() const;
 
         /// Return the direction of the Transform as a vec3
         [[nodiscard]] glm::vec3 forward() const;
+
         /// Return the direction to the right of the Transform as a vec3
         [[nodiscard]] glm::vec3 right() const;
 
         void set_position(const glm::vec3 &position);
+
         void set_rotation(const glm::quat &rotation);
+
         void set_scale(const glm::vec3 &scale);
+
+        void add_position(const glm::vec3 &position);
+
+        void add_rotation(const glm::quat &rotation);
 
         /// Look at a specific point in world space.
         void look_at(const glm::vec3 &target, const glm::vec3 &up);
@@ -39,9 +48,13 @@ namespace wrld::cpt {
         /// Look in a specific direction in world space.
         /// Equivalent to look_at(position + direction, up).
         void look_towards(const glm::vec3 &direction, const glm::vec3 &up);
+
         [[nodiscard]] glm::mat4x4 model_matrix() const;
+
         [[nodiscard]] glm::mat4x4 translate_matrix() const;
+
         [[nodiscard]] glm::mat4x4 rotation_matrix() const;
+
         [[nodiscard]] glm::mat4x4 scale_matrix() const;
 
         static std::string get_type() { return "Transform"; }

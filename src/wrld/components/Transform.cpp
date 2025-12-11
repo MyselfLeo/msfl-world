@@ -12,7 +12,8 @@ namespace wrld::cpt {
                          const glm::vec3 &position, const glm::quat &rotation,
                          const glm::vec3 &scale) :
         Component(entity_id, world), position(position), rotation(rotation),
-        scale(scale) {}
+        scale(scale) {
+    }
 
     glm::vec3 Transform::get_position() const { return position; }
 
@@ -35,6 +36,14 @@ namespace wrld::cpt {
     }
 
     void Transform::set_scale(const glm::vec3 &scale) { this->scale = scale; }
+
+    void Transform::add_position(const glm::vec3 &position) {
+        this->position += position;
+    }
+
+    void Transform::add_rotation(const glm::quat &rotation) {
+        this->rotation = glm::normalize(this->rotation + rotation);
+    }
 
     void Transform::look_at(const glm::vec3 &target, const glm::vec3 &up) {
         rotation = glm::quat(glm::inverse(glm::lookAt(position, target, up)));
