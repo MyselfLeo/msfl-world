@@ -17,7 +17,8 @@
 #include <wrld/objects/geometry/Triangle.hpp>
 
 namespace wrld::rsc {
-    Model::Model(std::string name, World &world) : Resource(std::move(name), world), vao(0), vbo(0), ebo(0) {
+    Model::Model(std::string name, World &world) :
+        Resource(std::move(name), world), vao(0), vbo(0), ebo(0) {
     }
 
     GeometryUsage Model::get_geometry_usage() const { return usage; }
@@ -36,7 +37,8 @@ namespace wrld::rsc {
         return groups;
     }
 
-    std::vector<std::pair<obj::MeshGroup, int> > Model::get_mesh_groups_and_materials() const {
+    std::vector<std::pair<obj::MeshGroup, int> >
+    Model::get_mesh_groups_and_materials() const {
         std::vector<std::pair<obj::MeshGroup, int> > res;
         res.reserve(groups.size());
 
@@ -113,7 +115,8 @@ namespace wrld::rsc {
         // Load Assimp scene from file
         Assimp::Importer import;
         const aiScene *scene =
-                import.ReadFile(model_path, ai_flags | aiProcess_SortByPType);
+                import.ReadFile(model_path,
+                                ai_flags | aiProcess_SortByPType | aiProcess_Triangulate);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
             throw std::runtime_error(std::format("Unable to load model `{}`: {}",
                                                  model_path, import.GetErrorString()));
@@ -143,7 +146,7 @@ namespace wrld::rsc {
                 primitive_type = obj::PrimitiveType::Triangles;
             else {
                 wrldError(
-                    std::format("Primitive type unspported in mesh {}", model_path));
+                        std::format("Primitive type unspported in mesh {}", model_path));
                 continue;
             }
 
@@ -156,7 +159,12 @@ namespace wrld::rsc {
                 obj::Vertex vertex;
 
                 const aiVector3D &vertex_pos = mesh->mVertices[i];
-                const aiVector3D &vertex_normal = mesh->mNormals[i];
+
+                if (mesh->mNormals != nullptr) {
+                    const aiVector3D &vertex_normal = mesh->mNormals[i];
+                    vertex.normal = {vertex_normal.x, vertex_normal.y, vertex_normal.z};
+                }
+
                 const aiVector3D &vertex_texcoords = mesh->mTextureCoords[0]
                                                          ? mesh->mTextureCoords[0][i]
                                                          : aiVector3D{0, 0, 0};
@@ -165,7 +173,6 @@ namespace wrld::rsc {
                                                     : aiColor4D{1.0, 1.0, 1.0, 1.0};
 
                 vertex.position = {vertex_pos.x, vertex_pos.y, vertex_pos.z};
-                vertex.normal = {vertex_normal.x, vertex_normal.y, vertex_normal.z};
                 vertex.color = {vertex_color.r, vertex_color.g, vertex_color.b};
                 vertex.texcoords = {vertex_texcoords.x, vertex_texcoords.y};
 
@@ -187,7 +194,7 @@ namespace wrld::rsc {
             // Add the meshgroup along with the material indice
             groups.push_back(new_meshgroup);
             material_of_group.push_back(
-                custom_material.has_value() ? 0 : mesh->mMaterialIndex);
+                    custom_material.has_value() ? 0 : mesh->mMaterialIndex);
         }
         update();
         return *this;
@@ -231,7 +238,7 @@ namespace wrld::rsc {
 
             if (!mesh_ebo_data.contains(type)) {
                 mesh_ebo_data.insert_or_assign(
-                    type, std::unordered_map<int, std::vector<MeshEBOData> >{});
+                        type, std::unordered_map<int, std::vector<MeshEBOData> >{});
             }
             if (!mesh_ebo_data.at(type).contains(mat)) {
                 mesh_ebo_data.at(type).insert_or_assign(mat, std::vector<MeshEBOData>{});
@@ -442,7 +449,7 @@ namespace wrld::rsc {
     }
 
     const std::unordered_map<obj::PrimitiveType,
-        std::unordered_map<int, std::vector<MeshEBOData> > > &
+                             std::unordered_map<int, std::vector<MeshEBOData> > > &
     Model::get_mesh_ebo_data() const {
         return mesh_ebo_data;
     }
