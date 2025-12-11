@@ -7,7 +7,6 @@
 #include <wrld/components/Component.hpp>
 #include <wrld/resources/Resource.hpp>
 #include <wrld/resources/Rc.hpp>
-#include <wrld/resources/Program.hpp>
 
 #include <format>
 #include <memory>

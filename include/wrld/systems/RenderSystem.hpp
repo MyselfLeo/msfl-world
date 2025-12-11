@@ -3,13 +3,13 @@
 //
 
 #pragma once
-#include "../Singleton.hpp"
 
 #include "glad/glad.h"
 
-#include "wrld/World.hpp"
-#include "wrld/components/Environment3D.hpp"
-#include "wrld/resources/Model.hpp"
+#include <wrld/World.hpp>
+#include <wrld/components/Environment3D.hpp>
+#include <wrld/resources/Model.hpp>
+#include <wrld/resources/Program.hpp>
 
 namespace wrld::sys {
     class RenderSystem {
@@ -66,8 +66,9 @@ namespace wrld::sys {
         /// The vertex/fragment shader will be called with a different ARB index
         /// for each mesh. This tells the pipeline how each mesh is rendered.
         struct ARBData {
-            GLuint material_idx;     // Material to use for this ARB
-            GLuint draw_command_idx; // We can retrieve the model_matrix from draw_command_buffer
+            GLuint material_idx; // Material to use for this ARB
+            GLuint draw_command_idx;
+            // We can retrieve the model_matrix from draw_command_buffer
         };
 
         struct alignas(16) DrawElementsIndirectCommand {
@@ -107,10 +108,10 @@ namespace wrld::sys {
         ///   a compute shader.
         ///   Returns the max mesh count for each primitive type (point, line, triangle).
         void compute_renderables_visiblity(
-            World &world, const cpt::Camera3D &camera);
+                World &world, const cpt::Camera3D &camera);
 
         void compute_draw_calls_for_material(
-            unsigned material_idx) const;
+                unsigned material_idx) const;
 
         /// Return the environment attached to the camera, or a default one if not
         /// provided.
@@ -132,10 +133,12 @@ namespace wrld::sys {
 
         /// Add scene-related uniforms to the given program (Notably light data).
         static void set_scene_uniforms(const Rc<rsc::Program> &program,
-                                       const cpt::AmbiantLight &ambiant_light, const LightCollection &lights);
+                                       const cpt::AmbiantLight &ambiant_light,
+                                       const LightCollection &lights);
 
         /// Add camera-related uniforms to the given program.
-        static void set_camera_uniforms(const Rc<rsc::Program> &program, const cpt::Camera3D &camera);
+        static void set_camera_uniforms(const Rc<rsc::Program> &program,
+                                        const cpt::Camera3D &camera);
 
         void bind_trsfm_buffer(obj::PrimitiveType primitive_type) const;
 
@@ -160,7 +163,8 @@ namespace wrld::sys {
 
         // ------------------ Buffers ------------------ //
 
-        GLuint static_models_vao = 0; // All models are rendered using 1 draw call (hopefully)
+        GLuint static_models_vao = 0;
+        // All models are rendered using 1 draw call (hopefully)
         GLuint static_models_vbo = 0;
         GLuint static_models_ebo = 0;
 
@@ -168,7 +172,8 @@ namespace wrld::sys {
         GLuint mesh_data_buffer = 0;
 
         GLuint renderable_buffer = 0;
-        GLuint visibility_buffer = 0; // Tells for each draw command if it is visible or not
+        GLuint visibility_buffer = 0;
+        // Tells for each draw command if it is visible or not
 
         // todo: maybe use a vector instead
         GLuint points_indirect_draw_buffer = 0;

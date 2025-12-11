@@ -4,24 +4,20 @@
 
 #pragma once
 
-#include "glad/glad.h"
-#include "glm/mat4x4.hpp"
-
 #include <wrld/resources/Rc.hpp>
-#include <wrld/resources/Material.hpp>
 
-#include "RenderSystem.hpp"
+#include <wrld/systems/RenderSystem.hpp>
+#include <wrld/Singleton.hpp>
 
-#include "wrld/components/Camera3D.hpp"
-#include "wrld/components/Environment3D.hpp"
-#include "wrld/resources/DeferredFramebuffer.hpp"
-#include "wrld/resources/Model.hpp"
+#include <wrld/components/Camera3D.hpp>
+#include <wrld/components/Environment3D.hpp>
 
 namespace wrld::sys {
     /// This system manages :
     /// - Allocation of geometry to the GPU
     /// - Rendering pipeline (GPU culling -> Vertex shader -> Fragment shader)
-    class ForwardRenderSystem : public RenderSystem, public Singleton<ForwardRenderSystem> {
+    class ForwardRenderSystem : public RenderSystem,
+                                public Singleton<ForwardRenderSystem> {
     public:
         /// Initialize the system, compiles required shaders...
         void init(World &world) override;

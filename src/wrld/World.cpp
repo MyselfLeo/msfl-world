@@ -7,8 +7,13 @@
 #include <random>
 #include <ranges>
 
+#include <wrld/resources/Program.hpp>
+#include <wrld/resources/Texture.hpp>
+
 namespace wrld {
-    World::World() : components({}) {}
+    World::World() :
+        components({}) {
+    }
 
     EntityID World::create_entity(const std::string &name) {
         max_entity_id += 1;
@@ -22,7 +27,9 @@ namespace wrld {
         return res;
     }
 
-    std::string World::get_entity_name(const EntityID id) const { return entities.at(id); }
+    std::string World::get_entity_name(const EntityID id) const {
+        return entities.at(id);
+    }
 
     void World::delete_entity(const EntityID id) {
         if (!entity_exists(id))
@@ -68,13 +75,12 @@ namespace wrld {
             const auto new_resource = Rc<rsc::Program>("default", *this);
             new_resource->from_default();
             const Rc<Resource> casted = new_resource.as<Resource>();
-
             default_resources.insert_or_assign(std::type_index(typeid(rsc::Program)),
                                                casted);
         }
 
         return default_resources.at(std::type_index(typeid(rsc::Program)))
-                .as<rsc::Program>();
+                                .as<rsc::Program>();
     }
 
     template<>
@@ -89,6 +95,6 @@ namespace wrld {
         }
 
         return default_resources.at(std::type_index(typeid(rsc::Texture)))
-                .as<rsc::Texture>();
+                                .as<rsc::Texture>();
     }
 } // namespace wrld

@@ -4,9 +4,11 @@
 
 #pragma once
 #include <wrld/systems/ForwardRenderSystem.hpp>
+#include <wrld/resources/DeferredFramebuffer.hpp>
 
 namespace wrld::sys {
-    class DeferredRenderSystem final : public RenderSystem, public Singleton<DeferredRenderSystem> {
+    class DeferredRenderSystem final : public RenderSystem,
+                                       public Singleton<DeferredRenderSystem> {
     public:
         /// Initialize the system, compiles required shaders...
         void init(World &world) override;
