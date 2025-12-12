@@ -4,21 +4,23 @@
 
 #pragma once
 
-/// This
-template<typename T>
-class Singleton {
-protected:
-    Singleton() = default;
+namespace wrld {
+    template<typename T>
+    class Singleton {
+    protected:
+        Singleton() = default;
 
-    virtual ~Singleton() = default;
+        virtual ~Singleton() = default;
 
-public:
-    Singleton(const Singleton &) = delete;
+    public:
+        Singleton(const Singleton &) = delete;
 
-    Singleton &operator=(const Singleton &) = delete;
+        Singleton &operator=(const Singleton &) = delete;
 
-    static T *get() {
-        static T instance;
-        return &instance;
-    }
-};
+        static T *get() {
+            static T instance;
+            return &instance;
+        }
+    };
+
+}
