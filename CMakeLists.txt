@@ -28,7 +28,10 @@ include_directories(lib/imgui-1.92.2b/backends)
 
 include_directories(lib/glad/include lib/stb_image)
 
-find_package(OpenMP REQUIRED)
+find_package(OpenMP QUIET)
+if (TARGET OpenMP::OpenMP_CXX)
+    message("-- Found OpenMP, using it")
+endif ()
 
 set(HEADERS
         include/wrld/World.hpp
@@ -161,4 +164,7 @@ target_include_directories(msfl_world PUBLIC
 )
 
 
-target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3 #[[OpenMP::OpenMP_CXX]])
+target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
+if (TARGET OpenMP::OpenMP_CXX)
+    target_link_libraries(msfl_world PUBLIC OpenMP::OpenMP_CXX)
+endif ()

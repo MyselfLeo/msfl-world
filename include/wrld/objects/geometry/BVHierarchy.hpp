@@ -7,20 +7,24 @@
 #include <memory>
 #include <span>
 #include <vector>
+
 #include <wrld/objects/geometry/AABoundingBox.hpp>
 #include <wrld/concepts.hpp>
-#include <wrld/logs.hpp>
 
 namespace wrld::obj {
     struct BVHLeaf {
         explicit BVHLeaf(const std::span<unsigned> &element_ids);
+
         std::span<unsigned> element_ids;
     };
 
     template<GeoRequestableConcept O>
     struct BVHNode {
-        explicit BVHNode(std::span<unsigned> &element_ids, const std::vector<O> &elements,
+        explicit BVHNode(std::span<unsigned> element_ids, const std::vector<O> &elements,
                          const unsigned group_size) {
+            // Prevent spawning too much OpenMP tasks during BVH construction
+            constexpr size_t task_spawn_threshold = 10240;
+
             // Based on the size of element_ids, we either create a Leaf or split
             // into 2 nodes
 
@@ -59,8 +63,16 @@ namespace wrld::obj {
                 std::span left_span = element_ids.subspan(0, left_size);
                 std::span right_span = element_ids.subspan(left_size, right_size);
 
-                left_child = new BVHNode{left_span, elements, group_size};
-                right_child = new BVHNode{right_span, elements, group_size};
+                if (element_ids.size() > task_spawn_threshold) {
+                    #pragma omp task firstprivate(left_span, group_size) shared(elements)
+                    left_child = new BVHNode(left_span, elements, group_size);
+
+                    #pragma omp task firstprivate(right_span, group_size) shared(elements)
+                    right_child = new BVHNode(right_span, elements, group_size);
+                } else {
+                    left_child = new BVHNode(left_span, elements, group_size);
+                    right_child = new BVHNode(right_span, elements, group_size);
+                }
             }
         }
 
@@ -141,7 +153,8 @@ namespace wrld::obj {
     class BVHierarchy : public GeoRequestable {
     public:
         /// Empty BVH. Unusable
-        BVHierarchy() : root_node(nullptr) {}
+        BVHierarchy() : root_node(nullptr) {
+        }
 
         /// Build a BVHierarchy that will allow fast geo requests over the specified
         /// elements.
@@ -154,22 +167,29 @@ namespace wrld::obj {
                 throw std::runtime_error("BVH Group size cannot be 0.");
 
             // Copy the elements into our managed vector
-            elements = std::make_unique<std::vector<O>>();
+            elements = std::make_unique<std::vector<O> >();
             *elements = _elements;
 
             // We'll sorts the ids instead of the elements, it's easier
-            indices = std::make_unique<std::vector<unsigned>>();
+            indices = std::make_unique<std::vector<unsigned> >();
             indices->reserve(elements->size());
             for (int i = 0; i < elements->size(); i++)
                 indices->push_back(i);
 
             std::span ids_span(*indices);
-            root_node = new BVHNode(ids_span, *elements, group_size);
+
+            #pragma omp parallel
+            {
+                #pragma omp single
+                {
+                    root_node = new BVHNode(ids_span, *elements, group_size);
+                }
+            }
         }
 
-        BVHierarchy(BVHierarchy &&other) noexcept :
-            root_node(other.root_node), group_size(other.group_size),
-            elements(std::move(other.elements)), indices(std::move(other.indices)) {
+        BVHierarchy(BVHierarchy &&other) noexcept : root_node(other.root_node), group_size(other.group_size),
+                                                    elements(std::move(other.elements)),
+                                                    indices(std::move(other.indices)) {
             other.root_node = nullptr;
             other.elements = nullptr;
             other.indices = nullptr;
@@ -228,12 +248,12 @@ namespace wrld::obj {
             return get_bounding_box().center();
         }
 
-    private:
+    private
+    :
         BVHNode<O> *root_node = nullptr;
         unsigned group_size = 1;
 
-        std::unique_ptr<std::vector<O>> elements;
-        std::unique_ptr<std::vector<unsigned>> indices;
+        std::unique_ptr<std::vector<O> > elements;
+        std::unique_ptr<std::vector<unsigned> > indices;
     };
-
 } // namespace wrld::obj
