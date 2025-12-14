@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(msfl_world)
+project(msfl_world VERSION 0.2.0)
 
 set(CMAKE_CXX_STANDARD 26)
 
@@ -168,3 +168,5 @@ target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw im
 if (TARGET OpenMP::OpenMP_CXX)
     target_link_libraries(msfl_world PUBLIC OpenMP::OpenMP_CXX)
 endif ()
+
+target_compile_definitions(msfl_world PRIVATE MSFL_WORLD_VERSION="${msfl_world_VERSION}")
