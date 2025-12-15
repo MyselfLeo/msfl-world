@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(msfl_world VERSION 0.2.1)
+project(msfl_world VERSION 0.3.1)
 
 set(CMAKE_CXX_STANDARD 26)
 
