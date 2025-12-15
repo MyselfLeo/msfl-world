@@ -49,7 +49,7 @@ namespace wrld::sys {
     }
 
     void DeferredRenderSystem::render_camera(World &world, const cpt::Camera3D &camera, const LightCollection &lights) {
-        //update_framebuffer();
+        update_framebuffer();
 
         framebuffer->use();
         glClearColor(0, 0, 0, 1.0);
