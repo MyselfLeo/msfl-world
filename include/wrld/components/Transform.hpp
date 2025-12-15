@@ -42,6 +42,10 @@ namespace wrld::cpt {
 
         void add_rotation(const glm::quat &rotation);
 
+        /// Apply a rotation around the specified (world-space) pivot.
+        /// This will change the rotation and the position of this Transform.
+        void turn_around(const glm::quat &rotation, const glm::vec3 &pivot);
+
         /// Look at a specific point in world space.
         void look_at(const glm::vec3 &target, const glm::vec3 &up);
 

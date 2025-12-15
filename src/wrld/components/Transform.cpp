@@ -45,6 +45,13 @@ namespace wrld::cpt {
         this->rotation = glm::normalize(this->rotation + rotation);
     }
 
+    void Transform::turn_around(const glm::quat &rotation, const glm::vec3 &pivot) {
+        const auto radius = this->position - pivot;
+        const auto rotated_radius = rotation * radius;
+        this->position = pivot + rotated_radius;
+        this->rotation = rotation * this->rotation;
+    }
+
     void Transform::look_at(const glm::vec3 &target, const glm::vec3 &up) {
         rotation = glm::quat(glm::inverse(glm::lookAt(position, target, up)));
     }
