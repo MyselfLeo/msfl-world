@@ -49,15 +49,16 @@ namespace wrld::sys {
     }
 
     void DeferredRenderSystem::render_camera(World &world, const cpt::Camera3D &camera, const LightCollection &lights) {
+        render_camera_first_pass(world, camera);
+        render_camera_second_pass(world, camera, lights);
+    }
+
+    void DeferredRenderSystem::render_camera_first_pass(World &world, const cpt::Camera3D &camera) {
         update_framebuffer();
 
         framebuffer->use();
         glClearColor(0, 0, 0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // todo: In the future, a camera should always be attached to a framebuffer, and get rendered
-        // on this framebuffer. (a "Viewport" ?)
-        const auto env = get_environment(world, camera);
 
         // Compute visibility of each object
         compute_renderables_visiblity(world, camera);
@@ -116,8 +117,11 @@ namespace wrld::sys {
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
-        // Second pass
+    void DeferredRenderSystem::render_camera_second_pass(World &world, const cpt::Camera3D &camera,
+                                                         const LightCollection &lights) const {
+        const auto [ambiant_light, skybox, vao] = get_environment(world, camera);
 
         // Copy depth buffer from DeferredFramebuffer to window framebuffer
         glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->get_fbo());
@@ -145,7 +149,7 @@ namespace wrld::sys {
         deferred_second_pass->set_uniform("do_lighting_texture", 3);
 
         deferred_second_pass->set_uniform("view_pos", camera.get_position());
-        set_scene_uniforms(deferred_second_pass, env.ambiant_light, lights);
+        set_scene_uniforms(deferred_second_pass, ambiant_light, lights);
 
         glDisable(GL_DEPTH_TEST);
         glBindVertexArray(deferred_vao);
@@ -153,8 +157,8 @@ namespace wrld::sys {
         glBindVertexArray(0);
         glEnable(GL_DEPTH_TEST);
 
-        if (env.skybox.has_value()) {
-            draw_skybox(env.skybox.value().get_ref(), camera, env.vao);
+        if (skybox.has_value()) {
+            draw_skybox(skybox.value().get_ref(), camera, vao);
         }
     }
 

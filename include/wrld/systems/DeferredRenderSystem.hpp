@@ -7,8 +7,8 @@
 #include <wrld/resources/DeferredFramebuffer.hpp>
 
 namespace wrld::sys {
-    class DeferredRenderSystem final : public RenderSystem,
-                                       public Singleton<DeferredRenderSystem> {
+    class DeferredRenderSystem : public RenderSystem,
+                                 public Singleton<DeferredRenderSystem> {
     public:
         /// Initialize the system, compiles required shaders...
         void init(World &world) override;
@@ -16,12 +16,19 @@ namespace wrld::sys {
         /// Render all the cameras in the world.
         void render(World &world) override;
 
-    private:
+    protected:
         // ------------------ Private functions ------------------ //
 
         /// Render the given camera.
         void render_camera(World &world, const cpt::Camera3D &camera,
                            const LightCollection &lights);
+
+        /// First pass of the deferred rendering of the given camera.
+        void render_camera_first_pass(World &world, const cpt::Camera3D &camera);
+
+        /// Second pass of the deferred rendering of the given camera.
+        /// DeferredRenderSystem::render_camera_first_pass should be called first.
+        void render_camera_second_pass(World &world, const cpt::Camera3D &camera, const LightCollection &lights) const;
 
         /// Update the framebuffer if the window size has changed.
         /// todo: When viewports are bound to a camera, we check the size
