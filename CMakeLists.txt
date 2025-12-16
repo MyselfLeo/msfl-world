@@ -84,6 +84,7 @@ set(HEADERS
         include/wrld/systems/RenderSystem.hpp
         include/wrld/systems/ForwardRenderSystem.hpp
         include/wrld/systems/DeferredRenderSystem.hpp
+        include/wrld/systems/TAARenderSystem.hpp
 
         include/wrld/tools/ModelTool.hpp
         include/wrld/tools/Geometry.hpp
@@ -135,6 +136,7 @@ set(SOURCE
         src/wrld/systems/RenderSystem.cpp
         src/wrld/systems/ForwardRenderSystem.cpp
         src/wrld/systems/DeferredRenderSystem.cpp
+        src/wrld/systems/TAARenderSystem.cpp
 
         src/wrld/tools/ModelTool.cpp
         src/wrld/tools/Geometry.cpp

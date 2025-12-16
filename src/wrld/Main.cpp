@@ -15,8 +15,10 @@
 
 #include <utility>
 
+#include "wrld/systems/TAARenderSystem.hpp"
+
 #ifndef MSFL_WORLD_VERSION
-    #define MSFL_WORLD_VERSION "Unknown (not compiled using CMake)"
+#define MSFL_WORLD_VERSION "Unknown (not compiled using CMake)"
 #endif
 
 namespace wrld {
@@ -40,13 +42,16 @@ namespace wrld {
         switch (get_platform()) {
             case Platform::Clang: {
                 wrldInfo("Compiler: CLANG");
-            } break;
+            }
+            break;
             case Platform::GCC: {
                 wrldInfo("Compiler: GCC");
-            } break;
+            }
+            break;
             case Platform::MSVC: {
                 wrldInfo("Compiler: MSVC");
-            } break;
+            }
+            break;
         }
 
         init_gl(width, height);
@@ -64,6 +69,10 @@ namespace wrld {
             case RendererType::DeferredRenderer:
                 wrldInfo("Using Deferred pipeline");
                 renderer = sys::DeferredRenderSystem::get();
+                break;
+            case RendererType::TAARenderer:
+                wrldInfo("Using TAA pipeline");
+                renderer = sys::TAARenderSystem::get();
                 break;
             case RendererType::NoRenderer:
                 throw std::runtime_error("NoRenderer is not implemented yet");
@@ -192,8 +201,8 @@ namespace wrld {
             const char *error = nullptr;
             int code = glfwGetError(&error);
             throw std::runtime_error(
-                    std::format("Failed to create GLFW window with error code {:0X}: {}",
-                                code, error));
+                std::format("Failed to create GLFW window with error code {:0X}: {}",
+                            code, error));
         }
 
         glfwMakeContextCurrent(window);
@@ -208,10 +217,10 @@ namespace wrld {
         wrldInfo(std::format("Vendor: {}", gl_vendor));
 
         std::array required_extensions = {
-                std::make_pair<std::string, int &>("ARB Indirect Parameters",
-                                                   GLAD_GL_ARB_indirect_parameters),
-                std::make_pair<std::string, int &>("ARB Shader Draw Parameters",
-                                                   GLAD_GL_ARB_shader_draw_parameters),
+            std::make_pair<std::string, int &>("ARB Indirect Parameters",
+                                               GLAD_GL_ARB_indirect_parameters),
+            std::make_pair<std::string, int &>("ARB Shader Draw Parameters",
+                                               GLAD_GL_ARB_shader_draw_parameters),
         };
 
         // Check required extensions
@@ -231,7 +240,7 @@ namespace wrld {
         ImGuiIO &io = ImGui::GetIO();
         (void) io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -273,7 +282,7 @@ namespace wrld {
         window_viewport->set_size(width, height);
     }
 
-#ifndef NDEBUG
+    #ifndef NDEBUG
     void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
                                       GLenum severity, GLsizei length,
                                       const char *message, const void *userParam) {
@@ -307,9 +316,10 @@ namespace wrld {
 
         std::cout << message << std::endl;
     }
-#else
+    #else
     void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
                                       GLenum severity, GLsizei length,
-                                      const char *message, const void *userParam) {}
-#endif
+                                      const char *message, const void *userParam) {
+    }
+    #endif
 } // namespace wrld
