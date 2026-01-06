@@ -30,7 +30,13 @@ include_directories(lib/glad/include lib/stb_image)
 
 find_package(OpenMP QUIET)
 if (TARGET OpenMP::OpenMP_CXX)
-    message("-- Found OpenMP, using it")
+    if (MSFL_WORLD_NO_OPENMP EQUAL 1)
+        message("-- [msfl-world] OpenMP available but explicitly disabled")
+    else ()
+        message("-- [msfl-world] OpenMP available, using it")
+    endif ()
+else ()
+    message("-- [msfl-world] OpenMP is not available.")
 endif ()
 
 set(HEADERS
@@ -165,7 +171,7 @@ target_include_directories(msfl_world PUBLIC
 
 
 target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
-if (TARGET OpenMP::OpenMP_CXX)
+if (TARGET OpenMP::OpenMP_CXX AND (NOT (MSFL_WORLD_NO_OPENMP EQUAL 1)))
     target_link_libraries(msfl_world PUBLIC OpenMP::OpenMP_CXX)
 endif ()
 
