@@ -12,6 +12,7 @@
 #include <wrld/App.hpp>
 #include <wrld/World.hpp>
 #include <wrld/resources/WindowFramebuffer.hpp>
+#include <wrld/systems/RenderSystem.hpp>
 
 namespace wrld {
     enum class RendererType {
@@ -73,7 +74,7 @@ namespace wrld {
         static World world;
         static GLFWwindow *window;
         static std::shared_ptr<rsc::WindowFramebuffer> window_viewport;
-
+        static sys::RenderSystem *renderer;
         static RendererType renderer_type;
 
         static bool should_close;

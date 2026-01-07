@@ -31,8 +31,10 @@ namespace wrld {
     double Main::delta_time = 0;
     std::string Main::window_title = "Unnamed";
     glm::vec3 Main::clear_color = {0.08, 0.08, 0.08};
-    RendererType Main::renderer_type = RendererType::ForwardRenderer;
     std::unordered_map<std::string, std::string> Main::statistics = {};
+
+    RendererType Main::renderer_type = RendererType::ForwardRenderer;
+    sys::RenderSystem *Main::renderer = Singleton<sys::ForwardRenderSystem>::get();
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
         // MSFL_WORLD_VERSION is set by CMake when compiling
@@ -60,25 +62,22 @@ namespace wrld {
 
         world = World();
 
-        sys::RenderSystem *renderer;
         switch (renderer_type) {
             case RendererType::ForwardRenderer:
                 wrldInfo("Using Forward pipeline");
-                renderer = Singleton<sys::ForwardRenderSystem>::get();
                 break;
             case RendererType::DeferredRenderer:
                 wrldInfo("Using Deferred pipeline");
-                renderer = Singleton<sys::DeferredRenderSystem>::get();
                 break;
             case RendererType::TAARenderer:
                 wrldInfo("Using TAA pipeline");
-                renderer = Singleton<sys::TAARenderSystem>::get();
                 break;
             case RendererType::NoRenderer:
                 throw std::runtime_error("NoRenderer is not implemented yet");
             default:
                 std::unreachable();
         }
+
 
         renderer->init(world);
 
@@ -146,6 +145,21 @@ namespace wrld {
 
     void Main::set_renderer_type(const RendererType _renderer_type) {
         renderer_type = _renderer_type;
+        switch (renderer_type) {
+            case RendererType::ForwardRenderer:
+                renderer = Singleton<sys::ForwardRenderSystem>::get();
+                break;
+            case RendererType::DeferredRenderer:
+                renderer = Singleton<sys::DeferredRenderSystem>::get();
+                break;
+            case RendererType::TAARenderer:
+                renderer = Singleton<sys::TAARenderSystem>::get();
+                break;
+            case RendererType::NoRenderer:
+                throw std::runtime_error("NoRenderer is not implemented yet");
+            default:
+                std::unreachable();
+        }
     }
 
     void Main::set_clear_color(const glm::vec3 &color) { clear_color = color; }
@@ -163,19 +177,6 @@ namespace wrld {
     const std::unordered_map<std::string, std::string> &Main::get_statistics() {
         return statistics;
     }
-
-    // std::unique_ptr<RendererSystem> Main::get_renderer() {
-    //     switch (renderer_type) {
-    //         case RendererType::ForwardRenderer:
-    //             wrldInfo("Using forward renderer");
-    //             return std::make_unique<RendererSystem>(world, window);
-    //         case RendererType::DeferredRenderer:
-    //             wrldInfo("Using deferred renderer");
-    //             return std::make_unique<DeferredRendererSystem>(world, window);
-    //         default:
-    //             std::unreachable();
-    //     }
-    // }
 
     void Main::update_window_title() {
         glfwSetWindowTitle(window, std::format("{} :: msfl-world", window_title).c_str());
