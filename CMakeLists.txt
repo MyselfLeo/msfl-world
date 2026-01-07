@@ -66,6 +66,7 @@ set(HEADERS
         include/wrld/resources/Resource.tpp
         include/wrld/resources/Framebuffer.hpp
         include/wrld/resources/DeferredFramebuffer.hpp
+        include/wrld/resources/TAAFramebuffer.hpp
         include/wrld/resources/Rc.hpp
         include/wrld/resources/Rc.tpp
 
@@ -128,6 +129,7 @@ set(SOURCE
         src/wrld/resources/Resource.cpp
         src/wrld/resources/Framebuffer.cpp
         src/wrld/resources/DeferredFramebuffer.cpp
+        src/wrld/resources/TAAFramebuffer.cpp
         src/wrld/resources/Rc.cpp
 
         src/wrld/objects/geometry/Mesh.cpp

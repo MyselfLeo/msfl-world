@@ -64,15 +64,15 @@ namespace wrld {
         switch (renderer_type) {
             case RendererType::ForwardRenderer:
                 wrldInfo("Using Forward pipeline");
-                renderer = sys::ForwardRenderSystem::get();
+                renderer = Singleton<sys::ForwardRenderSystem>::get();
                 break;
             case RendererType::DeferredRenderer:
                 wrldInfo("Using Deferred pipeline");
-                renderer = sys::DeferredRenderSystem::get();
+                renderer = Singleton<sys::DeferredRenderSystem>::get();
                 break;
             case RendererType::TAARenderer:
                 wrldInfo("Using TAA pipeline");
-                renderer = sys::TAARenderSystem::get();
+                renderer = Singleton<sys::TAARenderSystem>::get();
                 break;
             case RendererType::NoRenderer:
                 throw std::runtime_error("NoRenderer is not implemented yet");

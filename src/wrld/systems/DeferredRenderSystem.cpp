@@ -18,19 +18,13 @@ namespace wrld::sys {
         deferred_first_pass->shader_source(rsc::ShaderType::Fragment, shader::frag::DEFERRED_FIRST_PASS);
         deferred_first_pass->reload();
 
-        deferred_second_pass = world.create_resource<rsc::Program>("Second Deferred Pass Shader");
-        deferred_second_pass->shader_source(rsc::ShaderType::Vertex, shader::DEFERRED_SECOND_PASS);
-        deferred_second_pass->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_SECOND_PASS);
-        deferred_second_pass->reload();
-
+        create_second_pass(world);
         const int width = Main::get_window_viewport()->get_width();
         const int height = Main::get_window_viewport()->get_height();
         previous_width = width;
         previous_height = height;
 
-        framebuffer = world.create_resource<rsc::DeferredFramebuffer>("Deferred Framebuffer");
-        framebuffer->set_size(width, height);
-        framebuffer->recreate();
+        create_framebuffer(world);
 
         glGenVertexArrays(1, &deferred_vao);
     }
@@ -56,7 +50,7 @@ namespace wrld::sys {
     void DeferredRenderSystem::render_camera_first_pass(World &world, const cpt::Camera3D &camera) {
         update_framebuffer();
 
-        framebuffer->use();
+        get_framebuffer()->use();
         glClearColor(0, 0, 0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -73,7 +67,7 @@ namespace wrld::sys {
             Main::get_window_viewport()->use();
             compute_draw_calls_for_material(mat_idx);
 
-            framebuffer->use();
+            get_framebuffer()->use();
 
             deferred_first_pass->use();
             deferred_first_pass->set_uniform("material", mat);
@@ -162,6 +156,22 @@ namespace wrld::sys {
         }
     }
 
+    void DeferredRenderSystem::create_second_pass(World &world) {
+        deferred_second_pass = world.create_resource<rsc::Program>("Second Deferred Pass Shader");
+        deferred_second_pass->shader_source(rsc::ShaderType::Vertex, shader::DEFERRED_SECOND_PASS);
+        deferred_second_pass->shader_source(rsc::ShaderType::Fragment, shader::DEFERRED_SECOND_PASS);
+        deferred_second_pass->reload();
+    }
+
+    void DeferredRenderSystem::create_framebuffer(World &world) {
+        const int width = Main::get_window_viewport()->get_width();
+        const int height = Main::get_window_viewport()->get_height();
+
+        framebuffer = world.create_resource<rsc::DeferredFramebuffer>("Deferred Framebuffer");
+        framebuffer->set_size(width, height);
+        framebuffer->recreate();
+    }
+
     void DeferredRenderSystem::update_framebuffer() {
         const int width = Main::get_window_viewport()->get_width();
         const int height = Main::get_window_viewport()->get_height();
@@ -172,5 +182,9 @@ namespace wrld::sys {
             framebuffer->set_size(width, height);
             framebuffer->recreate();
         }
+    }
+
+    Rc<rsc::DeferredFramebuffer> DeferredRenderSystem::get_framebuffer() const {
+        return framebuffer;
     }
 }

@@ -1,56 +1,19 @@
 //
-// Created by leo on 9/12/25.
+// Created by leo on 1/6/26.
 //
 
-#include <wrld/resources/DeferredFramebuffer.hpp>
-#include <wrld/resources/Framebuffer.hpp>
-
-#include <format>
+#include <wrld/resources/TAAFramebuffer.hpp>
 
 namespace wrld::rsc {
-    DeferredFramebuffer::DeferredFramebuffer(std::string name, World &world) : Framebuffer(std::move(name), world),
-                                                                               fbo(0),
-                                                                               position_texture(0), normal_texture(0),
-                                                                               diffuse_texture(0),
-                                                                               do_lighting_texture(0), depth_texture(0),
-                                                                               width(0),
-                                                                               height(0) {
+    TAAFramebuffer::TAAFramebuffer(std::string name, World &world) : DeferredFramebuffer(std::move(name), world),
+                                                                     history_texture(0) {
     }
 
-    DeferredFramebuffer::~DeferredFramebuffer() {
-        if (fbo != 0) {
-            glDeleteFramebuffers(1, &fbo);
-        }
+    GLuint TAAFramebuffer::get_history_texture() const {
+        return history_texture;
     }
 
-    GLuint DeferredFramebuffer::get_fbo() const { return fbo; }
-
-    DeferredFramebuffer &DeferredFramebuffer::set_size(const unsigned width,
-                                                       const unsigned height) {
-        this->width = width;
-        this->height = height;
-        return *this;
-    }
-
-    unsigned DeferredFramebuffer::get_width() const { return this->width; }
-
-    unsigned DeferredFramebuffer::get_height() const { return this->height; }
-
-    void DeferredFramebuffer::use() const {
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glViewport(0, 0, this->width, this->height);
-
-        constexpr GLenum buffers[] = {
-            GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
-            GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
-        };
-        glDrawBuffers(4, buffers);
-    }
-
-    // todo: this function is not generalised.
-    // we need to be able to specify each texture type
-    // possibly just give the texture directly
-    void DeferredFramebuffer::recreate() {
+    void TAAFramebuffer::recreate() {
         // Generate new framebuffer & textures
         glGenFramebuffers(1, &fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -91,6 +54,14 @@ namespace wrld::rsc {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+        glGenTextures(1, &history_texture);
+        glBindTexture(GL_TEXTURE_2D, history_texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                     GL_FLOAT, nullptr);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
         // depth texture
         glGenTextures(1, &depth_texture);
         glBindTexture(GL_TEXTURE_2D, depth_texture);
@@ -109,20 +80,21 @@ namespace wrld::rsc {
                              0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3,
                              do_lighting_texture, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4,
+                             history_texture, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture, 0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    GLuint DeferredFramebuffer::get_position_texture() const { return position_texture; }
+    void TAAFramebuffer::use() const {
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glViewport(0, 0, this->width, this->height);
 
-    GLuint DeferredFramebuffer::get_normal_texture() const { return normal_texture; }
-
-    GLuint DeferredFramebuffer::get_diffuse_texture() const { return diffuse_texture; }
-
-    GLuint DeferredFramebuffer::get_do_lighting_texture() const {
-        return do_lighting_texture;
+        constexpr GLenum buffers[] = {
+            GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+            GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
+        };
+        glDrawBuffers(4, buffers);
     }
-
-    GLuint DeferredFramebuffer::get_depth_texture() const { return depth_texture; }
-} // namespace wrld::rsc
+}

@@ -20,20 +20,27 @@ namespace wrld::sys {
         // ------------------ Private functions ------------------ //
 
         /// Render the given camera.
-        void render_camera(World &world, const cpt::Camera3D &camera,
-                           const LightCollection &lights);
+        virtual void render_camera(World &world, const cpt::Camera3D &camera,
+                                   const LightCollection &lights);
 
         /// First pass of the deferred rendering of the given camera.
-        void render_camera_first_pass(World &world, const cpt::Camera3D &camera);
+        virtual void render_camera_first_pass(World &world, const cpt::Camera3D &camera);
 
         /// Second pass of the deferred rendering of the given camera.
         /// DeferredRenderSystem::render_camera_first_pass should be called first.
-        void render_camera_second_pass(World &world, const cpt::Camera3D &camera, const LightCollection &lights) const;
+        virtual void render_camera_second_pass(World &world, const cpt::Camera3D &camera,
+                                               const LightCollection &lights) const;
+
+        virtual void create_second_pass(World &world);
+
+        virtual void create_framebuffer(World &world);
 
         /// Update the framebuffer if the window size has changed.
         /// todo: When viewports are bound to a camera, we check the size
         /// of this viewport instead.
-        void update_framebuffer();
+        virtual void update_framebuffer();
+
+        virtual Rc<rsc::DeferredFramebuffer> get_framebuffer() const;
 
         // ------------------ Resources ------------------ //
 

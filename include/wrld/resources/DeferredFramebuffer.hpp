@@ -5,39 +5,42 @@
 #pragma once
 
 #include <wrld/resources/Resource.hpp>
+#include <wrld/resources/Framebuffer.hpp>
 #include "glad/glad.h"
 
-#include <vector>
 
 namespace wrld::rsc {
-    class DeferredFramebuffer : public Resource {
+    class DeferredFramebuffer : public Framebuffer {
     public:
-        DeferredFramebuffer(std::string name, World &world /*, Rc<Resource> *rc*/);
+        DeferredFramebuffer(std::string name, World &world);
 
         ~DeferredFramebuffer() override;
 
-        [[nodiscard]] GLuint get_fbo() const;
+        [[nodiscard]] GLuint get_fbo() const override;
 
-        DeferredFramebuffer &set_size(unsigned width, unsigned height);
+        DeferredFramebuffer &set_size(unsigned width, unsigned height) override;
 
-        [[nodiscard]] unsigned get_width() const;
-        [[nodiscard]] unsigned get_height() const;
+        [[nodiscard]] unsigned get_width() const override;
+
+        [[nodiscard]] unsigned get_height() const override;
 
         std::string get_type() const override { return "DeferredViewport"; }
 
-        void use() const;
+        void use() const override;
 
-        void recreate();
+        void recreate() override;
 
         [[nodiscard]] GLuint get_position_texture() const;
+
         [[nodiscard]] GLuint get_normal_texture() const;
+
         [[nodiscard]] GLuint get_diffuse_texture() const;
+
         [[nodiscard]] GLuint get_do_lighting_texture() const;
+
         [[nodiscard]] GLuint get_depth_texture() const;
 
-    private:
-        friend class DeferredRendererSystem;
-
+    protected:
         GLuint fbo;
 
         GLuint position_texture;
@@ -48,5 +51,4 @@ namespace wrld::rsc {
 
         unsigned width, height;
     };
-
 } // namespace wrld::rsc

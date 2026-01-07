@@ -7,8 +7,9 @@
 #include <format>
 
 namespace wrld::rsc {
-    Framebuffer::Framebuffer(std::string name, World &world /*, Rc<Resource> *rc*/) :
-        Resource(std::move(name), world /*, rc*/), fbo(0), width(0), height(0) {}
+    Framebuffer::Framebuffer(std::string name, World &world) : Resource(std::move(name), world), fbo(0), width(0),
+                                                               height(0) {
+    }
 
     Framebuffer::~Framebuffer() {
         if (fbo != 0) {
@@ -42,7 +43,13 @@ namespace wrld::rsc {
 
     void Framebuffer::use() const {
         glViewport(0, 0, this->width, this->height);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        std::vector<GLenum> draw_buffers(nb_color_attachments);
+        for (int i = 0; i < nb_color_attachments; i++) {
+            draw_buffers[i] = GL_COLOR_ATTACHMENT0 + i;
+        }
+        glDrawBuffers(nb_color_attachments, draw_buffers.data());
     }
 
     // todo: this function is not generalised.

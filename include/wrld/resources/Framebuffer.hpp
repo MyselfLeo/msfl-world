@@ -12,24 +12,25 @@
 namespace wrld::rsc {
     class Framebuffer : public Resource {
     public:
-        Framebuffer(std::string name, World &world /*, Rc<Resource> *rc*/);
+        Framebuffer(std::string name, World &world);
 
         ~Framebuffer() override;
 
-        [[nodiscard]] GLuint get_fbo() const;
+        [[nodiscard]] virtual GLuint get_fbo() const;
 
-        Framebuffer &set_size(unsigned width, unsigned height);
+        virtual Framebuffer &set_size(unsigned width, unsigned height);
 
         Framebuffer &set_nb_color_attachments(unsigned nb);
 
-        [[nodiscard]] unsigned get_width() const;
-        [[nodiscard]] unsigned get_height() const;
+        [[nodiscard]] virtual unsigned get_width() const;
+
+        [[nodiscard]] virtual unsigned get_height() const;
 
         std::string get_type() const override { return "Viewport"; }
 
-        void use() const;
+        virtual void use() const;
 
-        void recreate();
+        virtual void recreate();
 
     private:
         GLuint fbo;
@@ -41,5 +42,4 @@ namespace wrld::rsc {
 
         unsigned width, height;
     };
-
 } // namespace wrld::rsc
