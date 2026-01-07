@@ -48,7 +48,7 @@ namespace wrld::sys {
         void update_framebuffer() override;
 
         void render_camera_second_pass(World &world, const cpt::Camera3D &camera,
-                                       const LightCollection &lights) const override;
+                                       const LightCollection &lights) override;
 
         Rc<rsc::DeferredFramebuffer> get_framebuffer() const override;
 
@@ -65,6 +65,12 @@ namespace wrld::sys {
         Rc<rsc::Framebuffer> output_framebuffer;
 
         Rc<rsc::Program> deferred_second_pass;
+
+        // todo: support multiple cameras
+        // for that I need to change render_camera so it takes a Rc<Camera3D> that I can use
+        // as a key for a unordered_map that store the previous transformation
+        glm::mat4x4 previous_frame_transform; // Transform of the camera without model matrix)
+        bool previous_frame_transform_set = false;
 
         // GLuint fbo;
         // GLuint history_texture;

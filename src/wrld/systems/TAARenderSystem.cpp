@@ -145,8 +145,15 @@ namespace wrld::sys {
     }
 
     void TAARenderSystem::render_camera_second_pass(World &world, const cpt::Camera3D &camera,
-                                                    const LightCollection &lights) const {
+                                                    const LightCollection &lights) {
         const auto [ambiant_light, skybox, vao] = get_environment(world, camera);
+
+        const glm::mat4x4 current_frame_transform = camera.get_projection_matrix() * camera.get_view_matrix();
+
+        if (!previous_frame_transform_set) {
+            previous_frame_transform = current_frame_transform;
+            previous_frame_transform_set = true;
+        }
 
         // Copy depth buffer from DeferredFramebuffer to window framebuffer
         glBindFramebuffer(GL_READ_FRAMEBUFFER, g_framebuffer->get_fbo());
@@ -178,6 +185,7 @@ namespace wrld::sys {
         // TAA specific
         deferred_second_pass->set_uniform("history_texture", 4);
         deferred_second_pass->set_uniform("alpha", alpha);
+        deferred_second_pass->set_uniform("previous_viewproj", previous_frame_transform);
 
         deferred_second_pass->set_uniform("view_pos", camera.get_position());
         set_scene_uniforms(deferred_second_pass, ambiant_light, lights);
@@ -218,6 +226,8 @@ namespace wrld::sys {
         if (skybox.has_value()) {
             draw_skybox(skybox.value().get_ref(), camera, vao);
         }
+
+        previous_frame_transform = current_frame_transform;
     }
 
     Rc<rsc::DeferredFramebuffer> TAARenderSystem::get_framebuffer() const {

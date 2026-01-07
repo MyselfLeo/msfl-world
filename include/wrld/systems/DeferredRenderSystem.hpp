@@ -29,7 +29,7 @@ namespace wrld::sys {
         /// Second pass of the deferred rendering of the given camera.
         /// DeferredRenderSystem::render_camera_first_pass should be called first.
         virtual void render_camera_second_pass(World &world, const cpt::Camera3D &camera,
-                                               const LightCollection &lights) const;
+                                               const LightCollection &lights);
 
         virtual void create_second_pass(World &world);
 

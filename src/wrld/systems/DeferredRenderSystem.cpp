@@ -114,7 +114,7 @@ namespace wrld::sys {
     }
 
     void DeferredRenderSystem::render_camera_second_pass(World &world, const cpt::Camera3D &camera,
-                                                         const LightCollection &lights) const {
+                                                         const LightCollection &lights) {
         const auto [ambiant_light, skybox, vao] = get_environment(world, camera);
 
         // Copy depth buffer from DeferredFramebuffer to window framebuffer
