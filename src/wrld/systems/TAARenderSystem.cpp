@@ -2,11 +2,15 @@
 // Created by leo on 12/16/25.
 //
 
+#include <random>
+
 #include <wrld/systems/TAARenderSystem.hpp>
 #include <wrld/Main.hpp>
 #include <wrld/components/DirectionalLight.hpp>
 #include <wrld/components/PointLight.hpp>
 #include <wrld/shaders/deferred_second_pass.glsl.hpp>
+
+#include "glm/gtx/transform.hpp"
 
 #include "wrld/logs.hpp"
 
@@ -58,7 +62,7 @@ namespace wrld::sys {
         render_camera_second_pass(world, camera, lights);
     }
 
-    std::vector<RenderSystem::PointLightData> TAARenderSystem::sample_point_lights(World &world) {
+    std::vector<RenderSystem::PointLightData> TAARenderSystem::sample_point_lights(World &world) const {
         std::vector<PointLightData> res;
 
         // Query each PointLight components in world
@@ -68,7 +72,7 @@ namespace wrld::sys {
 
         // Sample
         const size_t count = entities.size() / TAA_IMAGE_COUNT;
-        const size_t offset = count * TAA_IMAGE_COUNT;
+        const size_t offset = count * current_sample_pass;
         std::vector<EntityID> sample;
         sample.reserve(count);
         for (auto it = entities.begin() + offset; it != entities.end(); ++it) {
@@ -111,6 +115,13 @@ namespace wrld::sys {
         }
 
         return res;
+    }
+
+    void TAARenderSystem::create_first_pass(World &world) {
+        deferred_first_pass = world.create_resource<rsc::Program>("First Deferred Pass Shader");
+        deferred_first_pass->shader_path(rsc::ShaderType::Vertex, "data/compute/taa_deferred_first_pass.glsl");
+        deferred_first_pass->shader_path(rsc::ShaderType::Fragment, "data/compute/taa_deferred_first_pass.glsl");
+        deferred_first_pass->reload();
     }
 
     void TAARenderSystem::create_second_pass(World &world) {
@@ -188,6 +199,7 @@ namespace wrld::sys {
         deferred_second_pass->set_uniform("previous_viewproj", previous_frame_transform);
 
         deferred_second_pass->set_uniform("view_pos", camera.get_position());
+        set_program_uniforms(deferred_second_pass);
         set_scene_uniforms(deferred_second_pass, ambiant_light, lights);
 
         glDisable(GL_DEPTH_TEST);
@@ -232,5 +244,31 @@ namespace wrld::sys {
 
     Rc<rsc::DeferredFramebuffer> TAARenderSystem::get_framebuffer() const {
         return g_framebuffer.as<rsc::DeferredFramebuffer>();
+    }
+
+    void TAARenderSystem::set_camera_uniforms(const Rc<rsc::Program> &program, const cpt::Camera3D &camera) {
+        DeferredRenderSystem::set_camera_uniforms(program, camera);
+
+        // Offset aleatoire pour simuler le sampling
+        if (do_rdm_offset) {
+            static std::random_device dev;
+            static std::mt19937 rng(dev());
+            std::uniform_real_distribution<float> distrib(-0.5, 0.5);
+
+            const auto width = static_cast<float>(Main::get_window_viewport()->get_width());
+            const auto height = static_cast<float>(Main::get_window_viewport()->get_height());
+
+            const glm::mat4x4 projection_matrix = camera.get_projection_matrix();
+            const glm::mat4x4 random_offset = glm::translate(glm::vec3{distrib(rng) / width, distrib(rng) / height, 0});
+            program->set_uniform("projection", random_offset * projection_matrix);
+        }
+    }
+
+    bool TAARenderSystem::get_do_rdm_offset() const {
+        return do_rdm_offset;
+    }
+
+    void TAARenderSystem::set_do_rdm_offset(const bool do_rdm_offset) {
+        this->do_rdm_offset = do_rdm_offset;
     }
 }

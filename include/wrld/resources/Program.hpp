@@ -14,6 +14,7 @@ namespace wrld::rsc {
     enum class ShaderType { Vertex, Fragment, Compute };
 
     std::string get_type_name(ShaderType type);
+
     unsigned int get_gl_type(ShaderType type);
 
     /// Represent a full program with different shaders.
@@ -50,8 +51,11 @@ namespace wrld::rsc {
 
 
         Program(Program &other) = delete;
+
         Program(Program &&other) = delete;
+
         Program &operator=(Program &other) = delete;
+
         Program &operator=(Program &&other) = delete;
 
         ~Program() override;
@@ -65,6 +69,8 @@ namespace wrld::rsc {
         void set_uniform(const std::string &uniform, int value) const;
 
         void set_uniform(const std::string &uniform, unsigned value) const;
+
+        void set_uniform(const std::string &uniform, const glm::vec2 &value) const;
 
         void set_uniform(const std::string &uniform, const glm::vec3 &value) const;
 

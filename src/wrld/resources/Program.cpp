@@ -48,8 +48,7 @@ namespace wrld::rsc {
     }
 
     // Just a way to use a 2-in-1 shader file without specifying the same path twice.
-    Program::Program(std::string name, World &world) :
-        Resource(std::move(name), world) {
+    Program::Program(std::string name, World &world) : Resource(std::move(name), world) {
     }
 
     Program &Program::from_default() {
@@ -109,6 +108,15 @@ namespace wrld::rsc {
         }
 
         glUniform1ui(uniform_loc, value);
+    }
+
+    void Program::set_uniform(const std::string &uniform, const glm::vec2 &value) const {
+        const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
+        if (uniform_loc == -1) {
+            return;
+        }
+
+        glUniform2f(uniform_loc, value[0], value[1]);
     }
 
     void Program::set_uniform(const std::string &uniform, const glm::vec3 &value) const {
@@ -183,8 +191,8 @@ namespace wrld::rsc {
         }
 
         constexpr std::array SHADER_TYPES = {
-                ShaderType::Vertex, ShaderType::Fragment,
-                ShaderType::Compute
+            ShaderType::Vertex, ShaderType::Fragment,
+            ShaderType::Compute
         };
 
         std::unordered_map<ShaderType, std::string> final_sources;
@@ -207,7 +215,7 @@ namespace wrld::rsc {
                 gl_shaders[st] = glCreateShader(get_gl_type(st));
                 if (gl_shaders[st] == 0) {
                     throw std::runtime_error(
-                            "Unable to create OpenGL vertex shader object");
+                        "Unable to create OpenGL vertex shader object");
                 }
             }
 
@@ -262,12 +270,12 @@ namespace wrld::rsc {
 
         if (!std::regex_search(shader_source, match, re)) {
             throw std::runtime_error(
-                    std::format("No #version directive found in the shader."));
+                std::format("No #version directive found in the shader."));
         }
 
         if (match.size() > 1)
             throw std::runtime_error(
-                    std::format("Multiple #version directives found in the shader."));
+                std::format("Multiple #version directives found in the shader."));
 
         // Remove this same line from the source
         std::string stripped_source = std::regex_replace(shader_source, re, "");
@@ -294,7 +302,7 @@ namespace wrld::rsc {
             char infoLog[512];
             glGetShaderInfoLog(gl_shader, 512, nullptr, infoLog);
             throw std::runtime_error(
-                    std::format("Failed to compile shader: {}", infoLog));
+                std::format("Failed to compile shader: {}", infoLog));
         }
     }
 } // namespace wrld::rsc

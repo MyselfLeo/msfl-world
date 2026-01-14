@@ -108,10 +108,10 @@ namespace wrld::sys {
         ///   a compute shader.
         ///   Returns the max mesh count for each primitive type (point, line, triangle).
         void compute_renderables_visiblity(
-                World &world, const cpt::Camera3D &camera);
+            World &world, const cpt::Camera3D &camera);
 
         void compute_draw_calls_for_material(
-                unsigned material_idx) const;
+            unsigned material_idx) const;
 
         /// Return the environment attached to the camera, or a default one if not
         /// provided.
@@ -131,14 +131,17 @@ namespace wrld::sys {
         /// being returned.
         static std::vector<DirectionalLightData> get_directional_lights(World &world);
 
+        /// Add program-related uniforms to the given program (Notably elapsed time).
+        static void set_program_uniforms(const Rc<rsc::Program> &program);
+
         /// Add scene-related uniforms to the given program (Notably light data).
         static void set_scene_uniforms(const Rc<rsc::Program> &program,
                                        const cpt::AmbiantLight &ambiant_light,
                                        const LightCollection &lights);
 
         /// Add camera-related uniforms to the given program.
-        static void set_camera_uniforms(const Rc<rsc::Program> &program,
-                                        const cpt::Camera3D &camera);
+        virtual void set_camera_uniforms(const Rc<rsc::Program> &program,
+                                         const cpt::Camera3D &camera);
 
         void bind_trsfm_buffer(obj::PrimitiveType primitive_type) const;
 

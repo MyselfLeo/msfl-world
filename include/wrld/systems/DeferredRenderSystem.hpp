@@ -31,6 +31,8 @@ namespace wrld::sys {
         virtual void render_camera_second_pass(World &world, const cpt::Camera3D &camera,
                                                const LightCollection &lights);
 
+        virtual void create_first_pass(World &world);
+
         virtual void create_second_pass(World &world);
 
         virtual void create_framebuffer(World &world);

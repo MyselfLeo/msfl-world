@@ -52,6 +52,7 @@ namespace wrld::sys {
         // Compute visibility of each object
         compute_renderables_visiblity(world, camera);
 
+        set_program_uniforms(forward_program);
         set_scene_uniforms(forward_program, ambiant_light, lights);
         set_camera_uniforms(forward_program, camera);
 

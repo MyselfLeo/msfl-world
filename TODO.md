@@ -54,3 +54,25 @@ Remove Meshgroup ! a Model should only have a list of meshes. (we're back at the
 # Components:
 
 - Instead of failing, attach required components automatically
+
+# Textures :
+
+- Set sampling algorithm when being loaded (as a parameter ?)
+
+# Architecture :
+
+- Simplify shader creation : either use SPIR-V (SLANG ?) or simplify the shader
+  definition process (with includes) and potentially using the "graphical but in text":
+
+  x = Random(/*params*/)
+  y = VertexColor()
+  z = Plus(x, y)
+  fragmentColor = z
+
+- Simplify Framebuffers :
+  Remove DeferredFramebuffer/TAAFramebuffer and instead improve Framebuffer to be more versatile (specify attachments,
+  internal format, format...) and extend Framebuffer::use() to be able to set what mode (read, draw) and which
+  attachment (using glRead and glDraw).
+  We could also add a function "blit" or "copy" to copy one texture from a framebuffer to the other.
+
+- (HARD) Simplify pipelining by defining succession of programs and framebuffer operations.

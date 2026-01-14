@@ -6,6 +6,7 @@
 
 #include <wrld/systems/RenderSystem.hpp>
 
+#include "wrld/logs.hpp"
 #include "wrld/Main.hpp"
 #include "wrld/components/Camera3D.hpp"
 #include "wrld/components/DirectionalLight.hpp"
@@ -279,6 +280,15 @@ namespace wrld::sys {
         }
 
         return res;
+    }
+
+    void RenderSystem::set_program_uniforms(const Rc<rsc::Program> &program) {
+        program->use();
+        program->set_uniform("elapsed_time", static_cast<float>(glfwGetTime()));
+        const glm::vec2 window_size = {
+            Main::get_window_viewport()->get_width(), Main::get_window_viewport()->get_height()
+        };
+        program->set_uniform("window_size", window_size);
     }
 
     void RenderSystem::compute_renderables_visiblity(World &world, const cpt::Camera3D &camera) {

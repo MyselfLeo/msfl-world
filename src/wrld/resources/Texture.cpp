@@ -13,14 +13,15 @@
 #include <stdexcept>
 
 namespace wrld::rsc {
-    Texture::Texture(const std::string &name, World &world) : Resource(name, world) {}
+    Texture::Texture(const std::string &name, World &world) : Resource(name, world) {
+    }
 
     Texture &Texture::from_file(const std::string &texture_path, const aiTextureType type,
                                 const bool flip_textures) {
         stbi_set_flip_vertically_on_load(flip_textures);
 
         wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type),
-                             texture_path));
+            texture_path));
 
         // Load texture file
         int width, height, nb_channels;
@@ -30,7 +31,7 @@ namespace wrld::rsc {
         if (data == nullptr) {
             stbi_image_free(data);
             throw std::runtime_error(
-                    std::format("Error while loading texture {}", texture_path));
+                std::format("Error while loading texture {}", texture_path));
         }
 
         update_texture(width, height, nb_channels, data);
@@ -40,7 +41,8 @@ namespace wrld::rsc {
 
     Texture &Texture::from_default() {
         std::array<unsigned char, 17> DEFAULT_TEXTURE{
-                "\377\000\357\377\000\000\000\377\000\000\000\377\377\000\357\377"};
+            "\377\000\357\377\000\000\000\377\000\000\000\377\377\000\357\377"
+        };
 
         update_texture(2, 2, 4, DEFAULT_TEXTURE.data());
         return *this;
@@ -51,7 +53,9 @@ namespace wrld::rsc {
         glBindTexture(GL_TEXTURE_2D, gl_texture);
     }
 
-    Texture::~Texture() { glDeleteTextures(1, &gl_texture); }
+    Texture::~Texture() {
+        glDeleteTextures(1, &gl_texture);
+    }
 
     void Texture::update_texture(const int width, const int height, int nb_channels,
                                  unsigned char *data) {
@@ -59,15 +63,17 @@ namespace wrld::rsc {
         switch (nb_channels) {
             case 3: {
                 format = GL_RGB;
-            } break;
+            }
+            break;
             case 4: {
                 format = GL_RGBA;
-            } break;
+            }
+            break;
             default: {
                 stbi_image_free(data);
                 throw std::runtime_error(std::format(
-                        "Only RGB and RGBA images are supported for now. Nbchannels: {}",
-                        nb_channels));
+                    "Only RGB and RGBA images are supported for now. Nbchannels: {}",
+                    nb_channels));
             }
         }
 
@@ -79,7 +85,7 @@ namespace wrld::rsc {
 
         // todo: move to material
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE,
                      data);

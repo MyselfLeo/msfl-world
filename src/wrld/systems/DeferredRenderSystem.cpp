@@ -12,12 +12,7 @@
 namespace wrld::sys {
     void DeferredRenderSystem::init(World &world) {
         RenderSystem::init(world);
-
-        deferred_first_pass = world.create_resource<rsc::Program>("First Deferred Pass Shader");
-        deferred_first_pass->shader_source(rsc::ShaderType::Vertex, shader::vert::DEFERRED_FIRST_PASS);
-        deferred_first_pass->shader_source(rsc::ShaderType::Fragment, shader::frag::DEFERRED_FIRST_PASS);
-        deferred_first_pass->reload();
-
+        create_first_pass(world);
         create_second_pass(world);
         const int width = Main::get_window_viewport()->get_width();
         const int height = Main::get_window_viewport()->get_height();
@@ -56,7 +51,7 @@ namespace wrld::sys {
 
         // Compute visibility of each object
         compute_renderables_visiblity(world, camera);
-
+        set_program_uniforms(deferred_first_pass);
         set_camera_uniforms(deferred_first_pass, camera);
 
         glBindBuffer(GL_PARAMETER_BUFFER_ARB, arb_counter_buffer);
@@ -144,6 +139,7 @@ namespace wrld::sys {
 
         deferred_second_pass->set_uniform("view_pos", camera.get_position());
         set_scene_uniforms(deferred_second_pass, ambiant_light, lights);
+        set_program_uniforms(deferred_second_pass);
 
         glDisable(GL_DEPTH_TEST);
         glBindVertexArray(deferred_vao);
@@ -154,6 +150,13 @@ namespace wrld::sys {
         if (skybox.has_value()) {
             draw_skybox(skybox.value().get_ref(), camera, vao);
         }
+    }
+
+    void DeferredRenderSystem::create_first_pass(World &world) {
+        deferred_first_pass = world.create_resource<rsc::Program>("First Deferred Pass Shader");
+        deferred_first_pass->shader_source(rsc::ShaderType::Vertex, shader::vert::DEFERRED_FIRST_PASS);
+        deferred_first_pass->shader_source(rsc::ShaderType::Fragment, shader::frag::DEFERRED_FIRST_PASS);
+        deferred_first_pass->reload();
     }
 
     void DeferredRenderSystem::create_second_pass(World &world) {

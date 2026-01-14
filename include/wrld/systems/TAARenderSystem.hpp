@@ -26,6 +26,10 @@ namespace wrld::sys {
         /// Alpha should be between 0 and 1
         void set_alpha(float alpha);
 
+        [[nodiscard]] bool get_do_rdm_offset() const;
+
+        void set_do_rdm_offset(bool do_rdm_offset);
+
     protected:
         /// Render the given camera.
         void render_camera(World &world, const cpt::Camera3D &camera,
@@ -34,12 +38,14 @@ namespace wrld::sys {
         /// Return data of a sample of PointLights in the world.
         /// The sample will have min(MAX_LIGHTS, point light count) / sample_pass_count
         /// lights at most.
-        static std::vector<PointLightData> sample_point_lights(World &world);
+        std::vector<PointLightData> sample_point_lights(World &world) const;
 
         /// Return data of all DirectionalLights in the world.
         /// The sample will have min(MAX_LIGHTS, dir light count) / sample_pass_count
         /// lights at most.
         std::vector<DirectionalLightData> sample_directional_lights(World &world) const;
+
+        void create_first_pass(World &world) override;
 
         void create_second_pass(World &world) override;
 
@@ -52,12 +58,14 @@ namespace wrld::sys {
 
         Rc<rsc::DeferredFramebuffer> get_framebuffer() const override;
 
+        void set_camera_uniforms(const Rc<rsc::Program> &program, const cpt::Camera3D &camera) override;
+
         // /// Return count random indices in [0, max[.
         // static std::vector<size_t> sample_idx(size_t max, size_t count);
 
         GLfloat alpha = 0.5;
 
-        static constexpr unsigned TAA_IMAGE_COUNT = 4;
+        static constexpr unsigned TAA_IMAGE_COUNT = 2;
         unsigned current_sample_pass = 0;
 
         Rc<rsc::TAAFramebuffer> g_framebuffer;
@@ -72,8 +80,6 @@ namespace wrld::sys {
         glm::mat4x4 previous_frame_transform; // Transform of the camera without model matrix)
         bool previous_frame_transform_set = false;
 
-        // GLuint fbo;
-        // GLuint history_texture;
-        // GLuint depth_texture;
+        bool do_rdm_offset = false;
     };
 }
