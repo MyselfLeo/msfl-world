@@ -6,16 +6,15 @@
 
 #include <wrld/systems/TAARenderSystem.hpp>
 #include <wrld/Main.hpp>
-#include <wrld/components/DirectionalLight.hpp>
-#include <wrld/components/PointLight.hpp>
 #include <wrld/shaders/deferred_second_pass.glsl.hpp>
+#include <wrld/shaders/taa/taa_first_pass.glsl.hpp>
+#include <wrld/shaders/taa/taa_second_pass.glsl.hpp>
 
 #include "glm/gtx/transform.hpp"
 
-#include "wrld/logs.hpp"
 
 namespace wrld::sys {
-    TAARenderSystem::TAARenderSystem() : DeferredRenderSystem() /*fbo(0),*/ /*history_texture(0), depth_texture(0) */ {
+    TAARenderSystem::TAARenderSystem() : DeferredRenderSystem() {
     }
 
     void TAARenderSystem::init(World &world) {
@@ -62,72 +61,17 @@ namespace wrld::sys {
         render_camera_second_pass(world, camera, lights);
     }
 
-    // std::vector<RenderSystem::PointLightData> TAARenderSystem::sample_point_lights(World &world) const {
-    //     std::vector<PointLightData> res;
-    //
-    //     // Query each PointLight components in world
-    //     auto entities = world.get_entities_with_component<cpt::PointLight>();
-    //     if (entities.size() > MAX_LIGHTS)
-    //         entities.resize(MAX_LIGHTS);
-    //
-    //     // Sample
-    //     const size_t count = entities.size() / TAA_IMAGE_COUNT;
-    //     const size_t offset = count * current_sample_pass;
-    //     std::vector<EntityID> sample;
-    //     sample.reserve(count);
-    //     for (auto it = entities.begin() + offset; it != entities.end(); ++it) {
-    //         sample.push_back(*it);
-    //         if (sample.size() == count) break;
-    //     }
-    //
-    //
-    //     for (const auto &entity: sample) {
-    //         const auto cpnt = world.get_component<cpt::PointLight>(entity);
-    //         glm::vec3 position = world.get_component<cpt::Transform>(entity)->get_position();
-    //         res.emplace_back(position, cpnt->get_color(), cpnt->get_intensity());
-    //     }
-    //
-    //     return res;
-    // }
-
-    // std::vector<RenderSystem::DirectionalLightData> TAARenderSystem::sample_directional_lights(World &world) const {
-    //     std::vector<DirectionalLightData> res;
-    //
-    //     // Query each DirectionalLight components in world
-    //     auto entities = world.get_entities_with_component<cpt::DirectionalLight>();
-    //     if (entities.size() > MAX_LIGHTS)
-    //         entities.resize(MAX_LIGHTS);
-    //
-    //     // Sample
-    //     const size_t count = entities.size() / TAA_IMAGE_COUNT;
-    //     const size_t offset = count * current_sample_pass;
-    //     std::vector<EntityID> sample;
-    //     sample.reserve(count);
-    //     for (auto it = entities.begin() + offset; it != entities.end(); ++it) {
-    //         sample.push_back(*it);
-    //         if (sample.size() == count) break;
-    //     }
-    //
-    //     for (const auto &entity: sample) {
-    //         const auto cpnt = world.get_component<cpt::DirectionalLight>(entity);
-    //         glm::vec3 direction = world.get_component<cpt::Transform>(entity)->forward();
-    //         res.emplace_back(direction, cpnt->get_color(), cpnt->get_intensity());
-    //     }
-    //
-    //     return res;
-    // }
-
     void TAARenderSystem::create_first_pass(World &world) {
-        deferred_first_pass = world.create_resource<rsc::Program>("First Deferred Pass Shader");
-        deferred_first_pass->shader_path(rsc::ShaderType::Vertex, "data/compute/taa_deferred_first_pass.glsl");
-        deferred_first_pass->shader_path(rsc::ShaderType::Fragment, "data/compute/taa_deferred_first_pass.glsl");
+        deferred_first_pass = world.create_resource<rsc::Program>("TAA First Deferred Pass Shader");
+        deferred_first_pass->shader_source(rsc::ShaderType::Vertex, shader::TAA_FIRST_PASS);
+        deferred_first_pass->shader_source(rsc::ShaderType::Fragment, shader::TAA_FIRST_PASS);
         deferred_first_pass->reload();
     }
 
     void TAARenderSystem::create_second_pass(World &world) {
         deferred_second_pass = world.create_resource<rsc::Program>("TAA Second Deferred Pass Shader");
-        deferred_second_pass->shader_path(rsc::ShaderType::Vertex, "data/compute/taa_deferred_second_pass.glsl");
-        deferred_second_pass->shader_path(rsc::ShaderType::Fragment, "data/compute/taa_deferred_second_pass.glsl");
+        deferred_second_pass->shader_source(rsc::ShaderType::Vertex, shader::TAA_SECOND_PASS);
+        deferred_second_pass->shader_source(rsc::ShaderType::Fragment, shader::TAA_SECOND_PASS);
         deferred_second_pass->reload();
     }
 
@@ -284,12 +228,4 @@ namespace wrld::sys {
     void TAARenderSystem::trigger_clear_alpha() {
         this->clear_alpha = true;
     }
-
-    // bool TAARenderSystem::get_do_rdm_offset() const {
-    //     return do_rdm_offset;
-    // }
-    //
-    // void TAARenderSystem::set_do_rdm_offset(const bool do_rdm_offset) {
-    //     this->do_rdm_offset = do_rdm_offset;
-    // }
 }
