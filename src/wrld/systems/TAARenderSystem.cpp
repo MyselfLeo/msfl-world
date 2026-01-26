@@ -43,18 +43,18 @@ namespace wrld::sys {
     }
 
     RenderSystem::LightCollection TAARenderSystem::sample_lights(World &world) const {
-        return LightCollection{sample_directional_lights(world), sample_point_lights(world)};
+        return LightCollection{get_directional_lights(world), get_point_lights(world)};
     }
 
     float TAARenderSystem::get_alpha() const {
-        return alpha;
+        return min_alpha;
     }
 
     void TAARenderSystem::set_alpha(const float alpha) {
         if (alpha < 0 || alpha > 1) {
             throw std::runtime_error("Alpha should be between 0 and 1");
         }
-        this->alpha = alpha;
+        this->min_alpha = alpha;
     }
 
     void TAARenderSystem::render_camera(World &world, const cpt::Camera3D &camera, const LightCollection &lights) {
@@ -62,60 +62,60 @@ namespace wrld::sys {
         render_camera_second_pass(world, camera, lights);
     }
 
-    std::vector<RenderSystem::PointLightData> TAARenderSystem::sample_point_lights(World &world) const {
-        std::vector<PointLightData> res;
+    // std::vector<RenderSystem::PointLightData> TAARenderSystem::sample_point_lights(World &world) const {
+    //     std::vector<PointLightData> res;
+    //
+    //     // Query each PointLight components in world
+    //     auto entities = world.get_entities_with_component<cpt::PointLight>();
+    //     if (entities.size() > MAX_LIGHTS)
+    //         entities.resize(MAX_LIGHTS);
+    //
+    //     // Sample
+    //     const size_t count = entities.size() / TAA_IMAGE_COUNT;
+    //     const size_t offset = count * current_sample_pass;
+    //     std::vector<EntityID> sample;
+    //     sample.reserve(count);
+    //     for (auto it = entities.begin() + offset; it != entities.end(); ++it) {
+    //         sample.push_back(*it);
+    //         if (sample.size() == count) break;
+    //     }
+    //
+    //
+    //     for (const auto &entity: sample) {
+    //         const auto cpnt = world.get_component<cpt::PointLight>(entity);
+    //         glm::vec3 position = world.get_component<cpt::Transform>(entity)->get_position();
+    //         res.emplace_back(position, cpnt->get_color(), cpnt->get_intensity());
+    //     }
+    //
+    //     return res;
+    // }
 
-        // Query each PointLight components in world
-        auto entities = world.get_entities_with_component<cpt::PointLight>();
-        if (entities.size() > MAX_LIGHTS)
-            entities.resize(MAX_LIGHTS);
-
-        // Sample
-        const size_t count = entities.size() / TAA_IMAGE_COUNT;
-        const size_t offset = count * current_sample_pass;
-        std::vector<EntityID> sample;
-        sample.reserve(count);
-        for (auto it = entities.begin() + offset; it != entities.end(); ++it) {
-            sample.push_back(*it);
-            if (sample.size() == count) break;
-        }
-
-
-        for (const auto &entity: sample) {
-            const auto cpnt = world.get_component<cpt::PointLight>(entity);
-            glm::vec3 position = world.get_component<cpt::Transform>(entity)->get_position();
-            res.emplace_back(position, cpnt->get_color(), cpnt->get_intensity());
-        }
-
-        return res;
-    }
-
-    std::vector<RenderSystem::DirectionalLightData> TAARenderSystem::sample_directional_lights(World &world) const {
-        std::vector<DirectionalLightData> res;
-
-        // Query each DirectionalLight components in world
-        auto entities = world.get_entities_with_component<cpt::DirectionalLight>();
-        if (entities.size() > MAX_LIGHTS)
-            entities.resize(MAX_LIGHTS);
-
-        // Sample
-        const size_t count = entities.size() / TAA_IMAGE_COUNT;
-        const size_t offset = count * current_sample_pass;
-        std::vector<EntityID> sample;
-        sample.reserve(count);
-        for (auto it = entities.begin() + offset; it != entities.end(); ++it) {
-            sample.push_back(*it);
-            if (sample.size() == count) break;
-        }
-
-        for (const auto &entity: sample) {
-            const auto cpnt = world.get_component<cpt::DirectionalLight>(entity);
-            glm::vec3 direction = world.get_component<cpt::Transform>(entity)->forward();
-            res.emplace_back(direction, cpnt->get_color(), cpnt->get_intensity());
-        }
-
-        return res;
-    }
+    // std::vector<RenderSystem::DirectionalLightData> TAARenderSystem::sample_directional_lights(World &world) const {
+    //     std::vector<DirectionalLightData> res;
+    //
+    //     // Query each DirectionalLight components in world
+    //     auto entities = world.get_entities_with_component<cpt::DirectionalLight>();
+    //     if (entities.size() > MAX_LIGHTS)
+    //         entities.resize(MAX_LIGHTS);
+    //
+    //     // Sample
+    //     const size_t count = entities.size() / TAA_IMAGE_COUNT;
+    //     const size_t offset = count * current_sample_pass;
+    //     std::vector<EntityID> sample;
+    //     sample.reserve(count);
+    //     for (auto it = entities.begin() + offset; it != entities.end(); ++it) {
+    //         sample.push_back(*it);
+    //         if (sample.size() == count) break;
+    //     }
+    //
+    //     for (const auto &entity: sample) {
+    //         const auto cpnt = world.get_component<cpt::DirectionalLight>(entity);
+    //         glm::vec3 direction = world.get_component<cpt::Transform>(entity)->forward();
+    //         res.emplace_back(direction, cpnt->get_color(), cpnt->get_intensity());
+    //     }
+    //
+    //     return res;
+    // }
 
     void TAARenderSystem::create_first_pass(World &world) {
         deferred_first_pass = world.create_resource<rsc::Program>("First Deferred Pass Shader");
@@ -195,8 +195,14 @@ namespace wrld::sys {
 
         // TAA specific
         deferred_second_pass->set_uniform("history_texture", 4);
-        deferred_second_pass->set_uniform("alpha", alpha);
+        deferred_second_pass->set_uniform("min_alpha", min_alpha);
+
+        deferred_second_pass->set_uniform("clear_alpha", clear_alpha);
+        if (clear_alpha)
+            clear_alpha = false;
+
         deferred_second_pass->set_uniform("previous_viewproj", previous_frame_transform);
+        deferred_second_pass->set_uniform("taa_frame_count", TAA_IMAGE_COUNT);
 
         deferred_second_pass->set_uniform("view_pos", camera.get_position());
         set_program_uniforms(deferred_second_pass);
@@ -250,10 +256,10 @@ namespace wrld::sys {
         DeferredRenderSystem::set_camera_uniforms(program, camera);
 
         // Offset aleatoire pour simuler le sampling
-        if (do_rdm_offset) {
+        if (jitter_offset != 0.0) {
             static std::random_device dev;
             static std::mt19937 rng(dev());
-            std::uniform_real_distribution<float> distrib(-0.5, 0.5);
+            std::uniform_real_distribution<float> distrib(-jitter_offset, jitter_offset);
 
             const auto width = static_cast<float>(Main::get_window_viewport()->get_width());
             const auto height = static_cast<float>(Main::get_window_viewport()->get_height());
@@ -264,11 +270,26 @@ namespace wrld::sys {
         }
     }
 
-    bool TAARenderSystem::get_do_rdm_offset() const {
-        return do_rdm_offset;
+    float TAARenderSystem::get_jitter_offset() const {
+        return jitter_offset;
     }
 
-    void TAARenderSystem::set_do_rdm_offset(const bool do_rdm_offset) {
-        this->do_rdm_offset = do_rdm_offset;
+    void TAARenderSystem::set_jitter_offset(const float jitter_offset) {
+        if (jitter_offset < 0) {
+            throw std::runtime_error("Jitter cannot be negative");
+        }
+        this->jitter_offset = jitter_offset;
     }
+
+    void TAARenderSystem::trigger_clear_alpha() {
+        this->clear_alpha = true;
+    }
+
+    // bool TAARenderSystem::get_do_rdm_offset() const {
+    //     return do_rdm_offset;
+    // }
+    //
+    // void TAARenderSystem::set_do_rdm_offset(const bool do_rdm_offset) {
+    //     this->do_rdm_offset = do_rdm_offset;
+    // }
 }

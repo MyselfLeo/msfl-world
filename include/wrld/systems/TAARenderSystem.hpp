@@ -26,24 +26,30 @@ namespace wrld::sys {
         /// Alpha should be between 0 and 1
         void set_alpha(float alpha);
 
-        [[nodiscard]] bool get_do_rdm_offset() const;
+        // [[nodiscard]] bool get_do_rdm_offset() const;
+        //
+        // void set_do_rdm_offset(bool do_rdm_offset);
 
-        void set_do_rdm_offset(bool do_rdm_offset);
+        [[nodiscard]] float get_jitter_offset() const;
+
+        void set_jitter_offset(float jitter_offset);
+
+        void trigger_clear_alpha();
 
     protected:
         /// Render the given camera.
         void render_camera(World &world, const cpt::Camera3D &camera,
                            const LightCollection &lights) override;
 
-        /// Return data of a sample of PointLights in the world.
-        /// The sample will have min(MAX_LIGHTS, point light count) / sample_pass_count
-        /// lights at most.
-        std::vector<PointLightData> sample_point_lights(World &world) const;
-
-        /// Return data of all DirectionalLights in the world.
-        /// The sample will have min(MAX_LIGHTS, dir light count) / sample_pass_count
-        /// lights at most.
-        std::vector<DirectionalLightData> sample_directional_lights(World &world) const;
+        // /// Return data of a sample of PointLights in the world.
+        // /// The sample will have min(MAX_LIGHTS, point light count) / sample_pass_count
+        // /// lights at most.
+        // std::vector<PointLightData> sample_point_lights(World &world) const;
+        //
+        // /// Return data of all DirectionalLights in the world.
+        // /// The sample will have min(MAX_LIGHTS, dir light count) / sample_pass_count
+        // /// lights at most.
+        // std::vector<DirectionalLightData> sample_directional_lights(World &world) const;
 
         void create_first_pass(World &world) override;
 
@@ -63,7 +69,8 @@ namespace wrld::sys {
         // /// Return count random indices in [0, max[.
         // static std::vector<size_t> sample_idx(size_t max, size_t count);
 
-        GLfloat alpha = 0.5;
+        GLfloat min_alpha = 0.0;
+        GLboolean clear_alpha = false;
 
         static constexpr unsigned TAA_IMAGE_COUNT = 2;
         unsigned current_sample_pass = 0;
@@ -79,7 +86,8 @@ namespace wrld::sys {
         // as a key for a unordered_map that store the previous transformation
         glm::mat4x4 previous_frame_transform; // Transform of the camera without model matrix)
         bool previous_frame_transform_set = false;
+        float jitter_offset = 0.25;
 
-        bool do_rdm_offset = false;
+        // bool do_rdm_offset = false;
     };
 }

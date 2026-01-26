@@ -76,3 +76,7 @@ Remove Meshgroup ! a Model should only have a list of meshes. (we're back at the
   We could also add a function "blit" or "copy" to copy one texture from a framebuffer to the other.
 
 - (HARD) Simplify pipelining by defining succession of programs and framebuffer operations.
+
+# Deferred Rendering / TAA :
+
+- Ne pas stocker le frag pos mais le recalculer a partir de la profondeur et des coordonnes du pixel
