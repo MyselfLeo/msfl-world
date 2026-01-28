@@ -13,7 +13,7 @@
 #include "wrld/components/PointLight.hpp"
 #include "wrld/components/StaticModel.hpp"
 #include "wrld/shaders/skybox_shader.glsl.hpp"
-#include "wrld/shaders/compute/draw_call_gen.comp.hpp"
+#include "wrld/shaders/compute/old_draw_call_gen.comp.hpp"
 #include "wrld/shaders/compute/visibility_check.comp.hpp"
 
 namespace wrld::sys {

@@ -78,6 +78,8 @@ set(HEADERS
         include/wrld/shaders/vertex/deferred.vert.hpp
         include/wrld/shaders/fragment/forward.frag.hpp
         include/wrld/shaders/fragment/deferred.frag.hpp
+        include/wrld/shaders/taa/taa_first_pass.glsl.hpp
+        include/wrld/shaders/taa/taa_second_pass.glsl.hpp
 
         include/wrld/objects/geometry/Mesh.hpp
         include/wrld/objects/geometry/MeshGroup.hpp

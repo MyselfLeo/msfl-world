@@ -96,14 +96,6 @@ layout (std430, binding = 10) writeonly buffer triangle_mesh_trsfm_buffer {
     mat4 triangle_mesh_trsfm[];
 };
 
-shared uint glocal_point_count;
-shared uint glocal_line_count;
-shared uint glocal_triangle_count;
-
-shared uint glocal_point_offset;
-shared uint glocal_line_offset;
-shared uint glocal_triangle_offset;
-
 // This compute shader is called once per material
 uniform uint material_idx;
 
@@ -112,71 +104,9 @@ uniform uint material_idx;
 layout (local_size_x = 256) in; // Test up to 256 objects at once
 void main() {
     uint id = gl_GlobalInvocationID.x;
-    uint lid = gl_LocalInvocationID.x;
 
-    if (lid == 0) {
-        glocal_point_count = 0;
-        glocal_line_count = 0;
-        glocal_triangle_count = 0;
-    }
-
-    barrier();
-
-    uint local_point_count = 0;
-    uint local_line_count = 0;
-    uint local_triangle_count = 0;
-
-    uint local_point_offset = 0;
-    uint local_line_offset = 0;
-    uint local_triangle_offset = 0;
-
+    // Execute on every visible renderable
     if (id < renderables.length() && visibility[id]) {
-        StaticModelData model = model_data[renderables[id].model_idx];
-        mat4 transform = renderables[id].model_matrix;
-
-        for (uint i = 0; i < model.mesh_count; i++) {
-            StaticMeshData mesh = mesh_data[model.mesh_start + i];
-
-            // Only fill the buffers with the meshes that have the correct
-            // material. We'll render them, then call this compute shader
-            // with another material, then again etc. until all materials
-            // are rendered.
-            if (mesh.material_idx != material_idx) continue;
-
-            switch (mesh.primitive_type) {
-                case 0: {
-                    local_point_count += 1;
-                } break;
-                case 1: {
-                    local_line_count += 1;
-                } break;
-                case 4: {
-                     local_triangle_count + 1;
-                } break;
-            }
-        }
-
-        local_point_offset = atomicAdd(glocal_point_count, local_point_count);
-        local_line_offset = atomicAdd(glocal_line_count, local_line_count);
-        local_triangle_offset = atomicAdd(glocal_triangle_count, local_triangle_count);
-    }
-
-
-    barrier();
-
-    if (lid == 0) {
-        glocal_point_offset = atomicAdd(point_count, glocal_point_count);
-        glocal_line_offset = atomicAdd(line_count, glocal_line_count);
-        glocal_triangle_offset = atomicAdd(triangle_count, glocal_triangle_count);
-    }
-
-    barrier();
-
-    if (id < renderables.length() && visibility[id]) {
-        uint point_i = 0;
-        uint line_i = 0;
-        uint triangle_i = 0;
-
         StaticModelData model = model_data[renderables[id].model_idx];
         mat4 transform = renderables[id].model_matrix;
 
@@ -193,8 +123,8 @@ void main() {
             switch (mesh.primitive_type) {
                 case 0:
                     {
-                        uint index = glocal_point_offset + local_point_offset + point_i;
-                        point_i += 1;
+                        // todo: don't do so much atomic adds
+                        uint index = atomicAdd(point_count, 1u);
 
                         points_drawcall[index].index_count = mesh.vao_element_count;
                         points_drawcall[index].instance_count = 1;
@@ -207,8 +137,8 @@ void main() {
 
                 case 1:
                     {
-                        uint index = glocal_line_offset + local_line_offset + line_i;
-                        line_i += 1;
+                        // todo: don't do so much atomic adds
+                        uint index = atomicAdd(line_count, 1u);
 
                         lines_drawcall[index].index_count = mesh.vao_element_count;
                         lines_drawcall[index].instance_count = 1;
@@ -221,8 +151,8 @@ void main() {
 
                 case 4:
                     {
-                        uint index = glocal_triangle_offset + local_triangle_offset + triangle_i;
-                        triangle_i += 1;
+                        // todo: don't do so much atomic adds
+                        uint index = atomicAdd(triangle_count, 1u);
 
                         triangles_drawcall[index].index_count = mesh.vao_element_count;
                         triangles_drawcall[index].instance_count = 1;

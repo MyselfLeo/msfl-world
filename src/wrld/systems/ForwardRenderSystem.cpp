@@ -12,7 +12,7 @@
 #include "wrld/shaders/deferred_second_pass.glsl.hpp"
 #include "wrld/shaders/skybox_shader.glsl.hpp"
 #include "wrld/shaders/compute/visibility_check.comp.hpp"
-#include "wrld/shaders/compute/draw_call_gen.comp.hpp"
+#include "wrld/shaders/compute/old_draw_call_gen.comp.hpp"
 #include "wrld/shaders/fragment/deferred.frag.hpp"
 #include "wrld/shaders/fragment/forward.frag.hpp"
 #include "wrld/shaders/vertex/deferred.vert.hpp"
