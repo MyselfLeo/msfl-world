@@ -2,7 +2,6 @@
 // Created by leo on 11/20/25.
 //
 
-#include <glm/detail/func_geometric.hpp>
 #include <wrld/objects/geometry/Ray.hpp>
 #include <wrld/objects/geometry/Mesh.hpp>
 

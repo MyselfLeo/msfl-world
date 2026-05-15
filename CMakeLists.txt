@@ -1,44 +1,19 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.6)
 project(msfl_world VERSION 0.4.0)
 
 set(CMAKE_CXX_STANDARD 26)
 
-set(GLFW_BUILD_DOCS 0)
-set(GLFW_BUILD_EXAMPLES 0)
-set(GLFW_BUILD_TESTS 0)
-set(GLFW_BUILD_X11 0)
-add_subdirectory(lib/glfw-3.4)
-include_directories(lib/glfw-3.4/include)
+include(settings.cmake)
 
-set(GLM_STATIC_LIBRARY_ENABLE True)
-add_subdirectory(lib/glm)
-include_directories(lib/glm)
-
-set(BUILD_SHARED_LIBS False)
-set(ASSIMP_BUILD_ZLIB On)
-set(ASSIMP_BUILD_TESTS Off)
-set(ASSIMP_INSTALL Off)
-set(ASSIMP_INJECT_DEBUG_POSTFIX Off)
-set(ASSIMP_BUILD_ASSIMP_VIEW Off)
-add_subdirectory(lib/assimp-6.0.2)
-include_directories(lib/assimp-6.0.2/include)
-
-add_subdirectory(lib/imgui-1.92.2b)
-include_directories(lib/imgui-1.92.2b)
-include_directories(lib/imgui-1.92.2b/backends)
-
+# Third party libraries
+include(cmake/lib/glfw.cmake)
+include(cmake/lib/glm.cmake)
+include(cmake/lib/assimp.cmake)
+include(cmake/lib/imgui.cmake)
 include_directories(lib/glad/include lib/stb_image)
 
-find_package(OpenMP QUIET)
-if (TARGET OpenMP::OpenMP_CXX)
-    if (MSFL_WORLD_NO_OPENMP EQUAL 1)
-        message("-- [msfl-world] OpenMP available but explicitly disabled")
-    else ()
-        message("-- [msfl-world] OpenMP available, using it")
-    endif ()
-else ()
-    message("-- [msfl-world] OpenMP is not available.")
-endif ()
+message("----- MSFL-WORLD -----")
+include(cmake/configure_msflw.cmake)
 
 set(HEADERS
         include/wrld/World.hpp
@@ -160,11 +135,11 @@ add_library(msfl_world STATIC
 )
 
 target_include_directories(msfl_world PUBLIC
-        lib/glfw-3.4/include
+        lib/glfw/include
         lib/glm
-        lib/assimp-6.0.2/include
-        lib/imgui-1.92.2b
-        lib/imgui-1.92.2b/backends
+        lib/assimp/include
+        lib/imgui
+        lib/imgui/backends
         lib/glad/include
         lib/stb_image
         include
@@ -172,7 +147,8 @@ target_include_directories(msfl_world PUBLIC
 
 
 target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
-if (TARGET OpenMP::OpenMP_CXX AND (NOT (MSFL_WORLD_NO_OPENMP EQUAL 1)))
+
+if (MSFLW_USE_OPENMP)
     target_link_libraries(msfl_world PUBLIC OpenMP::OpenMP_CXX)
 endif ()
 

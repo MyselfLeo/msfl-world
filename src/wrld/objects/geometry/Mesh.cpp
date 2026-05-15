@@ -2,14 +2,10 @@
 // Created by leo on 9/6/25.
 //
 
-#include <complex>
-#include <../../../include/wrld/objects/geometry/Mesh.hpp>
-
+#include <wrld/objects/geometry/Mesh.hpp>
 #include <wrld/World.hpp>
 
 #include <utility>
-
-#include "glm/detail/func_geometric.hpp"
 
 namespace wrld::obj {
     unsigned get_primitive_size(PrimitiveType type) {

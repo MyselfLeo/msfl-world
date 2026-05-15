@@ -4,8 +4,10 @@
 
 #include <wrld/components/Transform.hpp>
 
-#include "glm/gtx/quaternion.hpp"
-#include "glm/gtx/transform.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/transform.hpp>
 
 namespace wrld::cpt {
     Transform::Transform(const EntityID entity_id, World &world,

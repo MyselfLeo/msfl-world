@@ -1,0 +1,1 @@
+option(MSFLW_USE_OPENMP "Use OpenMP if found" ON)
