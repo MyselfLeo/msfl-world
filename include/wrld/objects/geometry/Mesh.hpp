@@ -4,8 +4,10 @@
 
 #pragma once
 
+#define GLEW_NO_GLU
+
 #include <vector>
-#include <glad/glad.h>
+#include <GL/glew.h>
 #include <wrld/objects/geometry/AABoundingBox.hpp>
 
 namespace wrld::obj {

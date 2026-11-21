@@ -4,8 +4,10 @@
 
 #pragma once
 
+#define GLEW_NO_GLU
+
 #include <wrld/resources/Resource.hpp>
-#include "glad/glad.h"
+#include <GL/glew.h>
 
 
 #include <string>
@@ -20,8 +22,11 @@ namespace wrld::rsc {
         CubemapTexture &from_texture(const std::vector<std::string> &cubemap_paths);
 
         CubemapTexture(CubemapTexture &other) = delete;
+
         CubemapTexture(CubemapTexture &&other) = delete;
+
         CubemapTexture &operator=(CubemapTexture &other) = delete;
+
         CubemapTexture &operator=(CubemapTexture &&other) = delete;
 
         void use(unsigned unit = 0) const;
@@ -33,5 +38,4 @@ namespace wrld::rsc {
     private:
         GLuint gl_texture;
     };
-
 } // namespace wrld::rsc

@@ -5,7 +5,9 @@
 #include <wrld/resources/Texture.hpp>
 #include <wrld/logs.hpp>
 
-#include <glad/glad.h>
+#define GLEW_NO_GLU
+
+#include <GL/glew.h>
 
 #include <format>
 #include <iostream>
@@ -13,14 +15,15 @@
 #include <stdexcept>
 
 namespace wrld::rsc {
-    Texture::Texture(const std::string &name, World &world) : Resource(name, world) {}
+    Texture::Texture(const std::string &name, World &world) : Resource(name, world) {
+    }
 
     Texture &Texture::from_file(const std::string &texture_path, const aiTextureType type,
                                 const bool flip_textures) {
         stbi_set_flip_vertically_on_load(flip_textures);
 
         wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type),
-                             texture_path));
+            texture_path));
 
         // Load texture file
         int width, height, nb_channels;
@@ -29,8 +32,9 @@ namespace wrld::rsc {
 
         if (data == nullptr) {
             stbi_image_free(data);
+            const char *error_msg = stbi_failure_reason();
             throw std::runtime_error(
-                    std::format("Error while loading texture {}", texture_path));
+                std::format("Error while loading texture {} : {}", texture_path, error_msg));
         }
 
         update_texture(width, height, nb_channels, data);
@@ -40,7 +44,8 @@ namespace wrld::rsc {
 
     Texture &Texture::from_default() {
         std::array<unsigned char, 17> DEFAULT_TEXTURE{
-                "\377\000\357\377\000\000\000\377\000\000\000\377\377\000\357\377"};
+            "\377\000\357\377\000\000\000\377\000\000\000\377\377\000\357\377"
+        };
 
         update_texture(2, 2, 4, DEFAULT_TEXTURE.data());
         return *this;
@@ -59,15 +64,17 @@ namespace wrld::rsc {
         switch (nb_channels) {
             case 3: {
                 format = GL_RGB;
-            } break;
+            }
+            break;
             case 4: {
                 format = GL_RGBA;
-            } break;
+            }
+            break;
             default: {
                 stbi_image_free(data);
                 throw std::runtime_error(std::format(
-                        "Only RGB and RGBA images are supported for now. Nbchannels: {}",
-                        nb_channels));
+                    "Only RGB and RGBA images are supported for now. Nbchannels: {}",
+                    nb_channels));
             }
         }
 

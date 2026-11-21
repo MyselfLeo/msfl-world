@@ -1,0 +1,17 @@
+# Use Glew as a static library
+set(GLEW_USE_STATIC_LIBS ON)
+
+# No tools
+set(BUILD_UTILS OFF)
+
+# Only libs
+set(ONLY_LIBS ON)
+
+message("----- GLEW -----")
+
+add_subdirectory(
+        lib/glew-cmake/build/cmake/
+        lib/glew-cmake
+)
+
+include_directories(lib/glew-cmake/include)

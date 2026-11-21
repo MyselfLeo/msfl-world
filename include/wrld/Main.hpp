@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include <glad/glad.h>
+#define GLEW_NO_GLU
+
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <memory>
@@ -59,13 +61,13 @@ namespace wrld {
         /// Return the platform used to compile the program.
         /// Can be used at compile-time (constexpr).
         static constexpr Platform get_platform() {
-            #if defined(__clang__)
+#if defined(__clang__)
             return Platform::Clang;
-            #elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUC__) || defined(__GNUG__)
             return Platform::GCC;
-            #elif defined(_MSC_VER)
+#elif defined(_MSC_VER)
             return Platform::MSVC;
-            #endif
+#endif
         }
 
     private:

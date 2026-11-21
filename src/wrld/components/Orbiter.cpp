@@ -9,13 +9,17 @@
 #include <iostream>
 
 namespace wrld::cpt {
-    Orbiter::Orbiter(const EntityID entity_id, World &world, const glm::vec3 target, const float distance) :
-        Component(entity_id, world), mode(WORLD_POINT), target_point(std::move(target)), target_entity(0),
-        distance(distance), hor_angle(90), vert_angle(20) {}
+    Orbiter::Orbiter(const EntityID entity_id, World &world, const glm::vec3 target,
+                     const float distance) : Component(entity_id, world), mode(WORLD_POINT),
+                                             target_point(std::move(target)), target_entity(0),
+                                             distance(distance), hor_angle(90), vert_angle(20) {
+    }
 
-    Orbiter::Orbiter(const EntityID entity_id, World &world, const EntityID target, const float distance) :
-        Component(entity_id, world), mode(ENTITY), target_point({0, 0, 0}), target_entity(target), distance(distance),
-        hor_angle(90), vert_angle(20) {}
+    Orbiter::Orbiter(const EntityID entity_id, World &world, const EntityID target,
+                     const float distance) : Component(entity_id, world), mode(ENTITY), target_point({0, 0, 0}),
+                                             target_entity(target), distance(distance),
+                                             hor_angle(90), vert_angle(20) {
+    }
 
     void Orbiter::set_target(const glm::vec3 &target) {
         target_point = target;
@@ -67,7 +71,7 @@ namespace wrld::cpt {
                 return this->offset;
             }
             default:
-                assert(false);
+                std::unreachable();
         }
     }
 
@@ -85,8 +89,10 @@ namespace wrld::cpt {
         const float vert_angle_rad = glm::radians(vert_angle);
 
         // Compute new transform
-        const glm::vec3 vector = glm::normalize(glm::vec3{cos(hor_angle_rad) * cos(vert_angle_rad), sin(vert_angle_rad),
-                                                          sin(hor_angle_rad) * cos(vert_angle_rad)});
+        const glm::vec3 vector = glm::normalize(glm::vec3{
+            cos(hor_angle_rad) * cos(vert_angle_rad), sin(vert_angle_rad),
+            sin(hor_angle_rad) * cos(vert_angle_rad)
+        });
         const glm::vec3 position = get_target_point() + vector * distance;
 
         transform->set_position(position);

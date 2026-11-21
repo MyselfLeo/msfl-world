@@ -3,7 +3,9 @@
 //
 #include <iostream>
 
-#include "glad/glad.h"
+#define GLEW_NO_GLU
+
+#include <GL/glew.h>
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -16,7 +18,7 @@
 #include <utility>
 
 #ifndef MSFL_WORLD_VERSION
-    #define MSFL_WORLD_VERSION "Unknown (not compiled using CMake)"
+#define MSFL_WORLD_VERSION "Unknown (not compiled using CMake)"
 #endif
 
 namespace wrld {
@@ -40,13 +42,16 @@ namespace wrld {
         switch (get_platform()) {
             case Platform::Clang: {
                 wrldInfo("Compiler: CLANG");
-            } break;
+            }
+            break;
             case Platform::GCC: {
                 wrldInfo("Compiler: GCC");
-            } break;
+            }
+            break;
             case Platform::MSVC: {
                 wrldInfo("Compiler: MSVC");
-            } break;
+            }
+            break;
         }
 
         init_gl(width, height);
@@ -179,7 +184,7 @@ namespace wrld {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+        //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
         const float main_scale =
                 ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
@@ -192,13 +197,16 @@ namespace wrld {
             const char *error = nullptr;
             int code = glfwGetError(&error);
             throw std::runtime_error(
-                    std::format("Failed to create GLFW window with error code {:0X}: {}",
-                                code, error));
+                std::format("Failed to create GLFW window with error code {:0X}: {}",
+                            code, error));
         }
 
         glfwMakeContextCurrent(window);
-        if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-            throw std::runtime_error("Failed to initialize GLAD");
+
+        GLenum err = glewContextInit();
+
+        if (err != GLEW_OK) {
+            throw std::runtime_error("Failed to initialize GLEW");
         }
 
         auto gl_version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
@@ -208,10 +216,8 @@ namespace wrld {
         wrldInfo(std::format("Vendor: {}", gl_vendor));
 
         std::array required_extensions = {
-                std::make_pair<std::string, int &>("ARB Indirect Parameters",
-                                                   GLAD_GL_ARB_indirect_parameters),
-                std::make_pair<std::string, int &>("ARB Shader Draw Parameters",
-                                                   GLAD_GL_ARB_shader_draw_parameters),
+            std::make_pair<std::string, char>("ARB Indirect Parameters", GLEW_ARB_indirect_parameters),
+            std::make_pair<std::string, char>("ARB Shader Draw Parameters", GLEW_ARB_shader_draw_parameters),
         };
 
         // Check required extensions
@@ -273,7 +279,6 @@ namespace wrld {
         window_viewport->set_size(width, height);
     }
 
-#ifndef NDEBUG
     void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
                                       GLenum severity, GLsizei length,
                                       const char *message, const void *userParam) {
@@ -307,9 +312,4 @@ namespace wrld {
 
         std::cout << message << std::endl;
     }
-#else
-    void APIENTRY Main::glDebugOutput(const GLenum source, GLenum type, const unsigned id,
-                                      GLenum severity, GLsizei length,
-                                      const char *message, const void *userParam) {}
-#endif
 } // namespace wrld

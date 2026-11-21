@@ -36,6 +36,7 @@ namespace wrld::rsc {
     unsigned DeferredFramebuffer::get_height() const { return this->height; }
 
     void DeferredFramebuffer::use() const {
+        glDisable(GL_DITHER);
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glViewport(0, 0, this->width, this->height);
     }

@@ -52,6 +52,8 @@ namespace wrld::sys {
         update_framebuffer();
 
         framebuffer->use();
+        deferred_first_pass->use();
+        
         glClearColor(0, 0, 0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

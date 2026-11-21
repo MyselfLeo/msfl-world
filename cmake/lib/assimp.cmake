@@ -25,6 +25,9 @@ set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 # Disable export functionalities
 set(ASSIMP_NO_EXPORT ON)
 
+# Disable Warnings as errors for Assimp
+set(ASSIMP_WARNINGS_AS_ERRORS OFF)
+
 message("----- ASSIMP -----")
 
 add_subdirectory(lib/assimp)

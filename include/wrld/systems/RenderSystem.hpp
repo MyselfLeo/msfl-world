@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "glad/glad.h"
+#define GLEW_NO_GLU
+
+#include <GL/glew.h>
 
 #include <wrld/World.hpp>
 #include <wrld/components/Environment3D.hpp>
@@ -108,10 +110,10 @@ namespace wrld::sys {
         ///   a compute shader.
         ///   Returns the max mesh count for each primitive type (point, line, triangle).
         void compute_renderables_visiblity(
-                World &world, const cpt::Camera3D &camera);
+            World &world, const cpt::Camera3D &camera);
 
         void compute_draw_calls_for_material(
-                unsigned material_idx) const;
+            unsigned material_idx) const;
 
         /// Return the environment attached to the camera, or a default one if not
         /// provided.

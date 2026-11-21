@@ -4,16 +4,18 @@
 
 #pragma once
 
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
+#define GLEW_NO_GLU
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 namespace wrld::rsc {
-
     class WindowFramebuffer {
     public:
         explicit WindowFramebuffer(GLFWwindow *window);
 
         int get_width() const;
+
         int get_height() const;
 
         void use() const;
@@ -26,5 +28,4 @@ namespace wrld::rsc {
         int width, height;
         GLFWwindow *window;
     };
-
 } // namespace wrld::rsc

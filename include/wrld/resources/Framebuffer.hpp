@@ -4,8 +4,10 @@
 
 #pragma once
 
+#define GLEW_NO_GLU
+
 #include <wrld/resources/Resource.hpp>
-#include "glad/glad.h"
+#include <GL/glew.h>
 
 #include <vector>
 
@@ -23,6 +25,7 @@ namespace wrld::rsc {
         Framebuffer &set_nb_color_attachments(unsigned nb);
 
         [[nodiscard]] unsigned get_width() const;
+
         [[nodiscard]] unsigned get_height() const;
 
         std::string get_type() const override { return "Viewport"; }
@@ -41,5 +44,4 @@ namespace wrld::rsc {
 
         unsigned width, height;
     };
-
 } // namespace wrld::rsc

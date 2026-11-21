@@ -319,8 +319,7 @@ namespace wrld::sys {
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, visibility_buffer);
         // Can't use GLboolean as it's 1 byte, not 4 like on GPU
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * renderable_count, nullptr,
-                     GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * renderable_count, nullptr, GL_STATIC_COPY);
 
         // Prepare the dispatch
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, model_data_buffer);

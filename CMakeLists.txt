@@ -1,16 +1,20 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.10)
 project(msfl_world VERSION 0.4.0)
 
 set(CMAKE_CXX_STANDARD 26)
+
+# Compilation settings
+set(COMPILE_WARNING_AS_ERROR 0)
 
 include(settings.cmake)
 
 # Third party libraries
 include(cmake/lib/glfw.cmake)
+include(cmake/lib/glew.cmake)
 include(cmake/lib/glm.cmake)
 include(cmake/lib/assimp.cmake)
 include(cmake/lib/imgui.cmake)
-include_directories(lib/glad/include lib/stb_image)
+include_directories(lib/stb_image)
 
 message("----- MSFL-WORLD -----")
 include(cmake/configure_msflw.cmake)
@@ -127,8 +131,6 @@ set(SOURCE
 )
 
 add_library(msfl_world STATIC
-        # Libraries that are not compiled beforehand
-        lib/glad/src/glad.c
         lib/stb_image/stb_image.cpp
         ${HEADERS}
         ${SOURCE}
@@ -146,7 +148,7 @@ target_include_directories(msfl_world PUBLIC
 )
 
 
-target_link_libraries(msfl_world PUBLIC glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
+target_link_libraries(msfl_world PUBLIC glew_s glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
 
 if (MSFLW_USE_OPENMP)
     target_link_libraries(msfl_world PUBLIC OpenMP::OpenMP_CXX)

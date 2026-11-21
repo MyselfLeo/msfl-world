@@ -4,8 +4,10 @@
 
 #pragma once
 
+#define GLEW_NO_GLU
+
 #include <wrld/resources/Resource.hpp>
-#include "glad/glad.h"
+#include <GL/glew.h>
 
 #include <vector>
 
@@ -21,6 +23,7 @@ namespace wrld::rsc {
         DeferredFramebuffer &set_size(unsigned width, unsigned height);
 
         [[nodiscard]] unsigned get_width() const;
+
         [[nodiscard]] unsigned get_height() const;
 
         std::string get_type() const override { return "DeferredViewport"; }
@@ -30,9 +33,13 @@ namespace wrld::rsc {
         void recreate();
 
         [[nodiscard]] GLuint get_position_texture() const;
+
         [[nodiscard]] GLuint get_normal_texture() const;
+
         [[nodiscard]] GLuint get_diffuse_texture() const;
+
         [[nodiscard]] GLuint get_do_lighting_texture() const;
+
         [[nodiscard]] GLuint get_depth_texture() const;
 
     private:
@@ -48,5 +55,4 @@ namespace wrld::rsc {
 
         unsigned width, height;
     };
-
 } // namespace wrld::rsc
