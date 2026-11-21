@@ -112,6 +112,15 @@ namespace wrld::rsc {
         glUniform1ui(uniform_loc, value);
     }
 
+    void Program::set_uniform(const std::string &uniform, const glm::vec2 &value) const {
+        const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
+        if (uniform_loc == -1) {
+            return;
+        }
+
+        glUniform2f(uniform_loc, value[0], value[1]);
+    }
+
     void Program::set_uniform(const std::string &uniform, const glm::vec3 &value) const {
         const GLint uniform_loc = glGetUniformLocation(gl_program, uniform.c_str());
         if (uniform_loc == -1) {
