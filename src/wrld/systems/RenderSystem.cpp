@@ -60,6 +60,10 @@ namespace wrld::sys {
         std::vector<StaticModelData> model_data;
         std::vector<StaticMeshData> mesh_data;
 
+        if (!world.get_resources().contains(std::type_index(typeid(rsc::Model)))) {
+            return;
+        }
+
         const auto static_models = world.get_resources().at(std::type_index(typeid(rsc::Model))) | std::views::values;
 
         // 2 steps : first we collect the size of everything to allocate the

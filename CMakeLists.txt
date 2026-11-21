@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 26)
 # Compilation settings
 set(COMPILE_WARNING_AS_ERROR 0)
 
+include(settings.cmake)
+
 set(HEADERS
         include/wrld/World.hpp
         include/wrld/System.hpp
@@ -122,8 +124,6 @@ add_library(msfl_world STATIC
         ${HEADERS}
         ${SOURCE}
 )
-
-include(settings.cmake)
 
 # Third party libraries
 include(cmake/lib/glfw.cmake)

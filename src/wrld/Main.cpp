@@ -126,6 +126,19 @@ namespace wrld {
 
         wrldInfo("Exiting app");
         app.exit(world);
+
+        // Destroy graphical contexts
+        world = World();
+        window_viewport.reset();
+
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+
+        glfwDestroyWindow(window);
+        window = nullptr;
+
+        glfwTerminate();
     }
 
     void Main::exit() { should_close = true; }
@@ -180,7 +193,17 @@ namespace wrld {
     GLFWwindow *Main::init_gl(const int width, const int height) {
         wrldInfo("Initialising OpenGL context");
 
-        glfwInit();
+        #ifdef MSFLW_PLATFORM_WAYLAND
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+        #endif
+
+        const auto glfw_err = glfwInit();
+
+        if (glfw_err != GLFW_TRUE) {
+            wrldError("Failed to initialize GLFW");
+            std::exit(1);
+        }
+
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -189,9 +212,8 @@ namespace wrld {
         const float main_scale =
                 ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
 
-        window = glfwCreateWindow(width, height,
-                                  std::format("{} :: msfl-world", window_title).c_str(),
-                                  nullptr, nullptr);
+        const std::string title = std::format("{} :: msfl-world", window_title);
+        window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 
         if (window == nullptr) {
             const char *error = nullptr;
@@ -203,10 +225,12 @@ namespace wrld {
 
         glfwMakeContextCurrent(window);
 
-        GLenum err = glewContextInit();
-
+        glewExperimental = GL_TRUE;
+        GLenum err = glewInit();
         if (err != GLEW_OK) {
-            throw std::runtime_error("Failed to initialize GLEW");
+            auto err_msg = reinterpret_cast<const char *>(glewGetErrorString(err));
+            wrldError(std::format("Failed to initialize GLEW with error: {}", err_msg));
+            std::exit(1);
         }
 
         auto gl_version = reinterpret_cast<const char *>(glGetString(GL_VERSION));

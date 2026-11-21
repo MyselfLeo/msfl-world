@@ -8,7 +8,11 @@ set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
 
 # Wayland only for Linux
-set(GLFW_BUILD_X11 OFF)
+if(MSFLW_ENABLE_X11_SUPPORT)
+    set(GLFW_BUILD_X11 ON)
+else()
+    set(GLFW_BUILD_X11 OFF)
+endif()
 
 # GLFW as static library
 set(GLFW_LIBRARY_TYPE STATIC)

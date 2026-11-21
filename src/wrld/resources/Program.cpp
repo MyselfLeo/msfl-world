@@ -71,9 +71,10 @@ namespace wrld::rsc {
     }
 
     Program::~Program() {
-        for (const auto &s: gl_shaders | std::views::values) {
-            glDeleteShader(s);
+        for (const auto& shader : gl_shaders | std::views::values) {
+            glDeleteShader(shader);
         }
+
         glDeleteProgram(gl_program);
     }
 
