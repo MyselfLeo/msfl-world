@@ -129,9 +129,7 @@ namespace wrld::builtins {
 
         world.attach_component<cpt::Transform>(flyover);
         world.attach_component<cpt::FPSControl>(flyover);
-        world.attach_component<cpt::Camera3D>(flyover, 45, true,
-                                              Main::get_window_viewport(),
-                                              world.get_default<rsc::Program>());
+        world.attach_component<cpt::Camera3D>(flyover, 45, true, Main::get_window_viewport());
 
         const auto &env = world.attach_component<cpt::Environment3D>(flyover);
         env->set_ambiant_light(cpt::AmbiantLight{glm::vec3{1.0}, 1.0});

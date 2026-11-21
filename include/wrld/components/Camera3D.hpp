@@ -29,16 +29,11 @@ namespace wrld::cpt {
         static const obj::AABoundingBox Frustum;
 
         explicit Camera3D(EntityID entity_id, World &world, float fov, bool do_culling,
-                          std::shared_ptr<rsc::WindowFramebuffer> viewport,
-                          const Rc<rsc::Program> &program);
+                          std::shared_ptr<rsc::WindowFramebuffer> viewport);
 
         [[nodiscard]] float get_fov() const;
 
         void set_fov(float fov);
-
-        [[nodiscard]] Rc<rsc::Program> get_program() const;
-
-        void set_program(const Rc<rsc::Program> &program);
 
         /// Either returns the Transform attached to the Entity,
         /// or the identity transform.

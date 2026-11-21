@@ -15,24 +15,13 @@ namespace wrld::cpt {
 
     Camera3D::Camera3D(const EntityID entity_id, World &world, const float fov,
                        const bool do_culling,
-                       std::shared_ptr<rsc::WindowFramebuffer> viewport,
-                       const Rc<rsc::Program> &program) :
+                       std::shared_ptr<rsc::WindowFramebuffer> viewport) :
         Component(entity_id, world), fov(fov), do_culling(do_culling),
-        viewport(std::move(viewport)) {
-        attach_resource("program", program);
-    }
+        viewport(std::move(viewport)) {}
 
     float Camera3D::get_fov() const { return fov; }
 
     void Camera3D::set_fov(const float fov) { this->fov = fov; }
-
-    Rc<rsc::Program> Camera3D::get_program() const {
-        return get_resource<rsc::Program>("program");
-    }
-
-    void Camera3D::set_program(const Rc<rsc::Program> &program) {
-        attach_resource("program", program);
-    }
 
     glm::mat4x4 Camera3D::get_view_matrix() const {
         return glm::inverse(world.get_component<Transform>(entity_id)->model_matrix());
