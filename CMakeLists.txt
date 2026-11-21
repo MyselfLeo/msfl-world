@@ -69,6 +69,7 @@ set(HEADERS
         include/wrld-gui/components.hpp
         include/wrld-gui/resources.hpp
         include/wrld-gui/misc.hpp
+        include/wrld/systems/BaseRenderSystem.hpp
 )
 
 set(SOURCE

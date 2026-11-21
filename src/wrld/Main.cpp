@@ -32,6 +32,7 @@ namespace wrld {
     std::string Main::window_title = "Unnamed";
     glm::vec3 Main::clear_color = {0.08, 0.08, 0.08};
     RendererType Main::renderer_type = RendererType::ForwardRenderer;
+    std::unique_ptr<sys::BaseRenderSystem> Main::custom_renderer = nullptr;
     std::unordered_map<std::string, std::string> Main::statistics = {};
 
     void Main::run(App &app, const unsigned width, const unsigned height) {
@@ -60,16 +61,27 @@ namespace wrld {
 
         world = World();
 
-        sys::RenderSystem *renderer;
+        sys::BaseRenderSystem *renderer;
         switch (renderer_type) {
-            case RendererType::ForwardRenderer:
+            case RendererType::ForwardRenderer: {
                 wrldInfo("Using Forward pipeline");
                 renderer = sys::ForwardRenderSystem::get();
                 break;
-            case RendererType::DeferredRenderer:
+            }
+            case RendererType::DeferredRenderer: {
                 wrldInfo("Using Deferred pipeline");
                 renderer = sys::DeferredRenderSystem::get();
                 break;
+            }
+            case RendererType::CustomRenderer: {
+                if (custom_renderer == nullptr) {
+                    wrldError("Set RendererType to Custom but no renderer was provided. Use Main::set_custom_renderer() before calling Main::run().");
+                    std::exit(1);
+                }
+                wrldInfo("Using Custom renderer");
+                renderer = custom_renderer.get();
+                break;
+            }
             case RendererType::NoRenderer:
                 throw std::runtime_error("NoRenderer is not implemented yet");
             default:
@@ -152,6 +164,11 @@ namespace wrld {
     double Main::get_time() { return glfwGetTime(); }
 
     double Main::get_delta_time() { return delta_time; }
+
+    void Main::set_custom_renderer(std::unique_ptr<sys::BaseRenderSystem> _custom_renderer) {
+        renderer_type = RendererType::CustomRenderer;
+        custom_renderer = std::move(_custom_renderer);
+    }
 
     void Main::set_renderer_type(const RendererType _renderer_type) {
         renderer_type = _renderer_type;

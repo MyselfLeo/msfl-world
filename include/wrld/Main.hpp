@@ -15,10 +15,13 @@
 #include <wrld/World.hpp>
 #include <wrld/resources/WindowFramebuffer.hpp>
 
+#include "systems/BaseRenderSystem.hpp"
+
 namespace wrld {
     enum class RendererType {
         ForwardRenderer,
         DeferredRenderer,
+        CustomRenderer,
         NoRenderer,
     };
 
@@ -46,7 +49,9 @@ namespace wrld {
         /// Return the current delta_time
         static double get_delta_time();
 
-        static void set_renderer_type(RendererType _renderer_type);
+        static void set_custom_renderer(std::unique_ptr<sys::BaseRenderSystem> custom_renderer);
+
+        static void set_renderer_type(RendererType renderer_type);
 
         static void set_clear_color(const glm::vec3 &color);
 
@@ -61,13 +66,13 @@ namespace wrld {
         /// Return the platform used to compile the program.
         /// Can be used at compile-time (constexpr).
         static constexpr Platform get_platform() {
-#if defined(__clang__)
-            return Platform::Clang;
-#elif defined(__GNUC__) || defined(__GNUG__)
-            return Platform::GCC;
-#elif defined(_MSC_VER)
-            return Platform::MSVC;
-#endif
+            #if defined(__clang__)
+                return Platform::Clang;
+            #elif defined(__GNUC__) || defined(__GNUG__)
+                return Platform::GCC;
+            #elif defined(_MSC_VER)
+                return Platform::MSVC;
+            #endif
         }
 
     private:
@@ -76,6 +81,8 @@ namespace wrld {
         static std::shared_ptr<rsc::WindowFramebuffer> window_viewport;
 
         static RendererType renderer_type;
+
+        static std::unique_ptr<sys::BaseRenderSystem> custom_renderer;
 
         static bool should_close;
 

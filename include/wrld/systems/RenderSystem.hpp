@@ -13,22 +13,24 @@
 #include <wrld/resources/Model.hpp>
 #include <wrld/resources/Program.hpp>
 
+#include "BaseRenderSystem.hpp"
+
 namespace wrld::sys {
-    class RenderSystem {
+    class RenderSystem: public BaseRenderSystem {
     public:
         static constexpr unsigned MAX_LIGHTS = 100;
 
-        virtual ~RenderSystem() = default;
+        ~RenderSystem() override = default;
 
         /// Initialize the system, compiles required shaders...
-        virtual void init(World &world);
+        void init(World &world) override;
 
         /// Render all the cameras in the world.
-        virtual void render(World &world) = 0;
+        void render(World &world) override = 0;
 
         /// Reload loaded meshes, models & materials. All the data
         /// is sent to the GPU.
-        void reload_resources(const World &world);
+        void reload_resources(const World &world) override;
 
     protected:
         /// For each mesh we give :
