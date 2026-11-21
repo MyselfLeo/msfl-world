@@ -7,7 +7,10 @@ add_library(imgui STATIC lib/imgui/imgui.cpp lib/imgui/imgui.h lib/imgui/imgui_d
 target_include_directories(imgui PUBLIC lib/imgui/)
 
 add_library(imgui_impl_glfw lib/imgui/backends/imgui_impl_glfw.h lib/imgui/backends/imgui_impl_glfw.cpp)
-target_include_directories(imgui_impl_glfw PUBLIC lib/imgui/)
+target_include_directories(imgui_impl_glfw PUBLIC lib/imgui/ lib/glfw/include)
 
 add_library(imgui_impl_opengl3 lib/imgui/backends/imgui_impl_opengl3.h lib/imgui/backends/imgui_impl_opengl3.cpp)
-target_include_directories(imgui_impl_opengl3 PUBLIC lib/imgui/)
+target_include_directories(imgui_impl_opengl3 PUBLIC lib/imgui/ lib/glfw/include)
+
+target_include_directories(msfl_world PUBLIC lib/imgui lib/imgui/backends)
+target_link_libraries(msfl_world PUBLIC imgui imgui_impl_glfw imgui_impl_opengl3)

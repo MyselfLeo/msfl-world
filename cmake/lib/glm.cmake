@@ -10,4 +10,5 @@ set(GLM_BUILD_INSTALL OFF)
 message("----- GLM -----")
 
 add_subdirectory(lib/glm)
-include_directories(lib/glm)
+target_include_directories(msfl_world PUBLIC lib/glm)
+target_link_libraries(msfl_world PUBLIC glm)

@@ -30,5 +30,14 @@ set(ASSIMP_WARNINGS_AS_ERRORS OFF)
 
 message("----- ASSIMP -----")
 
-add_subdirectory(lib/assimp)
-include_directories(lib/assimp/include)
+if (MSFLW_USE_ASSIMP)
+    target_compile_definitions(msfl_world PUBLIC -DMSFLW_ENABLE_ASSIMP=1)
+    message(STATUS "Including ASSIMP")
+
+    add_subdirectory(lib/assimp)
+    target_include_directories(msfl_world PUBLIC lib/assimp/include)
+    target_link_libraries(msfl_world PUBLIC assimp)
+else()
+    target_compile_definitions(msfl_world PUBLIC -DMSFLW_ENABLE_ASSIMP=0)
+    message(STATUS "ASSIMP explicitly disabled")
+endif()

@@ -4,6 +4,8 @@ if (TARGET OpenMP::OpenMP_CXX)
     if (MSFLW_USE_OPENMP)
         message(STATUS "OpenMP available, using it")
         set(MSFL_USE_OPENMP ON)
+
+        target_link_libraries(msfl_world PUBLIC OpenMP::OpenMP_CXX)
     else ()
         message(STATUS "OpenMP available but explicitly disabled")
         set(MSFL_USE_OPENMP OFF)

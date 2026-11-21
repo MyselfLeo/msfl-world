@@ -5,7 +5,10 @@
 #pragma once
 
 #include <wrld/resources/Resource.hpp>
-#include "assimp/material.h"
+
+#ifdef MSFLW_USE_ASSIMP
+    #include "assimp/material.h"
+#endif
 
 
 #include <string>
@@ -15,8 +18,10 @@ namespace wrld::rsc {
     public:
         explicit Texture(const std::string &name, World &world);
 
-        Texture &from_file(const std::string &texture_path, aiTextureType type,
-                           bool flip_textures = false);
+        #ifdef MSFLW_USE_ASSIMP
+            Texture &from_file(const std::string &texture_path, aiTextureType type,
+                               bool flip_textures = false);
+        #endif
 
         /// Returns a default texture.
         Texture &from_default();
@@ -37,7 +42,9 @@ namespace wrld::rsc {
 
         unsigned gl_texture = 0;
 
-        // Using Assimp enum for now, it's good enough
-        aiTextureType type = aiTextureType_DIFFUSE;
+        #ifdef MSFLW_USE_ASSIMP
+            // Using Assimp enum for now, it's good enough
+            aiTextureType type = aiTextureType_DIFFUSE;
+        #endif
     };
 } // namespace wrld::rsc

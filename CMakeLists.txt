@@ -6,19 +6,6 @@ set(CMAKE_CXX_STANDARD 26)
 # Compilation settings
 set(COMPILE_WARNING_AS_ERROR 0)
 
-include(settings.cmake)
-
-# Third party libraries
-include(cmake/lib/glfw.cmake)
-include(cmake/lib/glew.cmake)
-include(cmake/lib/glm.cmake)
-include(cmake/lib/assimp.cmake)
-include(cmake/lib/imgui.cmake)
-include_directories(lib/stb_image)
-
-message("----- MSFL-WORLD -----")
-include(cmake/configure_msflw.cmake)
-
 set(HEADERS
         include/wrld/World.hpp
         include/wrld/System.hpp
@@ -136,22 +123,19 @@ add_library(msfl_world STATIC
         ${SOURCE}
 )
 
-target_include_directories(msfl_world PUBLIC
-        lib/glfw/include
-        lib/glm
-        lib/assimp/include
-        lib/imgui
-        lib/imgui/backends
-        lib/glad/include
-        lib/stb_image
-        include
-)
+include(settings.cmake)
 
+# Third party libraries
+include(cmake/lib/glfw.cmake)
+include(cmake/lib/glew.cmake)
+include(cmake/lib/glm.cmake)
+include(cmake/lib/assimp.cmake)
+include(cmake/lib/imgui.cmake)
+include_directories(lib/stb_image)
 
-target_link_libraries(msfl_world PUBLIC glew_s glfw glm assimp imgui imgui_impl_glfw imgui_impl_opengl3)
+message("----- MSFL-WORLD -----")
+include(cmake/configure_msflw.cmake)
 
-if (MSFLW_USE_OPENMP)
-    target_link_libraries(msfl_world PUBLIC OpenMP::OpenMP_CXX)
-endif ()
+target_include_directories(msfl_world PUBLIC lib/stb_image include)
 
 target_compile_definitions(msfl_world PRIVATE MSFL_WORLD_VERSION="${msfl_world_VERSION}")

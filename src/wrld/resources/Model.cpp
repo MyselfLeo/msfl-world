@@ -5,14 +5,16 @@
 #include <wrld/resources/Model.hpp>
 #include <wrld/World.hpp>
 
-#include "assimp/Importer.hpp"
-#include "assimp/scene.h"
+#if MSFLW_ENABLE_ASSIMP
+    #include "assimp/Importer.hpp"
+    #include "assimp/scene.h"
+    #include <assimp/postprocess.h>
+#endif
 
 #include <format>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
-#include <assimp/postprocess.h>
 #include <wrld/logs.hpp>
 #include <wrld/objects/geometry/Triangle.hpp>
 
@@ -102,103 +104,105 @@ namespace wrld::rsc {
         return *this;
     }
 
-    Model &Model::from_file(const std::string &model_path, unsigned ai_flags,
-                            bool flip_textures,
-                            const std::optional<Rc<Material> > &custom_material) {
-        wrldInfo(std::format("Loading model from {}", model_path).c_str());
+    #if MSFLW_ENABLE_ASSIMP
+        Model &Model::from_file(const std::string &model_path, unsigned ai_flags,
+                                bool flip_textures,
+                                const std::optional<Rc<Material> > &custom_material) {
+            wrldInfo(std::format("Loading model from {}", model_path).c_str());
 
-        clear();
+            clear();
 
-        const std::string model_directory =
-                model_path.substr(0, model_path.find_last_of('/'));
+            const std::string model_directory =
+                    model_path.substr(0, model_path.find_last_of('/'));
 
-        // Load Assimp scene from file
-        Assimp::Importer import;
-        const aiScene *scene =
-                import.ReadFile(model_path,
-                                ai_flags | aiProcess_SortByPType | aiProcess_Triangulate);
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-            throw std::runtime_error(std::format("Unable to load model `{}`: {}",
-                                                 model_path, import.GetErrorString()));
-        }
-        if (scene->mNumMeshes == 0) {
+            // Load Assimp scene from file
+            Assimp::Importer import;
+            const aiScene *scene =
+                    import.ReadFile(model_path,
+                                    ai_flags | aiProcess_SortByPType | aiProcess_Triangulate);
+            if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
+                throw std::runtime_error(std::format("Unable to load model `{}`: {}",
+                                                     model_path, import.GetErrorString()));
+            }
+            if (scene->mNumMeshes == 0) {
+                return *this;
+            }
+
+            if (custom_material.has_value()) {
+                materials.push_back(custom_material.value());
+            } else {
+                load_materials(scene, model_directory, flip_textures);
+            }
+
+            // Create 1 meshgroup for each mesh
+            // todo: We never use more than 1 mesh per meshgroup so maybe
+            // just forget about meshgroup ??
+            for (int m = 0; m < scene->mNumMeshes; m++) {
+                const aiMesh *mesh = scene->mMeshes[m];
+
+                obj::PrimitiveType primitive_type;
+                if (mesh->mPrimitiveTypes & aiPrimitiveType_POINT)
+                    primitive_type = obj::PrimitiveType::Points;
+                else if (mesh->mPrimitiveTypes & aiPrimitiveType_LINE)
+                    primitive_type = obj::PrimitiveType::Lines;
+                else if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
+                    primitive_type = obj::PrimitiveType::Triangles;
+                else {
+                    wrldError(
+                            std::format("Primitive type unspported in mesh {}", model_path));
+                    continue;
+                }
+
+
+                // Create the new mesh
+                obj::Mesh new_mesh{primitive_type};
+
+                // Process vertices
+                for (unsigned i = 0; i < mesh->mNumVertices; i++) {
+                    obj::Vertex vertex;
+
+                    const aiVector3D &vertex_pos = mesh->mVertices[i];
+
+                    if (mesh->mNormals != nullptr) {
+                        const aiVector3D &vertex_normal = mesh->mNormals[i];
+                        vertex.normal = {vertex_normal.x, vertex_normal.y, vertex_normal.z};
+                    }
+
+                    const aiVector3D &vertex_texcoords = mesh->mTextureCoords[0]
+                                                             ? mesh->mTextureCoords[0][i]
+                                                             : aiVector3D{0, 0, 0};
+                    const aiColor4D &vertex_color = mesh->mColors[0]
+                                                        ? mesh->mColors[0][i]
+                                                        : aiColor4D{1.0, 1.0, 1.0, 1.0};
+
+                    vertex.position = {vertex_pos.x, vertex_pos.y, vertex_pos.z};
+                    vertex.color = {vertex_color.r, vertex_color.g, vertex_color.b};
+                    vertex.texcoords = {vertex_texcoords.x, vertex_texcoords.y};
+
+                    new_mesh.add_vertex(vertex);
+                }
+                // Indices
+                for (unsigned i = 0; i < mesh->mNumFaces; i++) {
+                    const aiFace &face = mesh->mFaces[i];
+                    for (unsigned j = 0; j < face.mNumIndices; j++) {
+                        new_mesh.add_element(face.mIndices[j]);
+                    }
+                }
+
+                // Create a meshgroup
+                // See previous todo
+                obj::MeshGroup new_meshgroup;
+                new_meshgroup.add_mesh(new_mesh);
+
+                // Add the meshgroup along with the material indice
+                groups.push_back(new_meshgroup);
+                material_of_group.push_back(
+                        custom_material.has_value() ? 0 : mesh->mMaterialIndex);
+            }
+            update();
             return *this;
         }
-
-        if (custom_material.has_value()) {
-            materials.push_back(custom_material.value());
-        } else {
-            load_materials(scene, model_directory, flip_textures);
-        }
-
-        // Create 1 meshgroup for each mesh
-        // todo: We never use more than 1 mesh per meshgroup so maybe
-        // just forget about meshgroup ??
-        for (int m = 0; m < scene->mNumMeshes; m++) {
-            const aiMesh *mesh = scene->mMeshes[m];
-
-            obj::PrimitiveType primitive_type;
-            if (mesh->mPrimitiveTypes & aiPrimitiveType_POINT)
-                primitive_type = obj::PrimitiveType::Points;
-            else if (mesh->mPrimitiveTypes & aiPrimitiveType_LINE)
-                primitive_type = obj::PrimitiveType::Lines;
-            else if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
-                primitive_type = obj::PrimitiveType::Triangles;
-            else {
-                wrldError(
-                        std::format("Primitive type unspported in mesh {}", model_path));
-                continue;
-            }
-
-
-            // Create the new mesh
-            obj::Mesh new_mesh{primitive_type};
-
-            // Process vertices
-            for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-                obj::Vertex vertex;
-
-                const aiVector3D &vertex_pos = mesh->mVertices[i];
-
-                if (mesh->mNormals != nullptr) {
-                    const aiVector3D &vertex_normal = mesh->mNormals[i];
-                    vertex.normal = {vertex_normal.x, vertex_normal.y, vertex_normal.z};
-                }
-
-                const aiVector3D &vertex_texcoords = mesh->mTextureCoords[0]
-                                                         ? mesh->mTextureCoords[0][i]
-                                                         : aiVector3D{0, 0, 0};
-                const aiColor4D &vertex_color = mesh->mColors[0]
-                                                    ? mesh->mColors[0][i]
-                                                    : aiColor4D{1.0, 1.0, 1.0, 1.0};
-
-                vertex.position = {vertex_pos.x, vertex_pos.y, vertex_pos.z};
-                vertex.color = {vertex_color.r, vertex_color.g, vertex_color.b};
-                vertex.texcoords = {vertex_texcoords.x, vertex_texcoords.y};
-
-                new_mesh.add_vertex(vertex);
-            }
-            // Indices
-            for (unsigned i = 0; i < mesh->mNumFaces; i++) {
-                const aiFace &face = mesh->mFaces[i];
-                for (unsigned j = 0; j < face.mNumIndices; j++) {
-                    new_mesh.add_element(face.mIndices[j]);
-                }
-            }
-
-            // Create a meshgroup
-            // See previous todo
-            obj::MeshGroup new_meshgroup;
-            new_meshgroup.add_mesh(new_mesh);
-
-            // Add the meshgroup along with the material indice
-            groups.push_back(new_meshgroup);
-            material_of_group.push_back(
-                    custom_material.has_value() ? 0 : mesh->mMaterialIndex);
-        }
-        update();
-        return *this;
-    }
+    #endif
 
     size_t Model::get_mesh_count() const {
         size_t count = 0;
@@ -377,69 +381,71 @@ namespace wrld::rsc {
         return s;
     }
 
-    void Model::load_materials(const aiScene *scene, const std::string &directory,
-                               const bool flip_textures) {
-        materials.clear();
-        materials.reserve(scene->mNumMaterials);
+    #if MSFLW_ENABLE_ASSIMP
+        void Model::load_materials(const aiScene *scene, const std::string &directory,
+                                   const bool flip_textures) {
+            materials.clear();
+            materials.reserve(scene->mNumMaterials);
 
-        for (int i = 0; i < scene->mNumMaterials; i++) {
-            // todo: load more data from the material, including :
-            // - all the textures (not limited to 1 texture per type)
-            // - PBR data
+            for (int i = 0; i < scene->mNumMaterials; i++) {
+                // todo: load more data from the material, including :
+                // - all the textures (not limited to 1 texture per type)
+                // - PBR data
 
-            // Create the material
-            const aiMaterial *ai_material = scene->mMaterials[i];
-            const auto material =
-                    world.create_resource<Material>(ai_material->GetName().C_Str());
+                // Create the material
+                const aiMaterial *ai_material = scene->mMaterials[i];
+                const auto material =
+                        world.create_resource<Material>(ai_material->GetName().C_Str());
 
-            // Load the textures
-            if (ai_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-                aiString str;
-                ai_material->GetTexture(aiTextureType_DIFFUSE, 0, &str);
+                // Load the textures
+                if (ai_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+                    aiString str;
+                    ai_material->GetTexture(aiTextureType_DIFFUSE, 0, &str);
 
-                const auto texture =
-                        load_texture(directory, std::string(str.C_Str()), scene,
-                                     aiTextureType_DIFFUSE, flip_textures);
+                    const auto texture =
+                            load_texture(directory, std::string(str.C_Str()), scene,
+                                         aiTextureType_DIFFUSE, flip_textures);
 
-                material->set_diffuse_map(texture);
+                    material->set_diffuse_map(texture);
+                }
+                if (ai_material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+                    aiString str;
+                    ai_material->GetTexture(aiTextureType_SPECULAR, 0, &str);
+
+                    const auto texture =
+                            load_texture(directory, std::string(str.C_Str()), scene,
+                                         aiTextureType_SPECULAR, flip_textures);
+
+                    material->set_specular_map(texture);
+                }
+
+                materials.push_back(material);
             }
-            if (ai_material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
-                aiString str;
-                ai_material->GetTexture(aiTextureType_SPECULAR, 0, &str);
-
-                const auto texture =
-                        load_texture(directory, std::string(str.C_Str()), scene,
-                                     aiTextureType_SPECULAR, flip_textures);
-
-                material->set_specular_map(texture);
-            }
-
-            materials.push_back(material);
-        }
-    }
-
-    Rc<Texture> Model::load_texture(const std::string &directory, const std::string &str,
-                                    const aiScene *scene, const aiTextureType &type,
-                                    const bool flip_texture) {
-        // Texture already loaded
-        if (textures.contains(str))
-            return textures.at(str);
-
-        // Case of an embedded file
-        if (scene->GetEmbeddedTexture(str.c_str())) {
-            throw std::runtime_error("Embedded textures are not supported yet");
         }
 
-        // Case of an external file
-        const std::string texture_path = std::format("{}/{}", directory, str);
+        Rc<Texture> Model::load_texture(const std::string &directory, const std::string &str,
+                                        const aiScene *scene, const aiTextureType &type,
+                                        const bool flip_texture) {
+            // Texture already loaded
+            if (textures.contains(str))
+                return textures.at(str);
 
-        // Load the texture
-        auto texture = world.create_resource<Texture>(str);
-        texture.get_mut()->from_file(texture_path, type, flip_texture);
-        textures.insert_or_assign(str, texture);
+            // Case of an embedded file
+            if (scene->GetEmbeddedTexture(str.c_str())) {
+                throw std::runtime_error("Embedded textures are not supported yet");
+            }
 
-        return texture;
-    }
+            // Case of an external file
+            const std::string texture_path = std::format("{}/{}", directory, str);
+
+            // Load the texture
+            auto texture = world.create_resource<Texture>(str);
+            texture.get_mut()->from_file(texture_path, type, flip_texture);
+            textures.insert_or_assign(str, texture);
+
+            return texture;
+        }
+    #endif
 
     void Model::clear() {
         textures.clear();

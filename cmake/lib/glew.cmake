@@ -13,5 +13,5 @@ add_subdirectory(
         lib/glew-cmake/build/cmake/
         lib/glew-cmake
 )
-
-include_directories(lib/glew-cmake/include)
+target_include_directories(msfl_world PUBLIC lib/glew-cmake/include)
+target_link_libraries(msfl_world PUBLIC glew_s)

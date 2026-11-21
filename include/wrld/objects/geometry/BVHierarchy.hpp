@@ -7,6 +7,7 @@
 #include <memory>
 #include <span>
 #include <vector>
+#include <algorithm>
 
 #include <wrld/objects/geometry/AABoundingBox.hpp>
 #include <wrld/concepts.hpp>

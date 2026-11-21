@@ -16,4 +16,5 @@ set(GLFW_LIBRARY_TYPE STATIC)
 message("----- GLFW -----")
 
 add_subdirectory(lib/glfw)
-include_directories(lib/glfw/include)
+target_include_directories(msfl_world PUBLIC lib/glfw/include)
+target_link_libraries(msfl_world PUBLIC glfw)

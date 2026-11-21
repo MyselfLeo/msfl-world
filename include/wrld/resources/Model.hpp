@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "assimp/scene.h"
+#if MSFLW_ENABLE_ASSIMP
+    #include "assimp/scene.h"
+#endif
 
 #include <memory>
 #include <vector>
@@ -37,13 +39,15 @@ namespace wrld::rsc {
     public:
         explicit Model(std::string name, World &world);
 
-        /// Loads a model from a file (.obj...).
-        /// You can set a custom material for the newly created model.
-        /// If defined, it will replace all materials in the file with the one given.
-        Model &
-        from_file(const std::string &model_path, unsigned ai_flags = 0,
-                  bool flip_textures = false,
-                  const std::optional<Rc<Material> > &custom_material = std::nullopt);
+        #if MSFLW_ENABLE_ASSIMP
+            /// Loads a model from a file (.obj...).
+            /// You can set a custom material for the newly created model.
+            /// If defined, it will replace all materials in the file with the one given.
+            Model &
+            from_file(const std::string &model_path, unsigned ai_flags = 0,
+                      bool flip_textures = false,
+                      const std::optional<Rc<Material> > &custom_material = std::nullopt);
+        #endif
 
         /// Loads the model with a single Mesh. You must give the material of this mesh.
         Model &from_mesh(const obj::Mesh &mesh, const Rc<Material> &material);
@@ -120,14 +124,16 @@ namespace wrld::rsc {
         /// in Model::materials. Returns -1 otherwise.
         int get_material_index(const Rc<Material> &material) const;
 
-        /// Load materials from the aiScene.
-        void load_materials(const aiScene *scene, const std::string &directory,
-                            bool flip_textures);
+        #if MSFLW_ENABLE_ASSIMP
+            /// Load materials from the aiScene.
+            void load_materials(const aiScene *scene, const std::string &directory,
+                                bool flip_textures);
 
-        /// Load a specific texture based on its string.
-        Rc<Texture> load_texture(const std::string &directory, const std::string &str,
-                                 const aiScene *scene, const aiTextureType &type,
-                                 bool flip_texture);
+            /// Load a specific texture based on its string.
+            Rc<Texture> load_texture(const std::string &directory, const std::string &str,
+                                     const aiScene *scene, const aiTextureType &type,
+                                     bool flip_texture);
+        #endif
 
         /// Clear internal data of the Model.
         void clear();

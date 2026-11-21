@@ -18,29 +18,31 @@ namespace wrld::rsc {
     Texture::Texture(const std::string &name, World &world) : Resource(name, world) {
     }
 
-    Texture &Texture::from_file(const std::string &texture_path, const aiTextureType type,
-                                const bool flip_textures) {
-        stbi_set_flip_vertically_on_load(flip_textures);
+    #ifdef MSFLW_USE_ASSIMP
+        Texture &Texture::from_file(const std::string &texture_path, const aiTextureType type,
+                                    const bool flip_textures) {
+            stbi_set_flip_vertically_on_load(flip_textures);
 
-        wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type),
-            texture_path));
+            wrldInfo(std::format("Loading {} texture : {}", aiTextureTypeToString(type),
+                texture_path));
 
-        // Load texture file
-        int width, height, nb_channels;
-        unsigned char *data =
-                stbi_load(texture_path.c_str(), &width, &height, &nb_channels, 0);
+            // Load texture file
+            int width, height, nb_channels;
+            unsigned char *data =
+                    stbi_load(texture_path.c_str(), &width, &height, &nb_channels, 0);
 
-        if (data == nullptr) {
+            if (data == nullptr) {
+                stbi_image_free(data);
+                const char *error_msg = stbi_failure_reason();
+                throw std::runtime_error(
+                    std::format("Error while loading texture {} : {}", texture_path, error_msg));
+            }
+
+            update_texture(width, height, nb_channels, data);
             stbi_image_free(data);
-            const char *error_msg = stbi_failure_reason();
-            throw std::runtime_error(
-                std::format("Error while loading texture {} : {}", texture_path, error_msg));
+            return *this;
         }
-
-        update_texture(width, height, nb_channels, data);
-        stbi_image_free(data);
-        return *this;
-    }
+    #endif
 
     Texture &Texture::from_default() {
         std::array<unsigned char, 17> DEFAULT_TEXTURE{
