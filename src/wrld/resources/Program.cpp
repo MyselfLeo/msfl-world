@@ -181,14 +181,12 @@ namespace wrld::rsc {
         set_uniform(uniform + ".do_lighting", material->is_doing_lighting());
     }
 
-    void Program::reload() {
-        wrldInfo(std::format("Recompiling shaders for program '{}'", get_name()));
-
+    Result<void> Program::reload() {
         // Create the Program if required
         if (gl_program == 0) {
             gl_program = glCreateProgram();
             if (gl_program == 0) {
-                throw std::runtime_error("Unable to create OpenGL program object");
+                return Error(ErrorType::GlError, "Unable to create OpenGL program object");
             }
         }
 
@@ -203,11 +201,11 @@ namespace wrld::rsc {
         for (const auto st: SHADER_TYPES) {
             std::string source;
             if (shader_paths.contains(st) && !shader_sources.contains(st)) {
-                wrldInfo(std::format("\tCompiling {} from '{}'", get_type_name(st),
-                    shader_paths.at(st)));
+                // wrldInfo(std::format("\tCompiling {} from '{}'", get_type_name(st),
+                //     shader_paths.at(st)));
                 source = read_file(shader_paths.at(st));
             } else if (shader_sources.contains(st)) {
-                wrldInfo(std::format("\tCompiling {} from source", get_type_name(st)));
+                // wrldInfo(std::format("\tCompiling {} from source", get_type_name(st)));
                 source = shader_sources.at(st);
             } else {
                 continue;
@@ -216,8 +214,7 @@ namespace wrld::rsc {
             if (!gl_shaders.contains(st)) {
                 gl_shaders[st] = glCreateShader(get_gl_type(st));
                 if (gl_shaders[st] == 0) {
-                    throw std::runtime_error(
-                            "Unable to create OpenGL vertex shader object");
+                    return Error(ErrorType::GlError, "Unable to create OpenGL vertex shader object");
                 }
             }
 
@@ -239,11 +236,11 @@ namespace wrld::rsc {
         glUniformMatrix4fv(uniform_loc, 1, GL_FALSE, glm::value_ptr(value));
     }
 
-    std::string Program::read_file(const std::string &path) {
+    Result<std::string> Program::read_file(const std::string &path) {
         std::ifstream file(path);
 
         if (!file.is_open()) {
-            throw std::runtime_error(std::format("Failed to load file {}", path));
+            return Error(ErrorType::FileError, std::format("Failed to load file {}", path));
         }
 
         // Load the file into a stringbuffer that we'll then convert to string
@@ -254,7 +251,7 @@ namespace wrld::rsc {
         return buffer.str();
     }
 
-    std::string Program::preprocess_source(const std::string &shader_source,
+    Result<std::string> Program::preprocess_source(const std::string &shader_source,
                                            const ShaderType shader_type) {
         // We need to find the #version line. We'll remove it but re-add it later
 
@@ -271,13 +268,11 @@ namespace wrld::rsc {
         std::smatch match;
 
         if (!std::regex_search(shader_source, match, re)) {
-            throw std::runtime_error(
-                    std::format("No #version directive found in the shader."));
+            return Error(ErrorType::ShaderError, "No #version directive found in the shader.");
         }
 
         if (match.size() > 1)
-            throw std::runtime_error(
-                    std::format("Multiple #version directives found in the shader."));
+            return Error(ErrorType::ShaderError, "Multiple #version directives found in the shader.");
 
         // Remove this same line from the source
         std::string stripped_source = std::regex_replace(shader_source, re, "");
@@ -291,7 +286,7 @@ namespace wrld::rsc {
         return res;
     }
 
-    void Program::compile_shader(const GLuint gl_shader, const std::string &shader_src) {
+    Result<void> Program::compile_shader(const GLuint gl_shader, const std::string &shader_src) {
         const char *shader_src_str = shader_src.c_str();
         glShaderSource(gl_shader, 1, &shader_src_str, nullptr);
         glCompileShader(gl_shader);
@@ -303,8 +298,9 @@ namespace wrld::rsc {
         if (!success) {
             char infoLog[512];
             glGetShaderInfoLog(gl_shader, 512, nullptr, infoLog);
-            throw std::runtime_error(
-                    std::format("Failed to compile shader: {}", infoLog));
+            return Error(ErrorType::ShaderError, std::format("Failed to compile shader: {}", infoLog));
         }
+
+        return {};
     }
 } // namespace wrld::rsc

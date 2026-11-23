@@ -70,6 +70,7 @@ set(HEADERS
         include/wrld-gui/resources.hpp
         include/wrld-gui/misc.hpp
         include/wrld/systems/BaseRenderSystem.hpp
+        include/wrld/Error.hpp
 )
 
 set(SOURCE
@@ -118,6 +119,7 @@ set(SOURCE
         src/wrld-gui/components.cpp
         src/wrld-gui/resources.cpp
         src/wrld-gui/misc.cpp
+        src/wrld/Error.cpp
 )
 
 add_library(msfl_world STATIC

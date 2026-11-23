@@ -5,6 +5,7 @@
 #pragma once
 
 #include <wrld/resources/Material.hpp>
+#include <wrld/Error.hpp>
 
 #include <string>
 
@@ -81,7 +82,7 @@ namespace wrld::rsc {
         /// Reload & recompile all shaders of the program.
         /// If, for a given shader type, both a file and raw source is defined,
         /// the raw source is used.
-        void reload();
+        Result<void> reload();
 
         std::string get_type() const override { return "Program"; }
 
@@ -97,7 +98,7 @@ namespace wrld::rsc {
         unsigned int gl_program = 0;
         std::unordered_map<ShaderType, unsigned int> gl_shaders;
 
-        static std::string read_file(const std::string &path);
+        static Result<std::string> read_file(const std::string &path);
 
         bool compiled_once = false;
         // void reload_from_file();
@@ -107,9 +108,9 @@ namespace wrld::rsc {
         /// Preprocess the GLSL source code to fit our needs.
         /// We add a #define with the expected type of the shader. This allows to
         /// combine the whole pipeline into one .glsl file.
-        static std::string preprocess_source(const std::string &shader_source,
+        static Result<std::string> preprocess_source(const std::string &shader_source,
                                              ShaderType shader_type);
 
-        static void compile_shader(unsigned int gl_shader, const std::string &shader_src);
+        static Result<void> compile_shader(unsigned int gl_shader, const std::string &shader_src);
     };
 } // namespace wrld::rsc
