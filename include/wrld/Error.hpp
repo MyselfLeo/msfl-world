@@ -7,7 +7,9 @@
 #include <string>
 #include <utility>
 
-#define wrld_propagate(expr) if (auto _msfl_propagate_result = (expr); _msfl_propagate_result.is_err()) {return _msfl_propagate_result;}
+#define wrld_try(expr) if (auto _msfl_try_result = (expr); _msfl_try_result.is_err()) {return _msfl_try_result.as_err();}
+
+#define wrld_try_assign(varname, expr) auto var##_res = (expr); if (var##_res.is_err()) return var##_res.as_err(); auto var = std::move(*var##_res);
 
 namespace wrld {
 
