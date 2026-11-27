@@ -9,7 +9,9 @@
 
 #define wrld_try(expr) if (auto _msfl_try_result = (expr); _msfl_try_result.is_err()) {return _msfl_try_result.as_err();}
 
-#define wrld_try_assign(varname, expr) auto var##_res = (expr); if (var##_res.is_err()) return var##_res.as_err(); auto var = std::move(*var##_res);
+#define wrld_try_init(var, expr) auto var##_res = (expr); if (var##_res.is_err()) return var##_res.as_err(); auto var = std::move(var##_res.as_ok());
+
+#define wrld_try_assign(var, expr) auto var##_res = (expr); if (var##_res.is_err()) return var##_res.as_err(); var = std::move(var##_res.as_ok());
 
 namespace wrld {
 
@@ -39,6 +41,15 @@ namespace wrld {
         Result(const T& value): _value(value), _is_err(false) {}
         Result(Error  err): _err(std::move(err)), _is_err(true) {}
         Result(const ErrorType type, const std::string& msg = ""): _err(Error(type, msg)), _is_err(true) {}
+
+        ~Result() {
+            if (_is_err) {
+                _err.~Error();
+            }
+            else {
+                _value.~T();
+            }
+        }
 
         [[nodiscard]] bool is_ok() const {
             return !_is_err;

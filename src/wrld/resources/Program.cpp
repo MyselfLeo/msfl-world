@@ -201,11 +201,8 @@ namespace wrld::rsc {
         for (const auto st: SHADER_TYPES) {
             std::string source;
             if (shader_paths.contains(st) && !shader_sources.contains(st)) {
-                // wrldInfo(std::format("\tCompiling {} from '{}'", get_type_name(st),
-                //     shader_paths.at(st)));
-                source = read_file(shader_paths.at(st));
+                wrld_try_assign(source, read_file(shader_paths.at(st)));
             } else if (shader_sources.contains(st)) {
-                // wrldInfo(std::format("\tCompiling {} from source", get_type_name(st)));
                 source = shader_sources.at(st);
             } else {
                 continue;
@@ -218,12 +215,16 @@ namespace wrld::rsc {
                 }
             }
 
-            compile_shader(gl_shaders[st], preprocess_source(source, st));
+            wrld_try_init(preproc_sources, preprocess_source(source, st));
+
+            compile_shader(gl_shaders[st], preproc_sources);
             glAttachShader(gl_program, gl_shaders[st]);
         }
 
         glLinkProgram(gl_program);
         compiled_once = true;
+
+        return {};
     }
 
     void Program::set_uniform(const std::string &uniform,
