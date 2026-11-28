@@ -217,7 +217,11 @@ namespace wrld::rsc {
 
             wrld_try_init(preproc_sources, preprocess_source(source, st));
 
-            compile_shader(gl_shaders[st], preproc_sources);
+            Result<void> res = compile_shader(gl_shaders[st], preproc_sources);
+            if (res.is_err()) {
+                return res.as_err();
+            }
+
             glAttachShader(gl_program, gl_shaders[st]);
         }
 
